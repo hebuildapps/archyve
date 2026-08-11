@@ -1,0 +1,41 @@
+{
+  "manifest_version": 3,
+  "name": "Archyve V2",
+  "version": "2.0.0",
+  "description": "AI-powered research intelligence layer for the academic web.",
+  "permissions": [
+    "activeTab",
+    "storage",
+    "contextMenus"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://ieeexplore.ieee.org/document/*",
+        "https://link.springer.com/article/*",
+        "https://link.springer.com/chapter/*",
+        "https://link.springer.com/referenceworkentry/*",
+        "https://www.sciencedirect.com/science/article/pii/*",
+        "https://www.jstor.org/stable/*",
+        "https://arxiv.org/abs/*"
+      ],
+      "js": ["content.js"],
+      "run_at": "document_end"
+    }
+  ],
+  "action": {
+    "default_title": "Analyze with Archyve"
+  },
+  "commands": {
+    "trigger_archyve": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+H",
+        "mac": "Command+Shift+H"
+      },
+      "description": "Analyze the active academic paper with Archyve"
+    }
+  }
+}

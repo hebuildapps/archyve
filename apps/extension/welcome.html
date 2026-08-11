@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Welcome to Archyve V2</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: #fafafa;
+      color: #18181b;
+      margin: 0;
+      padding: 48px 24px;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+    .container {
+      max-width: 500px;
+      margin: 0 auto;
+      background-color: #ffffff;
+      border: 1px solid #e4e4e7;
+      border-radius: 12px;
+      padding: 32px;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+      text-align: center;
+    }
+    h1 {
+      font-family: Georgia, serif;
+      font-size: 24px;
+      margin-top: 0;
+      margin-bottom: 12px;
+      font-weight: 600;
+    }
+    p {
+      color: #52525b;
+      font-size: 13px;
+      margin-bottom: 24px;
+    }
+    .btn-action {
+      display: inline-block;
+      background-color: #18181b;
+      color: #ffffff;
+      text-decoration: none;
+      padding: 10px 20px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+    }
+    .btn-action:hover {
+      opacity: 0.9;
+    }
+    .step-list {
+      text-align: left;
+      margin: 24px 0;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .step-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+    }
+    .step-num {
+      width: 20px;
+      height: 20px;
+      background-color: #f4f4f5;
+      border: 1px solid #e4e4e7;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 600;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+    .step-text {
+      font-size: 12px;
+      color: #3f3f46;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Welcome to Archyve V2</h1>
+    <p>Your premium academic literature intelligence layer is installed. Let's finish your configuration.</p>
+
+    <div class="step-list">
+      <div class="step-item">
+        <span class="step-num">1</span>
+        <div class="step-text">Configure your API host path (defaults to https://archyve.app or http://localhost:3000 for local runs).</div>
+      </div>
+      <div class="step-item">
+        <span class="step-num">2</span>
+        <div class="step-text">Configure your Google Gemini API Key locally (BYOK mode) in Settings.</div>
+      </div>
+      <div class="step-item">
+        <span class="step-num">3</span>
+        <div class="step-text">Trigger analysis on any supported publisher page via context menus, hotkeys (Ctrl+Shift+H), or the icon.</div>
+      </div>
+    </div>
+
+    <button id="configure-btn" class="btn-action">Configure Settings Now</button>
+  </div>
+  <script src="welcome.js"></script>
+</body>
+</html>

@@ -1,0 +1,14 @@
+{
+  "name": "@archyve/extension",
+  "version": "2.0.0",
+  "private": true,
+  "scripts": {
+    "build": "tsup && copy manifest.json dist\\manifest.json && copy options.html dist\\options.html && copy welcome.html dist\\welcome.html",
+    "dev": "tsup --watch"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.268",
+    "tsup": "^8.0.2",
+    "typescript": "^5.3.3"
+  }
+}

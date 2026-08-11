@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Archyve Settings</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: #fafafa;
+      color: #18181b;
+      margin: 0;
+      padding: 24px;
+      font-size: 14px;
+    }
+    .container {
+      max-width: 480px;
+      margin: 0 auto;
+      background-color: #ffffff;
+      border: 1px solid #e4e4e7;
+      border-radius: 12px;
+      padding: 24px;
+      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+    }
+    h1 {
+      font-family: Georgia, serif;
+      font-size: 20px;
+      margin-top: 0;
+      margin-bottom: 24px;
+      font-weight: 600;
+    }
+    .form-group {
+      margin-bottom: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    label {
+      font-size: 12px;
+      font-weight: 600;
+      color: #52525b;
+    }
+    input[type="text"], input[type="password"] {
+      padding: 8px 12px;
+      border-radius: 6px;
+      border: 1px solid #e4e4e7;
+      font-size: 13px;
+      outline: none;
+    }
+    input[type="text"]:focus, input[type="password"]:focus {
+      border-color: #a1a1aa;
+    }
+    .hint {
+      font-size: 11px;
+      color: #71717a;
+      line-height: 1.4;
+    }
+    .btn-save {
+      background-color: #18181b;
+      color: #ffffff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      margin-top: 8px;
+    }
+    .btn-save:hover {
+      opacity: 0.9;
+    }
+    .status-msg {
+      margin-top: 12px;
+      font-size: 12px;
+      font-weight: 500;
+      color: #16a34a;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Archyve Settings</h1>
+    
+    <div class="form-group">
+      <label for="web-url">Web App Host URL</label>
+      <input type="text" id="web-url" placeholder="https://archyve.app">
+      <span class="hint">Configure this to http://localhost:3000 during local development/testing.</span>
+    </div>
+
+    <div class="form-group">
+      <label for="api-key">Google Gemini API Key (BYOK)</label>
+      <input type="password" id="api-key" placeholder="AIzaSy...">
+      <span class="hint">API Key is saved locally in extension storage.</span>
+    </div>
+
+    <button id="save-btn" class="btn-save">Save Configuration</button>
+    <div id="status" class="status-msg">Settings saved successfully.</div>
+  </div>
+  <script src="options.js"></script>
+</body>
+</html>
