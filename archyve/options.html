@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <title>Options</title>
+</head>
+
+<body class="light-mode">
+    <header style="display: flex; justify-content: space-around; align-items: center; padding: 10px;">
+        <div class="icon">
+            <img src="icons/open-in-scihub-icon-128x128.png" alt="Sci-Hub Logo">
+        </div>
+        <div>
+            <h1>Customize</h1>
+        </div>
+        <div style="display: flex;">
+            <a class="betterwork-ai" href="https://www.betterworkai.org" target="_blank">
+                betterwork.ai
+            </a>
+        </div>
+    </header>
+    <main style="margin:30px" class="container">
+        <section style="font-size: large;">
+            <label>
+                <input type="checkbox" id="enable-icon-click">
+                Open by clicking pinned extension icon
+            </label>
+        </section>
+
+        <section style="font-size: large;">
+            <label>
+                <input type="checkbox" id="enable-hotkey">
+                Open by hitting 'Ctrl+Shift+H'
+            </label>
+        </section>
+
+        <section style="font-size: large;">
+            <label for="scihub-domain">Sci-Hub Domain Preference:</label>
+            <input type="text" id="scihub-domain" placeholder="https://www.sci-hub.ru/">
+            <section style="margin-top: 70px;">
+                <p> &#8227; <u>Just for Sci-Hub:</u> </p>
+                <p>If you can't open up the access for research paper,</p>
+                <p>Try changing the domain preference for Sci-Hub</p>
+                <p><a href="https://www.google.com/search?q=sci-hub+/+mirrors" target="_blank">Check mirror-links of
+                        Sci-Hub here</a></p>
+                <p> > check for such search result:</p>
+                <img style="height: 120px; width: auto; border-radius: 20px; "
+                    src="icons/Screenshot 2025-02-17 161551.png" alt="Sci-Hub Mirror Link">
+            </section>
+        </section>
+        <a style="cursor: pointer;" href="https://www.betterworkai.org/blogs/" target="_blank">
+            <button>
+                <img src="icons/button (1).gif">
+            </button>
+        </a>
+
+    </main>
+
+    <script src="options.js"></script>
+</body>
+
+</html>

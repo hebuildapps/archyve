@@ -1,0 +1,65 @@
+
+body {
+    font-family: "Outfit", sans-serif;
+    font-size: 18px;
+    margin: 0;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+
+h1 {
+    font-size: 30px;
+    margin: 20px;
+}
+
+header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: #373368;
+    color: white;
+    padding: 10px 20px;
+}
+
+header .icon img {
+    width: 40px;
+    height: auto;
+    margin-right: 10px;
+    padding-left: 20px;
+}
+
+main {
+    padding: 20px;
+}
+
+section {
+    margin-bottom: 20px;
+}
+
+
+
+label {
+    display: flex;
+    align-items: center;
+}
+
+input[type="text"] {
+    width: 100%;
+    padding: 8px;
+    margin-top: 8px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    background-color: #fff;
+    color: #000;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.betterwork-ai{
+    color: #bdbbb7;
+    padding-top: 6px;
+    font-size:20px;
+    font-weight: bold;
+    letter-spacing: -1px;
+    font-family: Arial, Helvetica, sans-serif;
+    text-decoration: none; 
+}
