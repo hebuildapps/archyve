@@ -48,7 +48,10 @@ export async function POST(req: NextRequest) {
     }
     
     // 2. Validate API Key header
-    const apiKey = req.headers.get('x-gemini-key');
+    const apiKey = req.headers.get('x-gemini-key') || req.headers.get('x-groq-key') || req.headers.get('x-ai-key');
+    const provider = req.headers.get('x-ai-provider') || 'gemini';
+    const model = req.headers.get('x-ai-model');
+
     if (!apiKey) {
       return NextResponse.json(
         { error: 'API key is required for dossier generation. Please configure it in Settings.' },
@@ -104,7 +107,7 @@ export async function POST(req: NextRequest) {
     const mergedPaper = validateAndMergeMetadata(paper, crossrefData, openalexData);
     
     // 7. AI Analysis (Interpretation Phase)
-    const dossier = await generateResearchDossier(mergedPaper, openAccessResult, apiKey);
+    const dossier = await generateResearchDossier(mergedPaper, openAccessResult, apiKey, provider, model);
     
     // 8. Attach Attributions
     const sources: Source[] = [

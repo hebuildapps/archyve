@@ -1,8 +1,10 @@
 import { NormalizedPaper, ResearchResult } from '@archyve/shared';
 import { OpenAccessResult } from '../enrichment/unpaywall';
 import { GeminiProvider } from './providers/GeminiProvider';
+import { GroqProvider } from './providers/GroqProvider';
 
 const geminiProvider = new GeminiProvider();
+const groqProvider = new GroqProvider();
 
 /**
  * Orchestrates AI Analysis by routing requests to the configured provider using the user's API Key.
@@ -10,7 +12,9 @@ const geminiProvider = new GeminiProvider();
 export async function generateResearchDossier(
   paper: NormalizedPaper,
   openAccess: OpenAccessResult,
-  apiKey?: string | null
+  apiKey?: string | null,
+  provider?: string | null,
+  model?: string | null
 ): Promise<ResearchResult> {
   // If API key is missing, return a detailed mock dossier to prevent hard failures
   if (!apiKey) {
@@ -19,7 +23,8 @@ export async function generateResearchDossier(
   }
 
   try {
-    return await geminiProvider.generateResearchResult(paper, openAccess, apiKey);
+    const activeProvider = provider === 'groq' ? groqProvider : geminiProvider;
+    return await activeProvider.generateResearchResult(paper, openAccess, apiKey, model || undefined);
   } catch (error) {
     console.error('AI Provider analysis failed:', error);
     // Fall back to a gracefully constructed mock dossier

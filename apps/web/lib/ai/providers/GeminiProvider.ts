@@ -101,7 +101,7 @@ export class GeminiProvider implements AIProvider {
     apiKey: string,
     model?: string
   ): Promise<ResearchResult> {
-    const targetModel = model || process.env.AI_MODEL || 'gemini-1.5-flash';
+    const targetModel = model || process.env.AI_MODEL || 'gemini-2.5-flash';
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${targetModel}:generateContent?key=${apiKey}`;
 
     const prompt = `You are a premium scientific research intelligence system.

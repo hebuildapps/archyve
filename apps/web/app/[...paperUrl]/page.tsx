@@ -29,6 +29,8 @@ export default function ResearchDossierPage() {
   const [sessionToken, setSessionToken] = useState<string | null>(null);
   const [hasApiKey, setHasApiKey] = useState(false);
   const [apiKey, setApiKey] = useState<string | null>(null);
+  const [provider, setProvider] = useState<string>('gemini');
+  const [model, setModel] = useState<string>('gemini-2.5-flash');
   
   // Paper & Dossier states
   const [paper, setPaper] = useState<NormalizedPaper | null>(null);
@@ -74,7 +76,13 @@ export default function ResearchDossierPage() {
       }
 
       // Check keyStore
-      const key = keyStore.getApiKey();
+      const currentProvider = keyStore.getProvider();
+      const key = keyStore.getApiKey(currentProvider);
+      const currentModel = keyStore.getModel(currentProvider);
+
+      setProvider(currentProvider);
+      setModel(currentModel);
+
       if (key) {
         setHasApiKey(true);
         setApiKey(key);
@@ -202,7 +210,9 @@ export default function ResearchDossierPage() {
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${sessionToken}`,
-            'x-gemini-key': apiKey || '',
+            'x-ai-provider': provider,
+            'x-ai-model': model,
+            'x-ai-key': apiKey || '',
           },
           body: JSON.stringify({ paper }),
         });
