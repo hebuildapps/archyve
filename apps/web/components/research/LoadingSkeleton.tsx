@@ -11,6 +11,8 @@ interface LoadingSkeletonProps {
   steps?: LoadingStep[];
   paperTitle?: string;
   paperAuthors?: string[];
+  progressPercent?: number;
+  statusMessage?: string;
 }
 
 const defaultSteps: LoadingStep[] = [
@@ -21,10 +23,18 @@ const defaultSteps: LoadingStep[] = [
   { id: 'ai', label: 'Generating structured AI dossier analysis', status: 'pending' },
 ];
 
-export function LoadingSkeleton({ steps = defaultSteps, paperTitle, paperAuthors }: LoadingSkeletonProps) {
-  // Compute progress percentage based on completed steps (20% per step)
+export function LoadingSkeleton({ 
+  steps = defaultSteps, 
+  paperTitle, 
+  paperAuthors,
+  progressPercent: customProgressPercent,
+  statusMessage
+}: LoadingSkeletonProps) {
+  // Compute progress percentage based on completed steps or custom value
   const completedCount = steps.filter((s) => s.status === 'completed').length;
-  const progressPercent = Math.min(completedCount * 20, 100);
+  const progressPercent = typeof customProgressPercent === 'number' 
+    ? customProgressPercent 
+    : Math.min(completedCount * 20, 105); // cap or clamp later
 
   return (
     <div className="space-y-6 max-w-xl mx-auto py-12 px-4 font-sans">
@@ -66,16 +76,21 @@ export function LoadingSkeleton({ steps = defaultSteps, paperTitle, paperAuthors
           <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-zinc-450 dark:text-zinc-500">
             Research Progress
           </span>
-          <div className="text-2xl font-bold font-mono text-zinc-900 dark:text-zinc-50">
-            {progressPercent}%
+          <div className="text-2xl font-bold font-mono text-zinc-900 dark:text-zinc-50 flex items-baseline justify-between">
+            <span>{Math.min(progressPercent, 100)}%</span>
+            {statusMessage && (
+              <span className="text-[11px] font-sans font-medium text-zinc-500 dark:text-zinc-400 animate-pulse">
+                {statusMessage}
+              </span>
+            )}
           </div>
         </div>
 
         {/* Progress bar track */}
         <div className="w-full h-2 bg-zinc-100 dark:bg-zinc-800 rounded-full overflow-hidden">
           <div 
-            className="h-full bg-zinc-950 dark:bg-zinc-50 rounded-full transition-all duration-500 ease-out"
-            style={{ width: `${progressPercent}%` }}
+            className="h-full bg-zinc-950 dark:bg-zinc-50 rounded-full transition-all duration-300 ease-out"
+            style={{ width: `${Math.min(progressPercent, 100)}%` }}
           />
         </div>
       </div>
