@@ -32,7 +32,10 @@ export class ArxivAdapter implements PublisherAdapter {
     }
   }
 
-  async fetchMetadata(url: string): Promise<NormalizedPaper | null> {
+  async fetchMetadata(
+    url: string,
+    onProgress?: (status: string, percentage: number) => void
+  ): Promise<NormalizedPaper | null> {
     if (!this.supports(url)) return null;
 
     const { publisherId, doi } = this.parseUrl(url);

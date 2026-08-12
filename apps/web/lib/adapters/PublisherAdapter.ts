@@ -21,5 +21,8 @@ export interface PublisherAdapter {
    * Can perform HTTP requests to fetch page headers/meta tag contents,
    * or call public APIs (like Crossref or OpenAlex or Publisher public APIs).
    */
-  fetchMetadata(url: string): Promise<NormalizedPaper | null>;
+  fetchMetadata(
+    url: string,
+    onProgress?: (status: string, percentage: number) => void
+  ): Promise<NormalizedPaper | null>;
 }

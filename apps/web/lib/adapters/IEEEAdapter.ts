@@ -1,6 +1,7 @@
 import { PublisherAdapter } from './PublisherAdapter';
 import { NormalizedPaper } from '@archyve/shared';
 import { extractAcademicMetaTags } from '../utils/metaExtractor';
+import { scrapeIEEEWithBrightData, normalizeIEEE } from './brightdata';
 
 export class IEEEAdapter implements PublisherAdapter {
   name = 'ieee';
@@ -27,12 +28,30 @@ export class IEEEAdapter implements PublisherAdapter {
     }
   }
 
-  async fetchMetadata(url: string): Promise<NormalizedPaper | null> {
+  async fetchMetadata(
+    url: string,
+    onProgress?: (status: string, percentage: number) => void
+  ): Promise<NormalizedPaper | null> {
     if (!this.supports(url)) return null;
 
     const { publisherId } = this.parseUrl(url);
     if (!publisherId) return null;
 
+    // 1. Try scraping with Bright Data
+    try {
+      const paper = await scrapeIEEEWithBrightData(url, onProgress);
+      if (paper && paper.title && !paper.title.startsWith('IEEE Document') && paper.authors.length > 0 && paper.authors[0] !== 'Unknown Author') {
+        return paper;
+      }
+      
+      // If Bright Data returned partial info, check if we can run fallback to get more metadata
+      console.warn('Bright Data returned partial metadata, running fallback direct scrape...');
+    } catch (err) {
+      console.error('Bright Data scraping failed, running fallback direct scrape:', err);
+    }
+
+    // 2. Fallback to direct HTTP scraping of the IEEE Explore page
+    onProgress?.('Bright Data partial/failed, trying direct scrape fallback...', 16);
     try {
       const response = await fetch(url, {
         headers: {
@@ -66,10 +85,10 @@ export class IEEEAdapter implements PublisherAdapter {
         url: url,
         abstract: meta.abstract || null,
         publisherId: publisherId,
-        confidenceScore: title && meta.authors.length > 0 ? 0.9 : 0.5,
+        confidenceScore: title && meta.authors.length > 0 ? 0.9 : 0.4,
       };
     } catch (error) {
-      console.error('Error in IEEEAdapter:', error);
+      console.error('Error in IEEEAdapter fallback direct scrape:', error);
       return {
         title: `IEEE Document ${publisherId}`,
         authors: ['Unknown Author'],
