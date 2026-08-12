@@ -43,7 +43,7 @@ export default function SettingsPage() {
   const [testStatus, setTestStatus] = useState<'idle' | 'testing' | 'success' | 'error'>('idle');
   const [testMessage, setTestMessage] = useState('');
 
-  const fallbackGemini = ['gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-1.5-flash', 'gemini-1.5-pro'];
+  const fallbackGemini = ['gemini-3.5-flash', 'gemini-3.6-pro'];
   const fallbackGroq = ['llama-3.3-70b-versatile', 'mixtral-8x7b-32768', 'gemma2-9b-it', 'llama-3.1-8b-instant'];
 
   const fetchModels = async (currentProvider: string, currentApiKey: string) => {
@@ -199,7 +199,7 @@ export default function SettingsPage() {
           setTestMessage(`Connection failed: ${errMsg}`);
         }
       } else {
-        const targetModel = model.trim() || 'gemini-2.5-flash';
+        const targetModel = model.trim() || 'gemini-3.5-flash';
         const url = `https://generativelanguage.googleapis.com/v1beta/models/${targetModel}:generateContent?key=${apiKey}`;
         const response = await fetch(url, {
           method: 'POST',

@@ -6,49 +6,49 @@ import { OpenAccessResult } from '../../enrichment/unpaywall';
 const geminiResponseSchema = {
   type: "OBJECT",
   properties: {
-    summary: { 
-      type: "STRING", 
+    summary: {
+      type: "STRING",
       description: "A concise, editorial explanation of the paper's core premise, methodology, and outcome."
     },
-    keyContributions: { 
-      type: "ARRAY", 
+    keyContributions: {
+      type: "ARRAY",
       items: { type: "STRING" },
       description: "List of the most significant novel contributions made by the paper."
     },
     readRecommendation: {
       type: "OBJECT",
       properties: {
-        score: { 
-          type: "NUMBER", 
+        score: {
+          type: "NUMBER",
           description: "An assessment score from 1.0 (least relevant) to 5.0 (highly recommended/foundational)."
         },
-        explanation: { 
-          type: "STRING", 
+        explanation: {
+          type: "STRING",
           description: "A short, persuasive argument for why or why not a researcher should invest time reading this paper."
         },
-        relevanceTopics: { 
-          type: "ARRAY", 
+        relevanceTopics: {
+          type: "ARRAY",
           items: { type: "STRING" },
           description: "Specific technical domains or keywords where this paper is highly relevant (e.g. Transformers, NLP, attention mechanisms)."
         },
-        difficulty: { 
-          type: "STRING", 
+        difficulty: {
+          type: "STRING",
           enum: ["beginner", "intermediate", "advanced"],
           description: "Technical reading difficulty assessment."
         },
-        estimatedReadingTime: { 
-          type: "STRING", 
+        estimatedReadingTime: {
+          type: "STRING",
           description: "Approximate reading time estimate (e.g. '15-20 min')."
         }
       },
       required: ["score", "explanation", "relevanceTopics", "difficulty", "estimatedReadingTime"]
     },
-    researchContext: { 
-      type: "STRING", 
+    researchContext: {
+      type: "STRING",
       description: "Explains where this paper fits into its broader scientific domain and literature."
     },
-    relatedConcepts: { 
-      type: "ARRAY", 
+    relatedConcepts: {
+      type: "ARRAY",
       items: { type: "STRING" },
       description: "List of related academic concepts or theories relevant to understanding this paper."
     },
@@ -101,7 +101,7 @@ export class GeminiProvider implements AIProvider {
     apiKey: string,
     model?: string
   ): Promise<ResearchResult> {
-    const targetModel = model || process.env.AI_MODEL || 'gemini-2.5-flash';
+    const targetModel = model || process.env.AI_MODEL || 'gemini-3.5-flash';
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${targetModel}:generateContent?key=${apiKey}`;
 
     const prompt = `You are a premium scientific research intelligence system.

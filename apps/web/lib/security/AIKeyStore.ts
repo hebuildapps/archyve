@@ -42,11 +42,11 @@ export class LocalAIKeyStore implements AIKeyStore {
   }
 
   getModel(provider?: string): string {
-    if (typeof window === 'undefined') return 'gemini-2.5-flash';
+    if (typeof window === 'undefined') return 'gemini-3.5-flash';
     const currentProvider = provider || this.getProvider();
     const stored = localStorage.getItem(`archyve_${currentProvider}_model`);
     if (stored) return stored;
-    return currentProvider === 'groq' ? 'llama-3.3-70b-versatile' : 'gemini-2.5-flash';
+    return currentProvider === 'groq' ? 'llama-3.3-70b-versatile' : 'gemini-3.5-flash';
   }
 
   setModel(model: string, provider?: string): void {
