@@ -36,11 +36,50 @@ export function validateAndMergeMetadata(
   let apiMatch: Partial<NormalizedPaper> | null = null;
   let source = 'scraped';
 
-  // Determine which API to trust if available
-  if (crossref && crossref.title && getTitleSimilarity(adapterPaper.title, crossref.title) > 0.5) {
+  // For IEEE papers, validate that DOIs end with or contain the IEEE document ID
+  const isIEEE = adapterPaper.url.includes('ieeexplore.ieee.org') || adapterPaper.publisher?.toLowerCase() === 'ieee';
+  const docId = adapterPaper.publisherId;
+
+  const validateIeeeDoi = (doiToCheck?: string | null): boolean => {
+    if (!doiToCheck || !docId) return false;
+    const cleanDoi = doiToCheck.toLowerCase().trim().replace(/\/$/, '');
+    return cleanDoi.endsWith(docId.toLowerCase());
+  };
+
+  let crossrefMatch = false;
+  let openalexMatch = false;
+
+  if (crossref && crossref.title) {
+    if (isIEEE && docId) {
+      crossrefMatch = validateIeeeDoi(crossref.doi);
+    } else {
+      crossrefMatch = getTitleSimilarity(adapterPaper.title, crossref.title) > 0.5;
+    }
+  }
+
+  if (openalex && openalex.title) {
+    if (isIEEE && docId) {
+      openalexMatch = validateIeeeDoi(openalex.doi);
+    } else {
+      openalexMatch = getTitleSimilarity(adapterPaper.title, openalex.title) > 0.5;
+    }
+  }
+
+  // If both APIs returned matches but they disagree on the identity (different DOIs)
+  if (crossrefMatch && openalexMatch && crossref?.doi && openalex?.doi) {
+    const cleanCr = crossref.doi.toLowerCase().trim().replace(/\/$/, '');
+    const cleanOa = openalex.doi.toLowerCase().trim().replace(/\/$/, '');
+    if (cleanCr !== cleanOa) {
+      console.warn('Enrichment mismatch: Crossref and OpenAlex resolved to different DOIs.');
+      merged.confidenceScore = 0.0;
+      return merged;
+    }
+  }
+
+  if (crossrefMatch) {
     apiMatch = crossref;
     source = 'crossref';
-  } else if (openalex && openalex.title && getTitleSimilarity(adapterPaper.title, openalex.title) > 0.5) {
+  } else if (openalexMatch) {
     apiMatch = openalex;
     source = 'openalex';
   }
@@ -62,8 +101,15 @@ export function validateAndMergeMetadata(
     merged.confidenceScore = 0.95;
   } else {
     // No API matched successfully, or similarity was too low (flagged as potentially mismatched)
-    console.warn(`Source validation warning: low similarity between adapter scraped metadata and APIs for "${adapterPaper.title}"`);
-    merged.confidenceScore = Math.min(merged.confidenceScore, 0.4); // Downgrade confidence
+    console.warn(`Source validation warning: low similarity or validation mismatch for "${adapterPaper.title}"`);
+    const isThin = adapterPaper.title.startsWith('IEEE Document') || 
+                   adapterPaper.authors.includes('Unknown Author') || 
+                   isIEEE;
+    if (isThin) {
+      merged.confidenceScore = 0.0; // Block AI synthesis
+    } else {
+      merged.confidenceScore = Math.min(merged.confidenceScore, 0.4); // Downgrade confidence
+    }
   }
 
   return merged;
