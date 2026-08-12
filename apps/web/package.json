@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "npm run build --prefix ../../packages/shared && next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "node ieee-regression-test.js"
   },
   "dependencies": {
     "next": "16.3.0",
