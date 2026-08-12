@@ -19,27 +19,31 @@ import { AlertCircle, ArrowLeft, Key, Lock, Settings } from 'lucide-react';
 export default function ResearchDossierPage() {
   const params = useParams();
   const router = useRouter();
-  
+
   // Page states
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  
+
   // Auth & API Key states
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [sessionToken, setSessionToken] = useState<string | null>(null);
   const [hasApiKey, setHasApiKey] = useState(false);
   const [apiKey, setApiKey] = useState<string | null>(null);
   const [provider, setProvider] = useState<string>('gemini');
-  const [model, setModel] = useState<string>('gemini-2.5-flash');
-  
+  const [model, setModel] = useState<string>('gemini-3.5-flash');
+
   // Paper & Dossier states
   const [paper, setPaper] = useState<NormalizedPaper | null>(null);
   const [result, setResult] = useState<ResearchResult | null>(null);
   const [isNewPaper, setIsNewPaper] = useState(false);
   const [paperUrl, setPaperUrl] = useState<string>('');
-  
+
   // Generation trigger state
   const [generationTriggered, setGenerationTriggered] = useState(false);
+
+  // Live progress states
+  const [currentPercent, setCurrentPercent] = useState<number>(0);
+  const [statusMessage, setStatusMessage] = useState<string>('Initializing...');
 
   // Progressive loader steps indicator
   const [steps, setSteps] = useState<LoadingStep[]>([
@@ -98,7 +102,7 @@ export default function ResearchDossierPage() {
   // Fetch /api/research (Cache lookup & scrape checkpoint)
   useEffect(() => {
     if (!paperUrl) return;
-    
+
     let isMounted = true;
     const controller = new AbortController();
 
@@ -106,6 +110,8 @@ export default function ResearchDossierPage() {
       try {
         setLoading(true);
         setError(null);
+        setCurrentPercent(0);
+        setStatusMessage('Starting research...');
 
         const res = await fetch('/api/research', {
           method: 'POST',
@@ -124,33 +130,74 @@ export default function ResearchDossierPage() {
           throw new Error(errData.error || `Server returned ${res.status}`);
         }
 
-        const data = await res.json();
+        const reader = res.body?.getReader();
+        if (!reader) {
+          throw new Error('ReadableStream not supported by browser.');
+        }
 
-        if (isMounted) {
-          if (data.isNew) {
-            // Cache miss: 20% scraped checkpoint reached
-            setPaper(data.paper);
-            setIsNewPaper(true);
-            
-            // Mark first step completed in progress steps
-            setSteps((prev) =>
-              prev.map((s) =>
-                s.id === 'identify'
-                  ? { ...s, status: 'completed' }
-                  : s.id === 'cache'
-                  ? { ...s, status: 'loading' }
-                  : s
-              )
-            );
-            
-            // Turn off standard loading to display gate cards
-            setLoading(false);
-          } else {
-            // Cache Hit: Completed dossier returned
-            setPaper(data.paper);
-            setResult(data.result);
-            setSteps((prev) => prev.map((s) => ({ ...s, status: 'completed' })));
-            setLoading(false);
+        const decoder = new TextDecoder();
+        let buffer = '';
+
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n');
+          buffer = lines.pop() || '';
+
+          for (const line of lines) {
+            if (!line.trim()) continue;
+            const chunk = JSON.parse(line);
+
+            if (chunk.status === 'error') {
+              throw new Error(chunk.message || 'Error occurred during lookup');
+            }
+
+            if (isMounted) {
+              if (chunk.percentage !== undefined) {
+                setCurrentPercent(chunk.percentage);
+              }
+              if (chunk.message) {
+                setStatusMessage(chunk.message);
+              }
+
+              // Update visual checklist steps based on status
+              setSteps((prev) =>
+                prev.map((s) => {
+                  if (chunk.status === 'cache' && s.id === 'identify') return { ...s, status: 'completed' };
+                  if (chunk.status === 'cache' && s.id === 'cache') return { ...s, status: 'loading' };
+                  if (chunk.status === 'scraping' && s.id === 'identify') return { ...s, status: 'loading' };
+                  if (chunk.status === 'enriching' && s.id === 'identify') return { ...s, status: 'completed' };
+                  if (chunk.status === 'enriching' && s.id === 'cache') return { ...s, status: 'completed' };
+                  if (chunk.status === 'enriching' && s.id === 'metadata') return { ...s, status: 'loading' };
+                  if (chunk.status === 'validating' && s.id === 'metadata') return { ...s, status: 'loading' };
+                  return s;
+                })
+              );
+
+              if (chunk.status === 'checkpoint' && chunk.data) {
+                setPaper(chunk.data.paper);
+                setIsNewPaper(true);
+                setSteps((prev) =>
+                  prev.map((s) =>
+                    s.id === 'identify' || s.id === 'cache' || s.id === 'metadata'
+                      ? { ...s, status: 'completed' }
+                      : s.id === 'open_access'
+                      ? { ...s, status: 'loading' }
+                      : s
+                  )
+                );
+                setLoading(false);
+              }
+
+              if (chunk.status === 'completed' && chunk.data) {
+                setPaper(chunk.data.paper);
+                setResult(chunk.data.result);
+                setSteps((prev) => prev.map((s) => ({ ...s, status: 'completed' })));
+                setLoading(false);
+              }
+            }
           }
         }
       } catch (err: any) {
@@ -180,29 +227,9 @@ export default function ResearchDossierPage() {
     let isMounted = true;
 
     async function generateDossier() {
-      // Re-enable loading state to display step-by-step progress
       setLoading(true);
-
-      const updateStep = (id: string, status: 'loading' | 'completed' | 'pending') => {
-        if (!isMounted) return;
-        setSteps((prev) => prev.map((s) => (s.id === id ? { ...s, status } : s)));
-      };
-
-      // Simulate steps progression
-      const timer1 = setTimeout(() => {
-        updateStep('cache', 'completed');
-        updateStep('metadata', 'loading');
-      }, 1500);
-
-      const timer2 = setTimeout(() => {
-        updateStep('metadata', 'completed');
-        updateStep('open_access', 'loading');
-      }, 3000);
-
-      const timer3 = setTimeout(() => {
-        updateStep('open_access', 'completed');
-        updateStep('ai', 'loading');
-      }, 4500);
+      setCurrentPercent(20);
+      setStatusMessage('Resuming generation pipeline...');
 
       try {
         const res = await fetch('/api/research/generate', {
@@ -217,23 +244,71 @@ export default function ResearchDossierPage() {
           body: JSON.stringify({ paper }),
         });
 
-        clearTimeout(timer1);
-        clearTimeout(timer2);
-        clearTimeout(timer3);
-
         if (!res.ok) {
           const errData = await res.json().catch(() => ({}));
           throw new Error(errData.error || `Generation error: status ${res.status}`);
         }
 
-        const data = await res.json();
+        const reader = res.body?.getReader();
+        if (!reader) {
+          throw new Error('ReadableStream not supported by browser.');
+        }
 
-        if (isMounted) {
-          setSteps((prev) => prev.map((s) => ({ ...s, status: 'completed' })));
-          setPaper(data.paper);
-          setResult(data.result);
-          setIsNewPaper(false); // dossier fully generated
-          setLoading(false);
+        const decoder = new TextDecoder();
+        let buffer = '';
+
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n');
+          buffer = lines.pop() || '';
+
+          for (const line of lines) {
+            if (!line.trim()) continue;
+            const chunk = JSON.parse(line);
+
+            if (chunk.status === 'error') {
+              throw new Error(chunk.message || 'Generation failed');
+            }
+
+            if (isMounted) {
+              if (chunk.percentage !== undefined) {
+                setCurrentPercent(chunk.percentage);
+              }
+              if (chunk.message) {
+                setStatusMessage(chunk.message);
+              }
+
+              // Update step indicator status
+              setSteps((prev) =>
+                prev.map((s) => {
+                  if (chunk.status === 'enriching') {
+                    if (s.id === 'identify' || s.id === 'cache') return { ...s, status: 'completed' };
+                    if (s.id === 'metadata') return { ...s, status: 'loading' };
+                  }
+                  if (chunk.status === 'validating') {
+                    if (s.id === 'metadata') return { ...s, status: 'completed' };
+                    if (s.id === 'open_access') return { ...s, status: 'loading' };
+                  }
+                  if (chunk.status === 'interpreting') {
+                    if (s.id === 'metadata' || s.id === 'open_access') return { ...s, status: 'completed' };
+                    if (s.id === 'ai') return { ...s, status: 'loading' };
+                  }
+                  return s;
+                })
+              );
+
+              if (chunk.status === 'completed' && chunk.data) {
+                setSteps((prev) => prev.map((s) => ({ ...s, status: 'completed' })));
+                setPaper(chunk.data.paper);
+                setResult(chunk.data.result);
+                setIsNewPaper(false);
+                setLoading(false);
+              }
+            }
+          }
         }
       } catch (err: any) {
         if (isMounted) {
@@ -254,7 +329,13 @@ export default function ResearchDossierPage() {
   if (loading) {
     return (
       <main className="flex-1 bg-bg-base dark:bg-bg-base-dark flex flex-col justify-center min-h-screen">
-        <LoadingSkeleton steps={steps} paperTitle={paper?.title} paperAuthors={paper?.authors} />
+        <LoadingSkeleton 
+          steps={steps} 
+          paperTitle={paper?.title} 
+          paperAuthors={paper?.authors} 
+          progressPercent={currentPercent}
+          statusMessage={statusMessage}
+        />
       </main>
     );
   }
@@ -319,12 +400,12 @@ export default function ResearchDossierPage() {
           <div className="rounded-2xl bg-[#09090b] border border-zinc-800 p-8 shadow-2xl space-y-6 text-center text-white relative overflow-hidden max-w-lg mx-auto">
             {/* Soft background glow */}
             <div className="absolute inset-0 bg-gradient-to-b from-violet-950/20 to-transparent pointer-events-none" />
-            
+
             <div className="relative z-10 space-y-6">
               <div className="w-12 h-12 rounded-xl bg-violet-600/10 text-violet-400 border border-violet-500/20 flex items-center justify-center mx-auto shadow-[0_0_20px_rgba(139,92,246,0.3)]">
                 <Lock className="w-5 h-5" />
               </div>
-              
+
               <div className="space-y-2">
                 <h2 className="text-lg font-sans font-semibold tracking-tight">
                   Want to complete your research analysis?
@@ -333,7 +414,7 @@ export default function ResearchDossierPage() {
                   Unlock metadata discovery, legal open-access PDF finders, and structured AI-powered insights for this paper.
                 </p>
               </div>
-              
+
               <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
                 <button
                   onClick={() => router.push(`/login?resumeUrl=${encodeURIComponent(window.location.pathname)}`)}
@@ -383,12 +464,12 @@ export default function ResearchDossierPage() {
           <div className="rounded-2xl bg-[#09090b] border border-zinc-800 p-8 shadow-2xl space-y-6 text-center text-white relative overflow-hidden max-w-lg mx-auto">
             {/* Soft background glow */}
             <div className="absolute inset-0 bg-gradient-to-b from-amber-950/20 to-transparent pointer-events-none" />
-            
+
             <div className="relative z-10 space-y-6">
               <div className="w-12 h-12 rounded-xl bg-amber-600/10 text-amber-400 border border-amber-500/20 flex items-center justify-center mx-auto shadow-[0_0_20px_rgba(245,158,11,0.3)]">
                 <Key className="w-5 h-5" />
               </div>
-              
+
               <div className="space-y-2">
                 <h2 className="text-lg font-sans font-semibold tracking-tight">
                   Gemini API Key Required
@@ -397,7 +478,7 @@ export default function ResearchDossierPage() {
                   You are logged in, but you haven&apos;t configured your Gemini API key yet. Archyve operates in BYOK-mode to keep services sustainable.
                 </p>
               </div>
-              
+
               <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
                 <button
                   onClick={() => router.push('/settings')}
@@ -445,7 +526,7 @@ export default function ResearchDossierPage() {
         />
 
         <SummarySection summary={result.summary} />
-        
+
         <ShouldIReadCard
           score={result.readRecommendation.score}
           explanation={result.readRecommendation.explanation}
