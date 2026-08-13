@@ -234,12 +234,16 @@ export default function ResearchDossierPage() {
       console.log('[FRONTEND] setStatus/Message called: Resuming generation pipeline...');
 
       try {
+        // Fetch fresh session token dynamically to ensure it has not expired
+        const { data: { session: freshSession } } = await supabaseClient.auth.getSession();
+        const activeToken = freshSession?.access_token || sessionToken;
+
         console.log('[FRONTEND] fetch /api/research/generate START');
         const res = await fetch('/api/research/generate', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${sessionToken}`,
+            'Authorization': `Bearer ${activeToken}`,
             'x-ai-provider': provider,
             'x-ai-model': model,
             'x-ai-key': apiKey || '',

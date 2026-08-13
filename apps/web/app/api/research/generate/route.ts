@@ -41,8 +41,9 @@ export async function POST(req: NextRequest) {
       }
     });
 
-    const { data: { user }, error: authError } = await client.auth.getUser();
+    const { data: { user }, error: authError } = await client.auth.getUser(token);
     if (authError || !user) {
+      console.error('Supabase auth error in generate route:', authError);
       return NextResponse.json(
         { error: 'Unauthorized: Invalid or expired session' },
         { status: 401 }
