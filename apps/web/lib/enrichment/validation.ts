@@ -46,12 +46,44 @@ export function validateAndMergeMetadata(
     return cleanDoi.endsWith(docId.toLowerCase());
   };
 
+  const checkAuthorsOverlap = (a1: string[], a2: string[]): boolean => {
+    if (a1.includes('Unknown Author') || a2.includes('Unknown Author') || a1.length === 0 || a2.length === 0) {
+      return true;
+    }
+    const cleanName = (n: string) => n.toLowerCase().replace(/[^a-z0-9]/g, '').trim();
+    const set1 = new Set(a1.map(cleanName));
+    const set2 = new Set(a2.map(cleanName));
+    for (const a of set1) {
+      if (set2.has(a)) return true;
+    }
+    const getLastName = (n: string) => {
+      const parts = n.toLowerCase().split(/\s+/);
+      return parts[parts.length - 1] || '';
+    };
+    const lastSet1 = new Set(a1.map(getLastName).filter(l => l.length > 2));
+    const lastSet2 = new Set(a2.map(getLastName).filter(l => l.length > 2));
+    for (const l of lastSet1) {
+      if (lastSet2.has(l)) return true;
+    }
+    return false;
+  };
+
+  const checkPublisher = (pub?: string | null): boolean => {
+    if (!pub) return true;
+    const p = pub.toLowerCase();
+    return p.includes('ieee') || p.includes('institute of electrical') || p.includes('microwave') || p.includes('wireless');
+  };
+
   let crossrefMatch = false;
   let openalexMatch = false;
 
   if (crossref && crossref.title) {
     if (isIEEE && docId) {
-      crossrefMatch = validateIeeeDoi(crossref.doi);
+      const doiMatch = validateIeeeDoi(crossref.doi);
+      const titleMatch = adapterPaper.title.startsWith('IEEE Document') || getTitleSimilarity(adapterPaper.title, crossref.title) > 0.5;
+      const authorsMatch = checkAuthorsOverlap(adapterPaper.authors, crossref.authors || []);
+      const pubMatch = checkPublisher(crossref.publisher);
+      crossrefMatch = doiMatch && titleMatch && authorsMatch && pubMatch;
     } else {
       crossrefMatch = getTitleSimilarity(adapterPaper.title, crossref.title) > 0.5;
     }
@@ -59,7 +91,11 @@ export function validateAndMergeMetadata(
 
   if (openalex && openalex.title) {
     if (isIEEE && docId) {
-      openalexMatch = validateIeeeDoi(openalex.doi);
+      const doiMatch = validateIeeeDoi(openalex.doi);
+      const titleMatch = adapterPaper.title.startsWith('IEEE Document') || getTitleSimilarity(adapterPaper.title, openalex.title) > 0.5;
+      const authorsMatch = checkAuthorsOverlap(adapterPaper.authors, openalex.authors || []);
+      const pubMatch = checkPublisher(openalex.publisher);
+      openalexMatch = doiMatch && titleMatch && authorsMatch && pubMatch;
     } else {
       openalexMatch = getTitleSimilarity(adapterPaper.title, openalex.title) > 0.5;
     }
