@@ -7,6 +7,8 @@ export interface AIProvider {
     paper: NormalizedPaper,
     openAccess: OpenAccessResult,
     apiKey: string,
-    model?: string
+    model?: string,
+    relatedPapers?: any[],
+    implementations?: any[]
   ): Promise<ResearchResult>;
 }

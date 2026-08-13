@@ -3,6 +3,9 @@ import { OpenAccessResult } from '../enrichment/unpaywall';
 import { GeminiProvider } from './providers/GeminiProvider';
 import { GroqProvider } from './providers/GroqProvider';
 
+import { fetchRelatedPapers } from '../enrichment/related';
+import { searchGithubImplementations } from '../enrichment/github';
+
 const geminiProvider = new GeminiProvider();
 const groqProvider = new GroqProvider();
 
@@ -22,9 +25,30 @@ export async function generateResearchDossier(
     return getMockDossier(paper, openAccess);
   }
 
+  // 1. Research retrieval (scholarly papers & code implementations)
+  console.log('>> [Pipeline] Running external retrieval for related literature and code...');
+  const [relatedPapers, implementations] = await Promise.all([
+    fetchRelatedPapers(paper.title, paper.doi, paper.authors).catch((err) => {
+      console.error('Related papers retrieval failed:', err);
+      return [];
+    }),
+    searchGithubImplementations(paper.title).catch((err) => {
+      console.error('GitHub implementations retrieval failed:', err);
+      return [];
+    }),
+  ]);
+  console.log(`>> [Pipeline] Retrieved relatedPapers: ${relatedPapers.length}, implementations: ${implementations.length}`);
+
   try {
     const activeProvider = provider === 'groq' ? groqProvider : geminiProvider;
-    return await activeProvider.generateResearchResult(paper, openAccess, apiKey, model || undefined);
+    return await activeProvider.generateResearchResult(
+      paper,
+      openAccess,
+      apiKey,
+      model || undefined,
+      relatedPapers,
+      implementations
+    );
   } catch (error) {
     console.error('AI Provider analysis failed:', error);
     // Fall back to a gracefully constructed mock dossier

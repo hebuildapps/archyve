@@ -99,10 +99,31 @@ export class GeminiProvider implements AIProvider {
     paper: NormalizedPaper,
     openAccess: OpenAccessResult,
     apiKey: string,
-    model?: string
+    model?: string,
+    relatedPapers: any[] = [],
+    implementations: any[] = []
   ): Promise<ResearchResult> {
     const targetModel = model || process.env.AI_MODEL || 'gemini-3.5-flash';
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${targetModel}:generateContent?key=${apiKey}`;
+
+    // Format retrieved records as context
+    const relatedPapersContext = relatedPapers.length > 0
+      ? relatedPapers.map((p, i) => `[Paper #${i + 1}]
+Title: ${p.title}
+Authors: ${p.authors.join(', ')}
+URL: ${p.url || 'N/A'}
+DOI: ${p.doi || 'N/A'}
+Publication Year: ${p.publicationYear || 'N/A'}
+Venue: ${p.venue || 'N/A'}`).join('\n\n')
+      : 'NO RELATED PAPERS FOUND.';
+
+    const implementationsContext = implementations.length > 0
+      ? implementations.map((impl, i) => `[Repo #${i + 1}]
+Name: ${impl.name}
+URL: ${impl.url}
+Type: ${impl.type}
+Stars: ${impl.stars}`).join('\n\n')
+      : 'NO CODE IMPLEMENTATIONS FOUND.';
 
     const prompt = `You are a premium scientific research intelligence system.
 Analyze this academic paper metadata and generate a structured research dossier:
@@ -114,8 +135,21 @@ Publication Year: ${paper.publicationYear || 'N/A'}
 Venue: ${paper.venue || 'N/A'}
 Abstract: ${paper.abstract || 'N/A'}
 
-Analyze the paper's contents objectively. Help researchers evaluate whether it is worth reading.
-Return the output matching the requested schema structure strictly.`;
+---
+RETRIEVED CONTEXT (Only select from these lists. DO NOT invent or hallucinate other entries):
+
+VERIFIED RELATED LITERATURE:
+${relatedPapersContext}
+
+VERIFIED CODE IMPLEMENTATIONS/REPOSITORIES:
+${implementationsContext}
+
+---
+CRITICAL INSTRUCTIONS FOR RETRIEVED CONTEXT:
+1. For 'relatedPapers' in the JSON schema, you MUST only use papers listed under 'VERIFIED RELATED LITERATURE' above. Do not invent any new papers or URLs. If 'NO RELATED PAPERS FOUND' is indicated, you MUST return an empty array [].
+2. For 'implementations' in the JSON schema, you MUST only use repositories listed under 'VERIFIED CODE IMPLEMENTATIONS/REPOSITORIES' above. Do not invent any new repositories or URLs. If 'NO CODE IMPLEMENTATIONS FOUND' is indicated, you MUST return an empty array [].
+3. Analyze the paper's contents objectively. Help researchers evaluate whether it is worth reading.
+4. Return the output matching the requested schema structure strictly.`;
 
     const response = await fetch(url, {
       method: 'POST',
@@ -148,6 +182,46 @@ Return the output matching the requested schema structure strictly.`;
     }
 
     const parsedData = JSON.parse(textOutput);
+
+    // Post-generation validation layer: filter out any candidates not matching verified retrieval results
+    const verifiedRelated: any[] = [];
+    if (Array.isArray(parsedData.relatedPapers) && relatedPapers.length > 0) {
+      for (const p of parsedData.relatedPapers) {
+        // Find match by title similarity
+        const match = relatedPapers.find(
+          (ref) => ref.title.toLowerCase().replace(/[^a-z0-9]/g, '') === p.title.toLowerCase().replace(/[^a-z0-9]/g, '')
+        );
+        if (match) {
+          verifiedRelated.push({
+            title: match.title,
+            authors: match.authors,
+            url: match.url || p.url || '',
+            relationship: p.relationship || 'Related literature reference',
+          });
+        }
+      }
+    }
+
+    const verifiedImpls: any[] = [];
+    if (Array.isArray(parsedData.implementations) && implementations.length > 0) {
+      for (const impl of parsedData.implementations) {
+        // Find match by URL
+        const match = implementations.find(
+          (ref) => ref.url.toLowerCase().trim() === impl.url.toLowerCase().trim()
+        );
+        if (match) {
+          verifiedImpls.push({
+            name: match.name,
+            url: match.url,
+            type: match.type,
+            stars: match.stars,
+          });
+        }
+      }
+    }
+
+    parsedData.relatedPapers = verifiedRelated;
+    parsedData.implementations = verifiedImpls;
 
     // Merge in the open access details and an empty sources array
     const fullResult = {
