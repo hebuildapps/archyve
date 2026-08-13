@@ -1,7 +1,7 @@
 'use client';
 export const dynamic = 'force-dynamic';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { ResearchResult, NormalizedPaper } from '@archyve/shared';
 import { keyStore } from '@/lib/security/AIKeyStore';
@@ -39,7 +39,7 @@ export default function ResearchDossierPage() {
   const [paperUrl, setPaperUrl] = useState<string>('');
 
   // Generation trigger state
-  const [generationTriggered, setGenerationTriggered] = useState(false);
+  const generationTriggeredRef = useRef(false);
 
   // Live progress states
   const [currentPercent, setCurrentPercent] = useState<number>(0);
@@ -219,19 +219,23 @@ export default function ResearchDossierPage() {
   // Authenticated Generation Flow (resuming after checkpoint gate)
   useEffect(() => {
     // Check constraints: must be a new paper, authenticated, key present, paper details ready, and not triggered yet
-    if (!isNewPaper || !isAuthenticated || !hasApiKey || !paper || !sessionToken || generationTriggered) {
+    if (!isNewPaper || !isAuthenticated || !hasApiKey || !paper || !sessionToken || generationTriggeredRef.current) {
       return;
     }
 
-    setGenerationTriggered(true);
+    generationTriggeredRef.current = true;
     let isMounted = true;
 
     async function generateDossier() {
+      console.log('[FRONTEND] generateDossier() START');
       setLoading(true);
       setCurrentPercent(20);
+      console.log('[FRONTEND] setProgress called: 20');
       setStatusMessage('Resuming generation pipeline...');
+      console.log('[FRONTEND] setStatus/Message called: Resuming generation pipeline...');
 
       try {
+        console.log('[FRONTEND] fetch /api/research/generate START');
         const res = await fetch('/api/research/generate', {
           method: 'POST',
           headers: {
@@ -244,6 +248,7 @@ export default function ResearchDossierPage() {
           body: JSON.stringify({ paper }),
         });
 
+        console.log('[FRONTEND] fetch /api/research/generate RESPONSE RECEIVED:', res.status);
         if (!res.ok) {
           const errData = await res.json().catch(() => ({}));
           throw new Error(errData.error || `Generation error: status ${res.status}`);
@@ -259,7 +264,10 @@ export default function ResearchDossierPage() {
 
         while (true) {
           const { value, done } = await reader.read();
-          if (done) break;
+          if (done) {
+            console.log('[FRONTEND] stream reader done = true');
+            break;
+          }
 
           buffer += decoder.decode(value, { stream: true });
           const lines = buffer.split('\n');
@@ -267,7 +275,9 @@ export default function ResearchDossierPage() {
 
           for (const line of lines) {
             if (!line.trim()) continue;
+            console.log('[FRONTEND] stream chunk received:', line);
             const chunk = JSON.parse(line);
+            console.log('[FRONTEND] parsed progress event:', chunk);
 
             if (chunk.status === 'error') {
               throw new Error(chunk.message || 'Generation failed');
@@ -276,9 +286,11 @@ export default function ResearchDossierPage() {
             if (isMounted) {
               if (chunk.percentage !== undefined) {
                 setCurrentPercent(chunk.percentage);
+                console.log('[FRONTEND] setProgress called:', chunk.percentage);
               }
               if (chunk.message) {
                 setStatusMessage(chunk.message);
+                console.log('[FRONTEND] setStatus/Message called:', chunk.message);
               }
 
               // Update step indicator status
@@ -301,16 +313,21 @@ export default function ResearchDossierPage() {
               );
 
               if (chunk.status === 'completed' && chunk.data) {
+                console.log('[FRONTEND] Final completed dossier response received:', chunk.data);
                 setSteps((prev) => prev.map((s) => ({ ...s, status: 'completed' })));
                 setPaper(chunk.data.paper);
                 setResult(chunk.data.result);
                 setIsNewPaper(false);
                 setLoading(false);
               }
+            } else {
+              console.warn('[FRONTEND] Ignored chunk because isMounted is false');
             }
           }
         }
+        console.log('[FRONTEND] Stream reading completed successfully');
       } catch (err: any) {
+        console.error('[FRONTEND] Error in generateDossier:', err);
         if (isMounted) {
           setError(err.message || 'AI dossier generation failed.');
           setLoading(false);
@@ -321,9 +338,10 @@ export default function ResearchDossierPage() {
     generateDossier();
 
     return () => {
+      console.log('[FRONTEND] useEffect generateDossier cleanup, setting isMounted = false');
       isMounted = false;
     };
-  }, [isNewPaper, isAuthenticated, hasApiKey, paper, sessionToken, apiKey, generationTriggered]);
+  }, [isNewPaper, isAuthenticated, hasApiKey, paper, sessionToken, apiKey, provider, model]);
 
   // Loading View
   if (loading) {
