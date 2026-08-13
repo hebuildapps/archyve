@@ -28,6 +28,41 @@ export class IEEEAdapter implements PublisherAdapter {
     }
   }
 
+  async resolveIeeeFromRestApi(publisherId: string, url: string): Promise<NormalizedPaper | null> {
+    const restUrl = `https://ieeexplore.ieee.org/rest/document/${publisherId}/abstract`;
+    try {
+      const res = await fetch(restUrl, {
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+          'Accept': 'application/json',
+          'Referer': 'https://ieeexplore.ieee.org/',
+        }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const title = data.title || '';
+        const authors = Array.isArray(data.authors) ? data.authors.map((a: any) => a.name) : [];
+        return {
+          title: title || `IEEE Document ${publisherId}`,
+          authors: authors.length > 0 ? authors : ['Unknown Author'],
+          doi: data.doi || null,
+          publisher: data.publisher || 'IEEE',
+          publicationYear: typeof data.publicationYear === 'number' 
+            ? data.publicationYear 
+            : (data.publicationYear ? parseInt(data.publicationYear) : null),
+          venue: data.publicationTitle || null,
+          url: url,
+          abstract: data.abstract || null,
+          publisherId: publisherId,
+          confidenceScore: title && authors.length > 0 ? 0.9 : 0.4,
+        };
+      }
+    } catch (error) {
+      console.error('Error in IEEEAdapter REST lookup:', error);
+    }
+    return null;
+  }
+
   async fetchMetadata(
     url: string,
     onProgress?: (status: string, percentage: number) => void
@@ -44,13 +79,23 @@ export class IEEEAdapter implements PublisherAdapter {
         return paper;
       }
       
-      // If Bright Data returned partial info, check if we can run fallback to get more metadata
-      console.warn('Bright Data returned partial metadata, running fallback direct scrape...');
+      console.warn('Bright Data returned partial metadata, attempting IEEE REST lookup...');
     } catch (err) {
-      console.error('Bright Data scraping failed, running fallback direct scrape:', err);
+      console.error('Bright Data scraping failed, attempting IEEE REST lookup:', err);
     }
 
-    // 2. Fallback to direct HTTP scraping of the IEEE Explore page
+    // 2. Try the WAF-free internal REST lookup
+    try {
+      onProgress?.('Attempting identifier-based REST lookup...', 12);
+      const restPaper = await this.resolveIeeeFromRestApi(publisherId, url);
+      if (restPaper && restPaper.title && !restPaper.title.startsWith('IEEE Document') && restPaper.authors[0] !== 'Unknown Author') {
+        return restPaper;
+      }
+    } catch (restErr) {
+      console.error('IEEE REST lookup failed, falling back to direct scrape:', restErr);
+    }
+
+    // 3. Fallback to direct HTTP scraping of the IEEE Explore page
     onProgress?.('Bright Data partial/failed, trying direct scrape fallback...', 16);
     try {
       const response = await fetch(url, {
