@@ -12,3 +12,5 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 .vercel/
+tasks.md
+task.md
