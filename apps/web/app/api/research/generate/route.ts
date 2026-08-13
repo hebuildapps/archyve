@@ -34,11 +34,6 @@ export async function POST(req: NextRequest) {
         persistSession: false,
         autoRefreshToken: false,
       },
-      global: {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      }
     });
 
     const { data: { user }, error: authError } = await client.auth.getUser(token);

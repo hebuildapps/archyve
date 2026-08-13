@@ -13,10 +13,10 @@ export function ResearchContextSection({
 }: ResearchContextSectionProps) {
   return (
     <section className="mb-10 space-y-8">
-      {/* Key Contributions */}
+      {/*Key Technical Points Identified */}
       <div>
         <h2 className="text-xs font-mono uppercase tracking-wider text-zinc-400 dark:text-zinc-500 mb-3">
-          Key Contributions
+          Key Technical Points Identified
         </h2>
         <ul className="space-y-2.5">
           {keyContributions.map((contribution, index) => (
