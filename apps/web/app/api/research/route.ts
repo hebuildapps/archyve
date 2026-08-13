@@ -48,24 +48,30 @@ export async function POST(req: NextRequest) {
         try {
           // 1. Resolve identifiers
           const urlIdentifiers = adapter.parseUrl(url);
+          console.log('>> RESEARCH ROUTE START. identifiers:', JSON.stringify(urlIdentifiers));
           const identifierKey = urlIdentifiers.doi || urlIdentifiers.publisherId || url;
           const cacheKey = getCacheKey(identifierKey);
           
           sendUpdate('cache', 2, 'Checking cache & database persistence...');
 
           // 2. L1 Cache Lookup (Upstash Redis)
+          console.log('>> Checking L1 Redis cache for key:', cacheKey);
           const cachedDossier = await getCachedResult(cacheKey);
           if (cachedDossier) {
+            console.log('>> L1 Redis Cache Hit!');
             const latencyMs = Date.now() - startTime;
             logAnalytics(null, trigger, true, latencyMs).catch(console.error);
             sendUpdate('completed', 100, 'Loaded from cache.', cachedDossier);
             controller.close();
             return;
           }
+          console.log('>> L1 Redis Cache Miss.');
           
           // 3. L2 Cache Lookup (Supabase Database)
+          console.log('>> Checking L2 Supabase DB...');
           const dbRecord = await getStoredPaper(url, urlIdentifiers.doi);
           if (dbRecord) {
+            console.log('>> L2 Supabase DB Hit! Caching result to Redis...');
             setCachedResult(cacheKey, dbRecord).catch(console.error);
             const latencyMs = Date.now() - startTime;
             logAnalytics(null, trigger, true, latencyMs).catch(console.error);
@@ -73,32 +79,40 @@ export async function POST(req: NextRequest) {
             controller.close();
             return;
           }
+          console.log('>> L2 Supabase DB Miss.');
 
           // 4. Scrape publisher metadata (0% - 15%)
+          console.log('>> Triggering publisher adapter fetchMetadata...');
           sendUpdate('scraping', 5, `Contacting ${adapter.name.toUpperCase()} publisher scraper...`);
           
           const adapterPaper = await adapter.fetchMetadata(url, (statusText, percentOffset) => {
-            // Keep scraper percentage between 5% and 15%
             const mappedPercent = 5 + Math.round((percentOffset / 100) * 10);
+            console.log(`>> Scraper progress: ${mappedPercent}% - ${statusText}`);
             sendUpdate('scraping', mappedPercent, statusText);
           });
 
           if (!adapterPaper) {
+            console.error('>> Scraper returned null paper!');
             sendUpdate('error', 0, `Failed to scrape paper metadata using adapter: ${adapter.name}`);
             controller.close();
             return;
           }
+          console.log('>> Scraped Paper Metadata:', JSON.stringify(adapterPaper));
 
           // 5. Query Crossref/OpenAlex/Unpaywall for identity validation before 20% checkpoint
+          console.log('>> Querying Crossref/OpenAlex for 20% identity check...');
           sendUpdate('enriching', 15, 'Querying discovery sources for identity validation...');
           let doi = adapterPaper.doi || urlIdentifiers.doi;
           if (!doi && adapterPaper.title && !adapterPaper.title.startsWith('IEEE Document')) {
+            console.log('>> DOI missing, querying findDoiByTitleAndAuthor...');
             doi = await findDoiByTitleAndAuthor(adapterPaper.title, adapterPaper.authors);
+            console.log('>> Resolved DOI:', doi);
           }
 
           let crossrefData = null;
           let openalexData = null;
           if (doi) {
+            console.log('>> Fetching crossref and openalex for validation...');
             const [cr, oa] = await Promise.all([
               fetchCrossrefMetadata(doi).catch(() => null),
               fetchOpenAlexMetadata(doi).catch(() => null),
@@ -107,23 +121,29 @@ export async function POST(req: NextRequest) {
             openalexData = oa;
           }
 
+          console.log('>> Running validateAndMergeMetadata for 20% checkpoint...');
           sendUpdate('validating', 18, 'Validating resolved paper identity...');
           const validatedPaper = validateAndMergeMetadata(adapterPaper, crossrefData, openalexData);
+          console.log('>> 20% validation complete. Confidence Score:', validatedPaper.confidenceScore);
 
           if (validatedPaper.confidenceScore < 0.5) {
+            console.log('>> Confidence Score too low (<0.5). Blocking checkpoint.');
             sendUpdate('error', 0, 'Could not confidently validate paper identity.');
             controller.close();
             return;
           }
 
           // 6. Reach 20% checkpoint
+          console.log('>> Reached 20% checkpoint. Emitting checkpoint chunk.');
           sendUpdate('checkpoint', 20, 'Paper identity confidently validated. Checkpoint reached.', {
             paper: validatedPaper,
             isNew: true,
           });
           controller.close();
+          console.log('>> RESEARCH ROUTE STREAM CLOSED');
 
         } catch (streamError: any) {
+          console.error('>> RESEARCH ROUTE RUNTIME ERROR:', streamError);
           sendUpdate('error', 0, streamError.message || 'Stream processing error');
           controller.close();
         }
