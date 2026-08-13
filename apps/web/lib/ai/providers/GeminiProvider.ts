@@ -145,11 +145,13 @@ VERIFIED CODE IMPLEMENTATIONS/REPOSITORIES:
 ${implementationsContext}
 
 ---
-CRITICAL INSTRUCTIONS FOR RETRIEVED CONTEXT:
-1. For 'relatedPapers' in the JSON schema, you MUST only use papers listed under 'VERIFIED RELATED LITERATURE' above. Do not invent any new papers or URLs. If 'NO RELATED PAPERS FOUND' is indicated, you MUST return an empty array [].
-2. For 'implementations' in the JSON schema, you MUST only use repositories listed under 'VERIFIED CODE IMPLEMENTATIONS/REPOSITORIES' above. Do not invent any new repositories or URLs. If 'NO CODE IMPLEMENTATIONS FOUND' is indicated, you MUST return an empty array [].
-3. Analyze the paper's contents objectively. Help researchers evaluate whether it is worth reading.
-4. Return the output matching the requested schema structure strictly.`;
+CRITICAL PROVENANCE AND CLAIM SAFETY RULES:
+1. Do NOT present AI inference or synthesis as direct statements from the authors. Use qualifying language when interpreting (e.g., "The abstract indicates...", "Based on the text, the authors propose...").
+2. Do NOT invent or guess any facts, publication years, DOIs, authors, or quantitative results (e.g., specific measurement metrics or decibels) that are not directly supported by the target paper metadata and abstract.
+3. For 'relatedPapers' in the JSON schema, you MUST only use papers listed under 'VERIFIED RELATED LITERATURE' above. For each, preserve their title/authors exactly, and describe their relationship to our main paper. Do not invent any new papers or URLs. If 'NO RELATED PAPERS FOUND' is indicated, you MUST return an empty array [].
+4. For 'implementations' in the JSON schema, you MUST only use repositories listed under 'VERIFIED CODE IMPLEMENTATIONS/REPOSITORIES' above. Do not invent any new repositories or URLs. If 'NO CODE IMPLEMENTATIONS FOUND' is indicated, you MUST return an empty array [].
+5. Analyze the paper's contents objectively. Help researchers evaluate whether it is worth reading.
+6. Return the output matching the requested schema structure strictly.`;
 
     const response = await fetch(url, {
       method: 'POST',

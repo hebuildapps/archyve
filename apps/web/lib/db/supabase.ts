@@ -175,7 +175,7 @@ export async function storePaperResult(
 
     if (resultError || !resultData) {
       console.error('Supabase research result store error:', resultError);
-      return paperId;
+      return null;
     }
 
     const resultId = resultData.id;
@@ -196,6 +196,7 @@ export async function storePaperResult(
       const { error: sourcesError } = await supabase.from('sources').insert(sourcesPayload);
       if (sourcesError) {
         console.error('Supabase sources insertion error:', sourcesError);
+        return null;
       }
     }
 

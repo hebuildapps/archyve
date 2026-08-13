@@ -1,5 +1,4 @@
 import { NormalizedPaper } from '@archyve/shared';
-import { fetchOpenAlexMetadata } from './openalex';
 
 export interface RelatedPaperResult {
   title: string;
@@ -9,6 +8,7 @@ export interface RelatedPaperResult {
   publicationYear?: number;
   venue?: string;
   publisher?: string;
+  relationship?: string;
 }
 
 /**
@@ -34,6 +34,21 @@ function getTitleSimilarity(t1: string, t2: string): number {
 }
 
 /**
+ * Extract clean technical keywords from a title
+ */
+function getTechnicalKeywords(title: string): string[] {
+  const stopWords = new Set([
+    'with', 'from', 'that', 'this', 'their', 'using', 'design', 'high', 'low', 'power', 
+    'novel', 'excellent', 'mixer', 'mixer', 'based', 'performance', 'mode', 'matching'
+  ]);
+  return title
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, '')
+    .split(/\s+/)
+    .filter(word => word.length > 3 && !stopWords.has(word));
+}
+
+/**
  * Fetches related papers from OpenAlex using related_works references or title similarity fallback.
  */
 export async function fetchRelatedPapers(
@@ -42,9 +57,9 @@ export async function fetchRelatedPapers(
   authors?: string[]
 ): Promise<RelatedPaperResult[]> {
   const headers = { 'User-Agent': 'ArchyveResearchAgent/2.0 (mailto:hello@archyve.app)' };
-  let candidateWorks: any[] = [];
+  let candidateWorks: { item: any; source: 'related_works' | 'search_fallback' }[] = [];
 
-  // Try fetching via OpenAlex related_works IDs
+  // Try fetching via OpenAlex related_works IDs (explicit scholarly citation relationships)
   if (doi) {
     try {
       const cleanDoi = doi.trim();
@@ -56,7 +71,6 @@ export async function fetchRelatedPapers(
         const relatedWorksUrls: string[] = item.related_works || [];
         
         if (relatedWorksUrls.length > 0) {
-          // Take first 5 related works
           const ids = relatedWorksUrls
             .slice(0, 5)
             .map(id => id.replace('https://openalex.org/', ''))
@@ -68,7 +82,7 @@ export async function fetchRelatedPapers(
             if (batchRes.ok) {
               const batchData = await batchRes.json();
               if (batchData.results && Array.isArray(batchData.results)) {
-                candidateWorks = batchData.results;
+                candidateWorks = batchData.results.map((r: any) => ({ item: r, source: 'related_works' }));
               }
             }
           }
@@ -79,7 +93,7 @@ export async function fetchRelatedPapers(
     }
   }
 
-  // Fallback: title search on OpenAlex
+  // Fallback: title search on OpenAlex (loose/technical similarities)
   if (candidateWorks.length === 0 && title && !title.startsWith('IEEE Document')) {
     try {
       const query = encodeURIComponent(title.toLowerCase().replace(/[^a-z0-9\s]/g, ''));
@@ -88,7 +102,7 @@ export async function fetchRelatedPapers(
       if (response.ok) {
         const data = await response.json();
         if (data.results && Array.isArray(data.results)) {
-          candidateWorks = data.results;
+          candidateWorks = data.results.map((r: any) => ({ item: r, source: 'search_fallback' }));
         }
       }
     } catch (err) {
@@ -98,17 +112,16 @@ export async function fetchRelatedPapers(
 
   const validated: RelatedPaperResult[] = [];
   const cleanTargetTitle = title.toLowerCase().trim();
+  const targetKeywords = getTechnicalKeywords(title);
 
   // Validate candidates
-  for (const item of candidateWorks) {
+  for (const { item, source } of candidateWorks) {
     const candidateTitle = item.title;
     if (!candidateTitle) continue;
 
-    // Check similarity: must NOT be the exact same paper (similarity should not be 1.0)
-    // but should have some domain overlap (similarity > 0.05)
+    // Check similarity: must NOT be the exact same paper (similarity should not be > 0.9)
     const similarity = getTitleSimilarity(cleanTargetTitle, candidateTitle.toLowerCase().trim());
     if (similarity > 0.9) {
-      // It is the same paper (duplicate), reject
       continue;
     }
 
@@ -122,7 +135,6 @@ export async function fetchRelatedPapers(
     }
 
     if (candidateAuthors.length === 0) {
-      // Must have authors
       continue;
     }
 
@@ -131,8 +143,26 @@ export async function fetchRelatedPapers(
     const candidateUrl = item.doi || item.ids?.wikipedia || null;
 
     if (!candidateUrl) {
-      // Must have authoritative URL
       continue;
+    }
+
+    // Relevance verification layer
+    let relationship = 'Related literature';
+    
+    if (source === 'related_works') {
+      // Explicit citation graph relationship verified by OpenAlex profile
+      relationship = 'Related work via scholarly citation graph';
+    } else {
+      // For search fallbacks, enforce strict keyword overlap validation to reject loose/vague matches
+      const candidateKeywords = getTechnicalKeywords(candidateTitle);
+      const overlap = targetKeywords.filter(k => candidateKeywords.includes(k));
+      
+      if (overlap.length < 2 && similarity < 0.15) {
+        // Reject as loose/unrelated title match
+        console.log(`>> [Relevance] Rejected candidate "${candidateTitle}" (low overlap/similarity).`);
+        continue;
+      }
+      relationship = `Related literature matching technical terms: ${overlap.join(', ')}`;
     }
 
     const publicationYear = item.publication_year ? parseInt(item.publication_year, 10) : undefined;
@@ -147,6 +177,7 @@ export async function fetchRelatedPapers(
       publicationYear,
       venue,
       publisher,
+      relationship,
     });
   }
 

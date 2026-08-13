@@ -67,9 +67,11 @@ The JSON output must exactly match this structure:
 }
 
 ---
-CRITICAL INSTRUCTIONS:
-1. For 'relatedPapers', you MUST only select from the list under VERIFIED RELATED LITERATURE below. Do not invent any new papers or URLs. If 'NO RELATED PAPERS FOUND' is indicated, return an empty array [].
-2. For 'implementations', you MUST only select from the list under VERIFIED CODE IMPLEMENTATIONS/REPOSITORIES below. Do not invent any new repositories or URLs. If 'NO CODE IMPLEMENTATIONS FOUND' is indicated, return an empty array [].`;
+CRITICAL PROVENANCE AND CLAIM SAFETY RULES:
+1. Do NOT present AI inference or synthesis as direct statements from the authors. Use qualifying language when interpreting (e.g., "The abstract indicates...", "Based on the text, the authors propose...").
+2. Do NOT invent or guess any facts, publication years, DOIs, authors, or quantitative results (e.g., specific measurement metrics or decibels) that are not directly supported by the target paper metadata and abstract.
+3. For 'relatedPapers', you MUST only select from the list under VERIFIED RELATED LITERATURE below. For each, preserve their title/authors exactly, and describe their relationship to our main paper. Do not invent any new papers or URLs. If 'NO RELATED PAPERS FOUND' is indicated, return an empty array [].
+4. For 'implementations', you MUST only select from the list under VERIFIED CODE IMPLEMENTATIONS/REPOSITORIES below. Do not invent any new repositories or URLs. If 'NO CODE IMPLEMENTATIONS FOUND' is indicated, return an empty array [].`;
  
     const userPrompt = `Analyze this academic paper metadata and generate the dossier:
  

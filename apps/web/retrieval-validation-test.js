@@ -1,163 +1,111 @@
 /**
  * Unit Test for Research Retrieval Layer (Related Papers & Code implementations).
- * Uses static mocked fixtures to test verification logic and validation filtering in isolation.
+ * Uses static mocked fixtures to test relationship relevance validation in isolation.
  */
 
-// Simulated post-processing validation layer from GeminiProvider/GroqProvider
-function postProcessValidation(parsedData, relatedPapers, implementations) {
-  const verifiedRelated = [];
-  if (Array.isArray(parsedData.relatedPapers) && relatedPapers.length > 0) {
-    for (const p of parsedData.relatedPapers) {
-      const match = relatedPapers.find(
-        (ref) => ref.title.toLowerCase().replace(/[^a-z0-9]/g, '') === p.title.toLowerCase().replace(/[^a-z0-9]/g, '')
-      );
-      if (match) {
-        verifiedRelated.push({
-          title: match.title,
-          authors: match.authors,
-          url: match.url || p.url || '',
-          relationship: p.relationship || 'Related literature reference',
-        });
-      }
-    }
-  }
+const targetPaper = {
+  title: "A low power and high conversion gain 94 GHz up-conversion mixer with excellent I/O matching and LO-RF isolation in 90 nm CMOS",
+  doi: "10.1109/RWS.2016.7444399",
+  authors: ["Yo-Sheng Lin"]
+};
 
-  const verifiedImpls = [];
-  if (Array.isArray(parsedData.implementations) && implementations.length > 0) {
-    for (const impl of parsedData.implementations) {
-      const match = implementations.find(
-        (ref) => ref.url.toLowerCase().trim() === impl.url.toLowerCase().trim()
-      );
-      if (match) {
-        verifiedImpls.push({
-          name: match.name,
-          url: match.url,
-          type: match.type,
-          stars: match.stars,
-        });
-      }
-    }
-  }
-
-  return {
-    ...parsedData,
-    relatedPapers: verifiedRelated,
-    implementations: verifiedImpls
-  };
+// Re-implement Jaccard and Technical overlap validation from related.ts for isolated unit test
+function getTitleSimilarity(t1, t2) {
+  const clean = (s) => s.toLowerCase().replace(/[^a-z0-9\s]/g, '').split(/\s+/).filter(w => w.length > 2);
+  const w1 = new Set(clean(t1));
+  const w2 = new Set(clean(t2));
+  if (w1.size === 0 || w2.size === 0) return 0;
+  const intersection = new Set([...w1].filter(x => w2.has(x)));
+  const union = new Set([...w1, ...w2]);
+  return intersection.size / union.size;
 }
 
-const mockRelatedPapers = [
-  {
-    title: "A 94-GHz up-conversion mixer in 90-nm CMOS technology",
-    authors: ["John Doe", "Jane Smith"],
-    url: "https://doi.org/10.1109/12345",
-    doi: "10.1109/12345"
-  },
-  {
-    title: "Low power RF mixers in sub-micron CMOS",
-    authors: ["Alice Johnson", "Bob Brown"],
-    url: "https://doi.org/10.1109/67890",
-    doi: "10.1109/67890"
-  }
-];
+function getTechnicalKeywords(title) {
+  const stopWords = new Set([
+    'with', 'from', 'that', 'this', 'their', 'using', 'design', 'high', 'low', 'power', 
+    'novel', 'excellent', 'mixer', 'mixer', 'based', 'performance', 'mode', 'matching'
+  ]);
+  return title.toLowerCase().replace(/[^a-z0-9\s]/g, '').split(/\s+/).filter(word => word.length > 3 && !stopWords.has(word));
+}
 
-const mockImplementations = [
-  {
-    name: "yo-sheng-lin/94ghz-mixer-cmos",
-    url: "https://github.com/yo-sheng-lin/94ghz-mixer-cmos",
-    type: "github",
-    stars: 12
+function validateCandidatePaper(candidate, target) {
+  if (!candidate.title || !candidate.authors || candidate.authors.length === 0 || !candidate.url) {
+    return { valid: false, reason: 'missing metadata (fake/unverifiable)' };
   }
-];
+
+  const similarity = getTitleSimilarity(target.title, candidate.title);
+  if (similarity > 0.9) {
+    return { valid: false, reason: 'duplicate of target' };
+  }
+
+  if (candidate.source === 'related_works') {
+    return { valid: true, relationship: 'Related work via scholarly citation graph' };
+  }
+
+  // Search fallback relevance validation
+  const targetKeywords = getTechnicalKeywords(target.title);
+  const candidateKeywords = getTechnicalKeywords(candidate.title);
+  const overlap = targetKeywords.filter(k => candidateKeywords.includes(k));
+
+  if (overlap.length < 2 && similarity < 0.15) {
+    return { valid: false, reason: 'weak/unrelated match (loose search)' };
+  }
+
+  return { valid: true, relationship: `Related literature matching technical terms: ${overlap.join(', ')}` };
+}
 
 function runUnitTests() {
-  console.log('=== RUNNING RETRIEVED DATA UNIT TESTS (MOCKED FIXTURES) ===');
+  console.log('=== RUNNING RELATED PAPER RELEVANCE UNIT TESTS ===');
 
-  // Test Case A & C: Real vs Hallucinated related papers filtering
-  console.log('Testing related papers validation...');
-  const simulatedLlmOutput = {
-    relatedPapers: [
-      {
-        title: "A 94-GHz up-conversion mixer in 90-nm CMOS technology", // Matches verified mock list
-        authors: ["John Doe", "Jane Smith"],
-        url: "https://doi.org/10.1109/12345",
-        relationship: "Precursor architecture."
-      },
-      {
-        title: "Hallucinated mixer paper by LLM", // Invented by LLM
-        authors: ["Fake Author"],
-        url: "https://doi.org/10.1109/99999",
-        relationship: "No backing record"
-      }
-    ]
+  // 1. Real + Related -> Accepted
+  console.log('\nTesting Real + Related candidate (should be accepted):');
+  const relatedCandidate = {
+    title: "A 94-GHz up-conversion mixer in 90-nm CMOS technology", // shares "94-ghz", "up-conversion", "cmos"
+    authors: ["John Doe"],
+    url: "https://doi.org/10.1109/12345",
+    source: "search_fallback"
   };
-
-  const processed = postProcessValidation(simulatedLlmOutput, mockRelatedPapers, []);
-  
-  const hasRealPaper = processed.relatedPapers.some(p => p.title === "A 94-GHz up-conversion mixer in 90-nm CMOS technology");
-  const hasFakePaper = processed.relatedPapers.some(p => p.title === "Hallucinated mixer paper by LLM");
-
-  if (hasRealPaper && !hasFakePaper) {
-    console.log('✔ SUCCESS: Real related paper accepted, fake/hallucinated paper filtered out.');
+  const res1 = validateCandidatePaper(relatedCandidate, targetPaper);
+  console.log('Result:', res1);
+  if (res1.valid) {
+    console.log('✔ SUCCESS: Real + Related paper accepted.');
   } else {
-    throw new Error('FAIL: Related papers validation failed.');
+    throw new Error('FAIL: Real + Related paper rejected.');
   }
 
-  // Test Case B: Unrelated papers filtered out
-  console.log('Testing unrelated papers filter...');
-  const simulatedUnrelated = {
-    relatedPapers: [
-      {
-        title: "Introduction to machine learning algorithms", // Unrelated
-        authors: ["ML Researcher"],
-        url: "https://doi.org/10.1109/nlp-fake"
-      }
-    ]
+  // 2. Real + Weak/Unrelated -> Rejected
+  console.log('\nTesting Real + Weak/Unrelated candidate (should be rejected):');
+  const weakCandidate = {
+    title: "Introduction to CMOS VLSI Design systems", // CMOS matches but lacks mixer/94ghz topic overlap
+    authors: ["Jane VLSI"],
+    url: "https://doi.org/10.1109/54321",
+    source: "search_fallback"
   };
-  const processedUnrelated = postProcessValidation(simulatedUnrelated, mockRelatedPapers, []);
-  if (processedUnrelated.relatedPapers.length === 0) {
-    console.log('✔ SUCCESS: Unrelated paper correctly rejected.');
+  const res2 = validateCandidatePaper(weakCandidate, targetPaper);
+  console.log('Result:', res2);
+  if (!res2.valid && res2.reason.includes('weak/unrelated')) {
+    console.log('✔ SUCCESS: Real + Weak/Unrelated paper rejected.');
   } else {
-    throw new Error('FAIL: Unrelated paper was not rejected.');
+    throw new Error('FAIL: Real + Weak/Unrelated paper accepted.');
   }
 
-  // Test Case D: Real GitHub implementation accepted, fake rejected
-  console.log('Testing GitHub implementation validation...');
-  const simulatedGithubOutput = {
-    implementations: [
-      {
-        name: "yo-sheng-lin/94ghz-mixer-cmos", // Matches verified mock repo
-        url: "https://github.com/yo-sheng-lin/94ghz-mixer-cmos",
-        type: "github"
-      },
-      {
-        name: "fake-repo/hallucinated-mixer", // Hallucinated by LLM
-        url: "https://github.com/fake-repo/hallucinated-mixer",
-        type: "github"
-      }
-    ]
+  // 3. Fake/Unverifiable -> Rejected
+  console.log('\nTesting Fake/Unverifiable candidate (should be rejected):');
+  const fakeCandidate = {
+    title: "Plausible sounding paper that lacks DOI and authors",
+    authors: [],
+    url: null,
+    source: "search_fallback"
   };
-
-  const processedGithub = postProcessValidation(simulatedGithubOutput, [], mockImplementations);
-  const hasRealRepo = processedGithub.implementations.some(i => i.name === "yo-sheng-lin/94ghz-mixer-cmos");
-  const hasFakeRepo = processedGithub.implementations.some(i => i.name === "fake-repo/hallucinated-mixer");
-
-  if (hasRealRepo && !hasFakeRepo) {
-    console.log('✔ SUCCESS: Real GitHub repository accepted, fake/hallucinated repository filtered out.');
+  const res3 = validateCandidatePaper(fakeCandidate, targetPaper);
+  console.log('Result:', res3);
+  if (!res3.valid && res3.reason.includes('missing metadata')) {
+    console.log('✔ SUCCESS: Fake/unverifiable paper rejected.');
   } else {
-    throw new Error('FAIL: GitHub implementations validation failed.');
+    throw new Error('FAIL: Fake/unverifiable paper accepted.');
   }
 
-  // Test Case E: No results -> empty array
-  console.log('Testing empty candidates -> empty array...');
-  const processedEmpty = postProcessValidation(simulatedLlmOutput, [], []);
-  if (processedEmpty.relatedPapers.length === 0 && processedEmpty.implementations.length === 0) {
-    console.log('✔ SUCCESS: No candidates/verified sources returns empty arrays.');
-  } else {
-    throw new Error('FAIL: Empty candidates returned non-empty arrays.');
-  }
-
-  console.log('=== ALL UNIT TESTS PASSED SUCCESS ===');
+  console.log('\n=== ALL RELEVANCE UNIT TESTS PASSED SUCCESS ===');
 }
 
 runUnitTests();

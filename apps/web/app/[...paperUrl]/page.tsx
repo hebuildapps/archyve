@@ -47,11 +47,10 @@ export default function ResearchDossierPage() {
 
   // Progressive loader steps indicator
   const [steps, setSteps] = useState<LoadingStep[]>([
-    { id: 'identify', label: 'Resolving publisher adapter metadata', status: 'loading' },
-    { id: 'cache', label: 'Checking cache & database persistence', status: 'pending' },
-    { id: 'metadata', label: 'Enriching academic metadata (Crossref / OpenAlex)', status: 'pending' },
-    { id: 'open_access', label: 'Scanning open-access repositories (arXiv / Unpaywall)', status: 'pending' },
-    { id: 'ai', label: 'Generating structured AI dossier analysis', status: 'pending' },
+    { id: 'identify', label: 'Verifying paper identity', status: 'loading' },
+    { id: 'metadata', label: 'Retrieving related literature', status: 'pending' },
+    { id: 'open_access', label: 'Scanning open-access repositories', status: 'pending' },
+    { id: 'ai', label: 'Generating AI research dossier', status: 'pending' },
   ]);
 
   // Decode URL from segment params
@@ -297,7 +296,7 @@ export default function ResearchDossierPage() {
               setSteps((prev) =>
                 prev.map((s) => {
                   if (chunk.status === 'enriching') {
-                    if (s.id === 'identify' || s.id === 'cache') return { ...s, status: 'completed' };
+                    if (s.id === 'identify') return { ...s, status: 'completed' };
                     if (s.id === 'metadata') return { ...s, status: 'loading' };
                   }
                   if (chunk.status === 'validating') {
@@ -326,6 +325,24 @@ export default function ResearchDossierPage() {
           }
         }
         console.log('[FRONTEND] Stream reading completed successfully');
+
+        // Reconcile final state: if still loading and we have a valid paper, try fetching the cache
+        if (isMounted && paper) {
+          console.log('[FRONTEND] Reconciling final state...');
+          const checkRes = await fetch(`/api/research?url=${encodeURIComponent(paper.url)}`);
+          if (checkRes.ok) {
+            const checkData = await checkRes.json();
+            if (checkData.result) {
+              setCurrentPercent(100);
+              setSteps((prev) => prev.map((s) => ({ ...s, status: 'completed' })));
+              setPaper(checkData.paper);
+              setResult(checkData.result);
+              setIsNewPaper(false);
+              setLoading(false);
+              console.log('[FRONTEND] Reconciled successfully against final cache.');
+            }
+          }
+        }
       } catch (err: any) {
         console.error('[FRONTEND] Error in generateDossier:', err);
         if (isMounted) {

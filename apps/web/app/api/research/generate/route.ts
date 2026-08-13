@@ -214,9 +214,19 @@ export async function POST(req: NextRequest) {
           console.log('>> Persisting results...');
           sendUpdate('saving', 95, 'Persisting generated research dossier...');
           const paperId = await storePaperResult(mergedPaper, dossier);
-          console.log('>> Result stored in database. Paper ID:', paperId);
           
-          const outputData = { paper: mergedPaper, result: dossier };
+          if (!paperId) {
+            console.error('>> Database persistence failed. Degraded state.');
+            sendUpdate('degraded', 95, 'Warning: Database persistence failed. Dossier cached in Redis only.');
+          } else {
+            console.log('>> Result stored in database. Paper ID:', paperId);
+          }
+          
+          const outputData = { 
+            paper: mergedPaper, 
+            result: dossier,
+            persistenceStatus: paperId ? 'success' : 'degraded'
+          };
           
           // Cache under multiple keys to ensure page refresh can find it by URL or publisherId
           const cacheKeysToSet = new Set<string>();
