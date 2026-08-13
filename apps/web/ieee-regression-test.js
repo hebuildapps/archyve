@@ -1,7 +1,6 @@
 /**
- * Regression Test for IEEE Document 9413901.
- * Verifies that the lookup and validation pipeline resolves to "Attention Is All You Need In Speech Separation"
- * and rejects mismatched papers (e.g., Knowledge Graphs).
+ * Regression Test for IEEE Documents 9413901 and 7444399.
+ * Verifies that the lookup and validation pipeline resolves to correct papers and rejects mismatched ones.
  */
 
 function getTitleSimilarity(t1, t2) {
@@ -23,6 +22,34 @@ function getTitleSimilarity(t1, t2) {
   return intersection.size / union.size;
 }
 
+function checkAuthorsOverlap(a1, a2) {
+  if (a1.includes('Unknown Author') || a2.includes('Unknown Author') || a1.length === 0 || a2.length === 0) {
+    return true;
+  }
+  const cleanName = (n) => n.toLowerCase().replace(/[^a-z0-9]/g, '').trim();
+  const set1 = new Set(a1.map(cleanName));
+  const set2 = new Set(a2.map(cleanName));
+  for (const a of set1) {
+    if (set2.has(a)) return true;
+  }
+  const getLastName = (n) => {
+    const parts = n.toLowerCase().split(/\s+/);
+    return parts[parts.length - 1] || '';
+  };
+  const lastSet1 = new Set(a1.map(getLastName).filter(l => l.length > 2));
+  const lastSet2 = new Set(a2.map(getLastName).filter(l => l.length > 2));
+  for (const l of lastSet1) {
+    if (lastSet2.has(l)) return true;
+  }
+  return false;
+}
+
+function checkPublisher(pub) {
+  if (!pub) return true;
+  const p = pub.toLowerCase();
+  return p.includes('ieee') || p.includes('institute of electrical') || p.includes('microwave') || p.includes('wireless');
+}
+
 // Reimplementing the exact validation rules for testing
 function validateAndMergeMetadata(adapterPaper, crossref, openalex) {
   const merged = { ...adapterPaper };
@@ -42,7 +69,11 @@ function validateAndMergeMetadata(adapterPaper, crossref, openalex) {
 
   if (crossref && crossref.title) {
     if (isIEEE && docId) {
-      crossrefMatch = validateIeeeDoi(crossref.doi);
+      const doiMatch = validateIeeeDoi(crossref.doi);
+      const titleMatch = adapterPaper.title.startsWith('IEEE Document') || getTitleSimilarity(adapterPaper.title, crossref.title) > 0.5;
+      const authorsMatch = checkAuthorsOverlap(adapterPaper.authors, crossref.authors || []);
+      const pubMatch = checkPublisher(crossref.publisher);
+      crossrefMatch = doiMatch && titleMatch && authorsMatch && pubMatch;
     } else {
       crossrefMatch = getTitleSimilarity(adapterPaper.title, crossref.title) > 0.5;
     }
@@ -50,7 +81,11 @@ function validateAndMergeMetadata(adapterPaper, crossref, openalex) {
 
   if (openalex && openalex.title) {
     if (isIEEE && docId) {
-      openalexMatch = validateIeeeDoi(openalex.doi);
+      const doiMatch = validateIeeeDoi(openalex.doi);
+      const titleMatch = adapterPaper.title.startsWith('IEEE Document') || getTitleSimilarity(adapterPaper.title, openalex.title) > 0.5;
+      const authorsMatch = checkAuthorsOverlap(adapterPaper.authors, openalex.authors || []);
+      const pubMatch = checkPublisher(openalex.publisher);
+      openalexMatch = doiMatch && titleMatch && authorsMatch && pubMatch;
     } else {
       openalexMatch = getTitleSimilarity(adapterPaper.title, openalex.title) > 0.5;
     }
@@ -146,7 +181,48 @@ async function testRegression() {
     throw new Error(`FAIL: Correct paper title was: "${acceptedMerge.title}" or confidenceScore was: ${acceptedMerge.confidenceScore}`);
   }
 
-  console.log('\n=== REGRESSION TEST PASSED SUCCESSFULLY ===');
+  console.log('\n=== RUNNING IEEE 7444399 REGRESSION TEST ===');
+  const paperUrl7444399 = 'https://ieeexplore.ieee.org/document/7444399';
+  const docId7444399 = '7444399';
+
+  // Scraped thin metadata
+  const adapterPlaceholder7444399 = {
+    title: `IEEE Document ${docId7444399}`,
+    authors: ['Unknown Author'],
+    doi: null,
+    publisher: 'IEEE',
+    url: paperUrl7444399,
+    publisherId: docId7444399,
+    confidenceScore: 0.4,
+  };
+
+  // Correct Crossref mock metadata for 7444399
+  const correctCrossref7444399 = {
+    title: 'A low power and high conversion gain 94 GHz up-conversion mixer with excellent I/O matching and LO-RF isolation in 90 nm CMOS',
+    authors: ['Yo-Sheng Lin', 'Chih-Chung Chen', 'Chien-Chin Wang', 'Yun-Wen Lin', 'Run-Chi Liu', 'Chien-Chu Ji'],
+    doi: '10.1109/RWS.2016.7444399',
+    publisher: 'IEEE',
+  };
+
+  console.log('Testing validation of correct details for 7444399...');
+  const merge7444399 = validateAndMergeMetadata(adapterPlaceholder7444399, correctCrossref7444399, null);
+  console.log('Accepted paper title:', merge7444399.title);
+  console.log('Accepted paper authors count:', merge7444399.authors.length);
+  console.log('Accepted paper DOI:', merge7444399.doi);
+  console.log('Accepted paper confidence score:', merge7444399.confidenceScore);
+
+  if (
+    merge7444399.title === 'A low power and high conversion gain 94 GHz up-conversion mixer with excellent I/O matching and LO-RF isolation in 90 nm CMOS' &&
+    merge7444399.doi === '10.1109/RWS.2016.7444399' &&
+    merge7444399.authors.length === 6 &&
+    merge7444399.confidenceScore === 0.95
+  ) {
+    console.log('✔ SUCCESS: Document 7444399 resolved and validated successfully!');
+  } else {
+    throw new Error(`FAIL: Document 7444399 validation failed. Title: "${merge7444399.title}", DOI: "${merge7444399.doi}", Authors count: ${merge7444399.authors.length}, Score: ${merge7444399.confidenceScore}`);
+  }
+
+  console.log('\n=== ALL REGRESSION TESTS PASSED SUCCESSFULLY ===');
 }
 
 testRegression().catch(err => {
