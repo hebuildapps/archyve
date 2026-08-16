@@ -1,18 +1,44 @@
 /**
- * Regression Test for IEEE Documents 9413901 and 7444399.
+ * Regression Test for IEEE Documents 9413901, 7444399, and 5764505 (MathML/formula titles).
  * Verifies that the lookup and validation pipeline resolves to correct papers and rejects mismatched ones.
  */
 
+function normalizeScholarlyTitle(title) {
+  if (!title) return '';
+  return title
+    .replace(/&amp;/gi, '&')
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/gi, "'")
+    .replace(/&mu;/gi, 'μ')
+    .replace(/&#956;/gi, 'μ')
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/\$([^$]+)\$/g, '$1')
+    .replace(/\\mu/g, 'μ')
+    .replace(/\\hbox\s*\{([^}]*)\}/g, '$1')
+    .replace(/\\text\s*\{([^}]*)\}/g, '$1')
+    .replace(/[{}]/g, '')
+    .replace(/\\/g, ' ')
+    .replace(/\u00B5/g, 'μ')
+    .replace(/[\u2010\u2011\u2012\u2013\u2014\u2015]/g, '-')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 function getTitleSimilarity(t1, t2) {
+  const norm1 = normalizeScholarlyTitle(t1);
+  const norm2 = normalizeScholarlyTitle(t2);
+
   const clean = (s) =>
     s
       .toLowerCase()
-      .replace(/[^a-z0-9\s]/g, '')
+      .replace(/[^a-z0-9\sμ]/g, '')
       .split(/\s+/)
-      .filter((w) => w.length > 2);
+      .filter((w) => w.length > 1);
 
-  const w1 = new Set(clean(t1));
-  const w2 = new Set(clean(t2));
+  const w1 = new Set(clean(norm1));
+  const w2 = new Set(clean(norm2));
 
   if (w1.size === 0 || w2.size === 0) return 0;
 
@@ -57,18 +83,31 @@ function validateAndMergeMetadata(adapterPaper, crossref, openalex) {
 
   const isIEEE = adapterPaper.url.includes('ieeexplore.ieee.org') || adapterPaper.publisher?.toLowerCase() === 'ieee';
   const docId = adapterPaper.publisherId;
+  const adapterDoi = adapterPaper.doi;
 
   const validateIeeeDoi = (doiToCheck) => {
-    if (!doiToCheck || !docId) return false;
+    if (!doiToCheck) return false;
     const cleanDoi = doiToCheck.toLowerCase().trim().replace(/\/$/, '');
-    return cleanDoi.endsWith(docId.toLowerCase());
+    
+    // 1. Direct exact match with adapter DOI if known
+    if (adapterDoi) {
+      const cleanAdapterDoi = adapterDoi.toLowerCase().trim().replace(/\/$/, '');
+      if (cleanDoi === cleanAdapterDoi) return true;
+    }
+    
+    // 2. IEEE conference/early-access style DOIs ending with document ID
+    if (docId && cleanDoi.endsWith(docId.toLowerCase())) {
+      return true;
+    }
+
+    return false;
   };
 
   let crossrefMatch = false;
   let openalexMatch = false;
 
   if (crossref && crossref.title) {
-    if (isIEEE && docId) {
+    if (isIEEE && (docId || adapterDoi)) {
       const doiMatch = validateIeeeDoi(crossref.doi);
       const titleMatch = adapterPaper.title.startsWith('IEEE Document') || getTitleSimilarity(adapterPaper.title, crossref.title) > 0.5;
       const authorsMatch = checkAuthorsOverlap(adapterPaper.authors, crossref.authors || []);
@@ -80,7 +119,7 @@ function validateAndMergeMetadata(adapterPaper, crossref, openalex) {
   }
 
   if (openalex && openalex.title) {
-    if (isIEEE && docId) {
+    if (isIEEE && (docId || adapterDoi)) {
       const doiMatch = validateIeeeDoi(openalex.doi);
       const titleMatch = adapterPaper.title.startsWith('IEEE Document') || getTitleSimilarity(adapterPaper.title, openalex.title) > 0.5;
       const authorsMatch = checkAuthorsOverlap(adapterPaper.authors, openalex.authors || []);
@@ -109,7 +148,7 @@ function validateAndMergeMetadata(adapterPaper, crossref, openalex) {
   }
 
   if (apiMatch) {
-    merged.title = apiMatch.title || merged.title;
+    merged.title = normalizeScholarlyTitle(apiMatch.title) || merged.title;
     merged.authors = apiMatch.authors || merged.authors;
     merged.doi = apiMatch.doi || merged.doi;
     merged.publicationYear = apiMatch.publicationYear || merged.publicationYear;
@@ -222,6 +261,61 @@ async function testRegression() {
     throw new Error(`FAIL: Document 7444399 validation failed. Title: "${merge7444399.title}", DOI: "${merge7444399.doi}", Authors count: ${merge7444399.authors.length}, Score: ${merge7444399.confidenceScore}`);
   }
 
+  console.log('\n=== RUNNING IEEE 5764505 (MathML / Formula Title) REGRESSION TEST ===');
+  const paperUrl5764505 = 'https://ieeexplore.ieee.org/document/5764505';
+  const docId5764505 = '5764505';
+
+  // Real fallback metadata from IEEE Explore for 5764505
+  const fallbackAdapterPaper5764505 = {
+    title: 'Symmetric Offset Stack Balun in Standard 0.13-<formula formulatype="inline"><tex Notation="TeX">$\\mu{\\hbox {m}}$</tex></formula> CMOS Technology for Three Broadband and Low-Loss Balanced Passive Mixer Designs',
+    authors: ['Hwann-Kaeo Chiou', 'Jui-Yi Lin'],
+    doi: '10.1109/TMTT.2011.2140123',
+    publisher: 'IEEE',
+    publicationYear: 2011,
+    venue: 'IEEE Transactions on Microwave Theory and Techniques',
+    url: paperUrl5764505,
+    publisherId: docId5764505,
+    confidenceScore: 0.9,
+  };
+
+  // Real Crossref response for 10.1109/TMTT.2011.2140123
+  const crossref5764505 = {
+    title: 'Symmetric Offset Stack Balun in Standard 0.13-\\mu{\\hbox {m}} CMOS Technology for Three Broadband and Low-Loss Balanced Passive Mixer Designs',
+    authors: ['Hwann-Kaeo Chiou', 'Jui-Yi Lin'],
+    doi: '10.1109/tmtt.2011.2140123',
+    publisher: 'Institute of Electrical and Electronics Engineers (IEEE)',
+    publicationYear: 2011,
+    venue: 'IEEE Transactions on Microwave Theory and Techniques',
+  };
+
+  // Real OpenAlex response for 10.1109/TMTT.2011.2140123
+  const openalex5764505 = {
+    title: 'Symmetric Offset Stack Balun in Standard 0.13-μm CMOS Technology for Three Broadband and Low-Loss Balanced Passive Mixer Designs',
+    authors: ['Hwann‐Kaeo Chiou', 'Jui-Yi Lin'],
+    doi: '10.1109/tmtt.2011.2140123',
+    publisher: 'IEEE Microwave Theory and Techniques Society',
+    publicationYear: 2011,
+    venue: 'IEEE Transactions on Microwave Theory and Techniques',
+  };
+
+  console.log('Testing validation for IEEE 5764505 (MathML / Math title)...');
+  const merge5764505 = validateAndMergeMetadata(fallbackAdapterPaper5764505, crossref5764505, openalex5764505);
+  console.log('Accepted paper title:', merge5764505.title);
+  console.log('Accepted paper DOI:', merge5764505.doi);
+  console.log('Accepted paper authors:', merge5764505.authors);
+  console.log('Accepted paper confidence score:', merge5764505.confidenceScore);
+
+  if (
+    merge5764505.confidenceScore === 0.95 &&
+    merge5764505.doi === '10.1109/tmtt.2011.2140123' &&
+    merge5764505.authors.length === 2 &&
+    !merge5764505.title.includes('<formula')
+  ) {
+    console.log('✔ SUCCESS: Document 5764505 MathML/formula title resolved, normalized, and validated successfully!');
+  } else {
+    throw new Error(`FAIL: Document 5764505 validation failed. Score: ${merge5764505.confidenceScore}, Title: "${merge5764505.title}"`);
+  }
+
   console.log('\n=== ALL REGRESSION TESTS PASSED SUCCESSFULLY ===');
 }
 
@@ -229,3 +323,4 @@ testRegression().catch(err => {
   console.error('\n❌ TEST FAILED:', err);
   process.exit(1);
 });
+
