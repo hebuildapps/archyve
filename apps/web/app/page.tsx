@@ -274,7 +274,7 @@ export default function Home() {
 
       {/* Feature proposition grid (unauthenticated only) */}
       {!isAuthenticated && (
-        <footer className="max-w-3xl mx-auto w-full grid grid-cols-1 sm:grid-cols-3 gap-4 pt-8 mt-8 border-t border-border">
+        <div className="max-w-3xl mx-auto w-full grid grid-cols-1 sm:grid-cols-3 gap-4 pt-8 mt-8 border-t border-border">
           <div className="p-4 rounded-2xl border border-border bg-card shadow-xs space-y-1.5">
             <div className="flex items-center gap-1.5 text-brand-primary">
               <BookOpen className="w-3.5 h-3.5" />
@@ -310,8 +310,47 @@ export default function Home() {
               Generates a structured, schema-validated JSON dossier with summaries and reading assessments.
             </p>
           </div>
-        </footer>
+        </div>
       )}
+
+      {/* Global Minimal Editorial Footer */}
+      <footer className="max-w-3xl mx-auto w-full pt-8 mt-6 border-t border-border/70 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-mono text-muted-foreground">
+        <div className="flex items-center gap-2">
+          <img src="/archyve-logo.svg" alt="Archyve" className="w-3.5 h-3.5 object-contain" />
+          <span className="font-serif font-medium text-foreground">Archyve V2</span>
+          <span>&middot;</span>
+          <span>Research Intelligence</span>
+        </div>
+
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => router.push('/blog')}
+            className="hover:text-foreground transition-colors"
+          >
+            Blog
+          </button>
+          <button
+            onClick={() => router.push('/privacy')}
+            className="hover:text-foreground transition-colors"
+          >
+            Privacy
+          </button>
+          <button
+            onClick={() => router.push('/settings')}
+            className="hover:text-foreground transition-colors"
+          >
+            Settings
+          </button>
+          <a
+            href="https://github.com/hebuildapps/archyve-v2"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-foreground transition-colors"
+          >
+            GitHub
+          </a>
+        </div>
+      </footer>
 
       {/* Sunset & Migration Dithered Shader Card Reveal Modal */}
       <DitherShaderCardReveal
