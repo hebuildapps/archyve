@@ -52,8 +52,8 @@ export default function SettingsPage() {
   const [sessionData, setSessionData] = useState<SessionData | null>(null);
   const [copiedSessionId, setCopiedSessionId] = useState(false);
 
-  const fallbackGemini = ['gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-1.5-flash', 'gemini-1.5-pro'];
-  const fallbackGroq = ['llama-3.3-70b-versatile', 'llama-3.1-70b-versatile', 'llama-3.1-8b-instant', 'mixtral-8x7b-32768', 'gemma2-9b-it'];
+  const fallbackGemini = ['gemini-3.5-pro', 'gemini-3.5-flash'];
+  const fallbackGroq = ['openai/gpt-oss-20b', 'qwen/qwen3.6-27b'];
 
   const fetchModels = async (currentProvider: string, currentApiKey: string) => {
     if (!currentApiKey.trim()) {
@@ -438,10 +438,10 @@ export default function SettingsPage() {
                       >
                         <div className="flex items-center gap-2">
                           <span className="font-semibold text-foreground">
-                            {provider === 'groq' ? 'Groq (BYOK)' : 'Google Gemini'}
+                            {provider === 'groq' ? 'Groq' : 'Google Gemini'}
                           </span>
                           <span className="text-[10px] text-muted-foreground font-mono">
-                            {provider === 'groq' ? '· Llama 3.3 & Mixtral' : '· Gemini 2.5 Flash / Pro'}
+                            {provider === 'groq' ? '· Llama and other models' : '· Gemini 3.5 Flash / Pro'}
                           </span>
                         </div>
                         <ChevronDown className={`w-3.5 h-3.5 text-muted-foreground transition-transform duration-200 ${isProviderDropdownOpen ? 'rotate-180' : ''}`} />
@@ -528,37 +528,53 @@ export default function SettingsPage() {
                     </div>
 
                     {/* Custom Dropdown Selector */}
-                    <div className="relative">
-                      <button
-                        type="button"
-                        onClick={() => setIsModelDropdownOpen(!isModelDropdownOpen)}
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-card text-xs font-mono text-foreground focus:outline-none flex items-center justify-between shadow-xs hover:border-muted-foreground/40 transition-colors"
-                      >
-                        <span>{model || (availableModels[0] || 'Default Model')}</span>
-                        <ChevronDown className={`w-3.5 h-3.5 text-muted-foreground transition-transform duration-200 ${isModelDropdownOpen ? 'rotate-180' : ''}`} />
-                      </button>
+                    <div className="space-y-3">
+                      <div className="relative">
+                        <button
+                          type="button"
+                          onClick={() => setIsModelDropdownOpen(!isModelDropdownOpen)}
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-card text-xs font-mono text-foreground focus:outline-none flex items-center justify-between shadow-xs hover:border-muted-foreground/40 transition-colors"
+                        >
+                          <span>{model || (availableModels[0] || 'Select Model')}</span>
+                          <ChevronDown className={`w-3.5 h-3.5 text-muted-foreground transition-transform duration-200 ${isModelDropdownOpen ? 'rotate-180' : ''}`} />
+                        </button>
 
-                      {isModelDropdownOpen && (
-                        <div className="absolute top-full mt-1.5 inset-x-0 z-50 rounded-xl border border-border bg-card p-1 shadow-lg backdrop-blur-md max-h-48 overflow-y-auto">
-                          {availableModels.map((m) => (
-                            <button
-                              key={m}
-                              type="button"
-                              onClick={() => {
-                                setModel(m);
-                                setIsModelDropdownOpen(false);
-                              }}
-                              className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-mono text-left transition-colors ${model === m
-                                ? 'bg-card-subtle text-brand-primary dark:text-brand-accent font-bold'
-                                : 'text-foreground hover:bg-card-muted'
-                                }`}
-                            >
-                              <span>{m}</span>
-                              {model === m && <Check className="w-3 h-3 text-brand-primary dark:text-brand-accent" />}
-                            </button>
-                          ))}
-                        </div>
-                      )}
+                        {isModelDropdownOpen && (
+                          <div className="absolute top-full mt-1.5 inset-x-0 z-50 rounded-xl border border-border bg-card p-1 shadow-lg backdrop-blur-md max-h-48 overflow-y-auto">
+                            {availableModels.map((m) => (
+                              <button
+                                key={m}
+                                type="button"
+                                onClick={() => {
+                                  setModel(m);
+                                  setIsModelDropdownOpen(false);
+                                }}
+                                className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-xs font-mono text-left transition-colors ${model === m
+                                  ? 'bg-card-subtle text-brand-primary dark:text-brand-accent font-bold'
+                                  : 'text-foreground hover:bg-card-muted'
+                                  }`}
+                              >
+                                <span>{m}</span>
+                                {model === m && <Check className="w-3 h-3 text-brand-primary dark:text-brand-accent" />}
+                              </button>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="space-y-1.5 pt-1">
+                        <label htmlFor="custom-model-input" className="text-[10px] font-mono font-semibold uppercase tracking-wider text-muted-foreground">
+                          Or Specify Custom Model ID
+                        </label>
+                        <input
+                          id="custom-model-input"
+                          type="text"
+                          value={model}
+                          onChange={(e) => setModel(e.target.value)}
+                          placeholder={provider === 'groq' ? 'e.g. llama-3.3-70b-spec' : 'e.g. gemini-2.5-pro-experimental'}
+                          className="w-full px-3.5 py-2 rounded-xl border border-border bg-card text-xs text-foreground focus:outline-none focus:border-brand-primary font-mono shadow-xs"
+                        />
+                      </div>
                     </div>
                   </div>
 
