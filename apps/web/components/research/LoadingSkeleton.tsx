@@ -1,10 +1,12 @@
-import React from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Loader2, Check, FileText } from 'lucide-react';
 
 export interface LoadingStep {
   id: string;
   label: string;
   status: 'pending' | 'loading' | 'completed';
+  detail?: string;
+  badge?: string;
 }
 
 interface LoadingSkeletonProps {
@@ -23,6 +25,75 @@ const defaultSteps: LoadingStep[] = [
   { id: 'ai', label: 'Generating structured AI dossier analysis', status: 'pending' },
 ];
 
+const CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*<>[]{}/~+=-_";
+
+function ScrambleStepText({ 
+  targetText, 
+  detailText,
+  isCompleted 
+}: { 
+  targetText: string; 
+  detailText?: string;
+  isCompleted: boolean;
+}) {
+  const [text, setText] = useState(targetText);
+  const prevCompletedRef = useRef(false);
+
+  useEffect(() => {
+    // When transitioning into completed state, trigger a quick high-tech scramble resolve
+    if (isCompleted && !prevCompletedRef.current) {
+      prevCompletedRef.current = true;
+      const fullTarget = detailText ? `${targetText} — ${detailText}` : targetText;
+      const len = fullTarget.length;
+      let step = 0;
+      const scrambleDuration = 6; // quick burst (~180ms)
+      const resolveSpeed = 3;
+
+      const interval = setInterval(() => {
+        step++;
+        if (step <= scrambleDuration) {
+          const scrambled = fullTarget
+            .split("")
+            .map((c) => (c === " " || c === "—" || c === ":" ? c : CHARS[Math.floor(Math.random() * CHARS.length)]))
+            .join("");
+          setText(scrambled);
+        } else {
+          const resolveStep = step - scrambleDuration;
+          const lockIndex = Math.min(len, resolveStep * resolveSpeed);
+
+          const resolved = fullTarget
+            .split("")
+            .map((c, i) => {
+              if (c === " " || c === "—" || c === ":") return c;
+              if (i < lockIndex) return fullTarget[i];
+              return CHARS[Math.floor(Math.random() * CHARS.length)];
+            })
+            .join("");
+
+          setText(resolved);
+
+          if (lockIndex >= len) {
+            setText(fullTarget);
+            clearInterval(interval);
+          }
+        }
+      }, 25);
+
+      return () => clearInterval(interval);
+    } else if (isCompleted && detailText) {
+      setText(`${targetText} — ${detailText}`);
+    } else {
+      setText(targetText);
+    }
+  }, [isCompleted, targetText, detailText]);
+
+  return (
+    <span className="font-mono text-xs leading-relaxed inline-block break-words">
+      {text}
+    </span>
+  );
+}
+
 export function LoadingSkeleton({ 
   steps = defaultSteps, 
   paperTitle, 
@@ -34,34 +105,46 @@ export function LoadingSkeleton({
   const completedCount = steps.filter((s) => s.status === 'completed').length;
   const progressPercent = typeof customProgressPercent === 'number' 
     ? customProgressPercent 
-    : Math.min(completedCount * 20, 105);
+    : Math.min(completedCount * 25, 100);
+
+  const activeStep = steps.find((s) => s.status === 'loading') || steps.find((s) => s.status === 'pending');
 
   return (
-    <div className="space-y-6 max-w-xl mx-auto py-12 px-4 font-sans">
+    <div className="space-y-6 max-w-xl mx-auto py-12 px-4 font-sans selection:bg-brand-primary/20">
       
-      <div className="text-center pb-2">
-        <h2 className="text-xl font-serif font-medium text-foreground flex items-center justify-center gap-2.5">
-          <Loader2 className="w-4 h-4 animate-spin text-brand-primary" />
-          <span>Researching Paper...</span>
+      {/* Header with Pulsating Status */}
+      <div className="text-center space-y-1.5 pb-2">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-border bg-card shadow-xs text-xs font-mono text-muted-foreground">
+          <div className="w-2 h-2 rounded-full bg-brand-primary animate-ping shrink-0" />
+          <span>Real-Time Research Pipeline</span>
+        </div>
+        <h2 className="text-2xl sm:text-3xl font-serif font-medium text-foreground tracking-tight flex items-center justify-center gap-2.5">
+          <span>Synthesizing Intelligence...</span>
         </h2>
       </div>
 
-      {/* "You're Looking for:" Box */}
+      {/* "Target Paper" Card if available */}
       {paperTitle && (
-        <div className="p-4 rounded-2xl border border-border bg-card space-y-1.5 shadow-xs">
-          <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-brand-primary">
-            You&apos;re Looking for:
-          </span>
-          <div className="flex items-start gap-3.5 pt-1">
-            <div className="w-10 h-10 rounded-xl bg-card-muted border border-border flex items-center justify-center text-brand-primary shrink-0">
-              <FileText className="w-5 h-5" />
+        <div className="p-4 sm:p-5 rounded-2xl border border-border bg-card space-y-2 shadow-xs relative overflow-hidden transition-all duration-300">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-brand-primary">
+              Target Document
+            </span>
+            <span className="text-[10px] font-mono text-muted-foreground px-2 py-0.5 rounded-md bg-card-muted border border-border">
+              Parsed
+            </span>
+          </div>
+
+          <div className="flex items-start gap-3.5 pt-0.5">
+            <div className="w-9 h-9 rounded-xl bg-card-muted border border-border flex items-center justify-center text-brand-primary shrink-0 shadow-xs">
+              <FileText className="w-4 h-4" />
             </div>
-            <div className="min-w-0">
-              <h3 className="text-sm font-serif font-medium text-foreground leading-snug line-clamp-2">
+            <div className="min-w-0 flex-1">
+              <h3 className="text-xs sm:text-sm font-serif font-medium text-foreground leading-snug line-clamp-2">
                 {paperTitle}
               </h3>
               {paperAuthors && paperAuthors.length > 0 && (
-                <p className="text-xs text-muted-foreground truncate mt-0.5 font-sans">
+                <p className="text-[11px] text-muted-foreground truncate mt-1 font-mono">
                   {paperAuthors.join(', ')}
                 </p>
               )}
@@ -71,63 +154,100 @@ export function LoadingSkeleton({
       )}
 
       {/* "Research Progress" Percentage Card */}
-      <div className="p-5 rounded-2xl border border-border bg-card space-y-3.5 shadow-xs">
-        <div className="space-y-1">
-          <span className="text-[10px] font-mono font-semibold uppercase tracking-wider text-muted-foreground">
-            Research Progress
-          </span>
-          <div className="text-2xl font-bold font-mono text-foreground flex items-baseline justify-between">
-            <span>{Math.min(progressPercent, 100)}%</span>
+      <div className="p-5 sm:p-6 rounded-2xl border border-border bg-card space-y-4 shadow-xs relative overflow-hidden">
+        <div className="space-y-1.5">
+          <div className="flex items-center justify-between text-[11px] font-mono text-muted-foreground">
+            <span className="font-semibold uppercase tracking-wider">Research Progress</span>
+            <span className="text-foreground font-bold">{Math.min(progressPercent, 100)}%</span>
+          </div>
+
+          <div className="text-3xl sm:text-4xl font-serif font-medium text-foreground tracking-tight flex items-baseline justify-between">
+            <span>{Math.min(progressPercent, 100)}<span className="text-xl font-mono text-muted-foreground ml-0.5">%</span></span>
             {statusMessage && (
-              <span className="text-[11px] font-mono font-normal text-muted-foreground animate-pulse">
+              <span className="text-xs font-mono font-normal text-brand-primary animate-pulse text-right line-clamp-1 max-w-[280px]">
                 {statusMessage}
               </span>
             )}
           </div>
         </div>
 
-        {/* Progress bar track */}
-        <div className="w-full h-2 bg-card-muted rounded-full overflow-hidden border border-border/40">
+        {/* Dynamic Progress Track with high-tech glowing sweep */}
+        <div className="relative w-full h-2.5 bg-card-muted rounded-full overflow-hidden border border-border/50">
           <div 
-            className="h-full bg-brand-primary rounded-full transition-all duration-300 ease-out"
+            className="h-full bg-brand-primary rounded-full transition-all duration-500 ease-out relative"
             style={{ width: `${Math.min(progressPercent, 100)}%` }}
-          />
+          >
+            {/* Glow sweep reflection */}
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent animate-[shimmer_1.5s_infinite] pointer-events-none" />
+          </div>
         </div>
       </div>
 
-      {/* Step List Card */}
-      <div className="p-5 rounded-2xl border border-border bg-card space-y-4 shadow-xs">
-        <div className="space-y-3">
-          {steps.map((step) => {
+      {/* Step List Card with Monospace Scramble Resolvers */}
+      <div className="p-5 sm:p-6 rounded-2xl border border-border bg-card space-y-4 shadow-xs">
+        <div className="flex items-center justify-between border-b border-border pb-3">
+          <h3 className="text-xs font-mono font-semibold uppercase tracking-wider text-muted-foreground">
+            Pipeline Execution Checklist
+          </h3>
+          <span className="text-[10px] font-mono text-muted-foreground">
+            {completedCount} of {steps.length} Complete
+          </span>
+        </div>
+
+        <div className="space-y-3.5 pt-1">
+          {steps.map((step, idx) => {
             const isCompleted = step.status === 'completed';
             const isLoading = step.status === 'loading';
             
             return (
-              <div key={step.id} className="flex items-start gap-3">
-                <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5 border ${
+              <div 
+                key={step.id} 
+                className={`flex items-start gap-3.5 p-2.5 rounded-xl transition-all duration-300 ${
+                  isLoading 
+                    ? 'bg-brand-primary/5 border border-brand-primary/20 shadow-xs' 
+                    : isCompleted
+                    ? 'bg-card-muted/20 border border-transparent'
+                    : 'opacity-50 border border-transparent'
+                }`}
+              >
+                {/* Step indicator circle */}
+                <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5 border transition-colors duration-300 ${
                   isCompleted 
-                    ? 'bg-brand-primary border-brand-primary text-white' 
+                    ? 'bg-brand-primary border-brand-primary text-brand-primary-foreground shadow-xs' 
                     : isLoading 
-                    ? 'border-brand-primary bg-highlight-glow/30 text-brand-primary' 
-                    : 'border-border bg-transparent text-transparent'
+                    ? 'border-brand-primary bg-highlight-glow/30 text-brand-primary shadow-[0_0_8px_rgba(183,255,56,0.35)]' 
+                    : 'border-border bg-card text-transparent'
                 }`}>
                   {isCompleted ? (
-                    <Check className="w-3.5 h-3.5 stroke-[3]" />
+                    <Check className="w-3 h-3 stroke-[3]" />
                   ) : isLoading ? (
                     <Loader2 className="w-3 h-3 animate-spin" />
-                  ) : null}
+                  ) : (
+                    <span className="font-mono text-[9px] text-muted-foreground">{idx + 1}</span>
+                  )}
                 </div>
 
-                <div className="min-w-0 space-y-0.5">
-                  <span className={`text-xs block leading-relaxed font-mono ${
+                {/* Step Label with Scramble Animation */}
+                <div className="min-w-0 flex-1 space-y-0.5">
+                  <div className={`transition-colors duration-200 ${
                     isCompleted 
-                      ? 'text-foreground font-semibold' 
+                      ? 'text-foreground font-medium' 
                       : isLoading 
-                      ? 'text-brand-primary font-semibold animate-pulse' 
-                      : 'text-muted-foreground/60'
+                      ? 'text-brand-primary font-semibold' 
+                      : 'text-muted-foreground'
                   }`}>
-                    {step.label}
-                  </span>
+                    <ScrambleStepText
+                      targetText={step.label}
+                      detailText={step.detail}
+                      isCompleted={isCompleted}
+                    />
+                  </div>
+
+                  {step.badge && (
+                    <span className="inline-block px-1.5 py-0.2 rounded font-mono text-[9px] bg-card-muted text-muted-foreground border border-border mt-0.5">
+                      {step.badge}
+                    </span>
+                  )}
                 </div>
               </div>
             );

@@ -162,39 +162,61 @@ export default function ResearchDossierPage() {
                 setStatusMessage(chunk.message);
               }
 
-              // Update visual checklist steps based on status
+              // Update visual checklist steps based on status and live data
               setSteps((prev) =>
                 prev.map((s) => {
-                  if (chunk.status === 'cache' && s.id === 'identify') return { ...s, status: 'completed' };
-                  if (chunk.status === 'cache' && s.id === 'cache') return { ...s, status: 'loading' };
-                  if (chunk.status === 'scraping' && s.id === 'identify') return { ...s, status: 'loading' };
-                  if (chunk.status === 'enriching' && s.id === 'identify') return { ...s, status: 'completed' };
-                  if (chunk.status === 'enriching' && s.id === 'cache') return { ...s, status: 'completed' };
-                  if (chunk.status === 'enriching' && s.id === 'metadata') return { ...s, status: 'loading' };
-                  if (chunk.status === 'validating' && s.id === 'metadata') return { ...s, status: 'loading' };
+                  if (chunk.status === 'cache' && s.id === 'identify') {
+                    return { ...s, status: 'completed', detail: 'Publisher Identified' };
+                  }
+                  if (chunk.status === 'cache' && s.id === 'cache') {
+                    return { ...s, status: 'loading' };
+                  }
+                  if (chunk.status === 'scraping' && s.id === 'identify') {
+                    return { ...s, status: 'loading' };
+                  }
+                  if (chunk.status === 'enriching') {
+                    if (s.id === 'identify') return { ...s, status: 'completed', detail: 'Publisher DOM Verified' };
+                    if (s.id === 'cache') return { ...s, status: 'completed', detail: 'Cache Miss (New Paper)' };
+                    if (s.id === 'metadata') return { ...s, status: 'loading' };
+                  }
+                  if (chunk.status === 'validating') {
+                    if (s.id === 'identify') return { ...s, status: 'completed', detail: 'Publisher DOM Verified' };
+                    if (s.id === 'metadata') return { ...s, status: 'loading', detail: 'Crossref / OpenAlex Syncing' };
+                  }
                   return s;
                 })
               );
 
               if (chunk.status === 'checkpoint' && chunk.data) {
-                setPaper(chunk.data.paper);
+                const checkedPaper = chunk.data.paper;
+                setPaper(checkedPaper);
                 setIsNewPaper(true);
                 setSteps((prev) =>
-                  prev.map((s) =>
-                    s.id === 'identify' || s.id === 'cache' || s.id === 'metadata'
-                      ? { ...s, status: 'completed' }
-                      : s.id === 'open_access'
-                      ? { ...s, status: 'loading' }
-                      : s
-                  )
+                  prev.map((s) => {
+                    if (s.id === 'identify') return { ...s, status: 'completed', detail: checkedPaper.publisher || 'Verified' };
+                    if (s.id === 'cache') return { ...s, status: 'completed', detail: 'Cache Miss' };
+                    if (s.id === 'metadata') return { ...s, status: 'completed', detail: checkedPaper.doi ? `DOI: ${checkedPaper.doi}` : 'Metadata Linked' };
+                    if (s.id === 'open_access') return { ...s, status: 'loading' };
+                    return s;
+                  })
                 );
                 setLoading(false);
               }
 
               if (chunk.status === 'completed' && chunk.data) {
-                setPaper(chunk.data.paper);
-                setResult(chunk.data.result);
-                setSteps((prev) => prev.map((s) => ({ ...s, status: 'completed' })));
+                const finalPaper = chunk.data.paper;
+                const finalResult = chunk.data.result;
+                setPaper(finalPaper);
+                setResult(finalResult);
+                setSteps((prev) => 
+                  prev.map((s) => {
+                    if (s.id === 'identify') return { ...s, status: 'completed', detail: finalPaper.publisher || 'Verified' };
+                    if (s.id === 'metadata') return { ...s, status: 'completed', detail: finalPaper.doi ? `DOI: ${finalPaper.doi}` : 'Verified' };
+                    if (s.id === 'open_access') return { ...s, status: 'completed', detail: finalResult.openAccess?.available ? 'Legal PDF Found' : 'Paywalled' };
+                    if (s.id === 'ai') return { ...s, status: 'completed', detail: 'Dossier Synthesized' };
+                    return { ...s, status: 'completed' };
+                  })
+                );
                 setLoading(false);
               }
             }
@@ -297,20 +319,21 @@ export default function ResearchDossierPage() {
                 console.log('[FRONTEND] setStatus/Message called:', chunk.message);
               }
 
-              // Update step indicator status
+              // Update step indicator status with real-time text details
               setSteps((prev) =>
                 prev.map((s) => {
                   if (chunk.status === 'enriching') {
-                    if (s.id === 'identify') return { ...s, status: 'completed' };
-                    if (s.id === 'metadata') return { ...s, status: 'loading' };
+                    if (s.id === 'identify') return { ...s, status: 'completed', detail: paper?.publisher || 'Verified' };
+                    if (s.id === 'metadata') return { ...s, status: 'loading', detail: 'Crossref / OpenAlex Synced' };
                   }
                   if (chunk.status === 'validating') {
-                    if (s.id === 'metadata') return { ...s, status: 'completed' };
-                    if (s.id === 'open_access') return { ...s, status: 'loading' };
+                    if (s.id === 'metadata') return { ...s, status: 'completed', detail: paper?.doi ? `DOI: ${paper.doi}` : 'Metadata Linked' };
+                    if (s.id === 'open_access') return { ...s, status: 'loading', detail: 'Unpaywall / arXiv Scanned' };
                   }
                   if (chunk.status === 'interpreting') {
-                    if (s.id === 'metadata' || s.id === 'open_access') return { ...s, status: 'completed' };
-                    if (s.id === 'ai') return { ...s, status: 'loading' };
+                    if (s.id === 'metadata') return { ...s, status: 'completed', detail: 'Identity Confirmed' };
+                    if (s.id === 'open_access') return { ...s, status: 'completed', detail: 'Repositories Checked' };
+                    if (s.id === 'ai') return { ...s, status: 'loading', detail: `${provider.toUpperCase()} (${model})` };
                   }
                   return s;
                 })
@@ -318,9 +341,19 @@ export default function ResearchDossierPage() {
 
               if (chunk.status === 'completed' && chunk.data) {
                 console.log('[FRONTEND] Final completed dossier response received:', chunk.data);
-                setSteps((prev) => prev.map((s) => ({ ...s, status: 'completed' })));
-                setPaper(chunk.data.paper);
-                setResult(chunk.data.result);
+                const finalPaper = chunk.data.paper || paper;
+                const finalResult = chunk.data.result;
+                setSteps((prev) => 
+                  prev.map((s) => {
+                    if (s.id === 'identify') return { ...s, status: 'completed', detail: finalPaper.publisher || 'Verified' };
+                    if (s.id === 'metadata') return { ...s, status: 'completed', detail: finalPaper.doi ? `DOI: ${finalPaper.doi}` : 'Verified' };
+                    if (s.id === 'open_access') return { ...s, status: 'completed', detail: finalResult?.openAccess?.available ? 'Legal PDF Found' : 'Paywalled' };
+                    if (s.id === 'ai') return { ...s, status: 'completed', detail: 'Dossier Synthesized' };
+                    return { ...s, status: 'completed' };
+                  })
+                );
+                setPaper(finalPaper);
+                setResult(finalResult);
                 setIsNewPaper(false);
                 setLoading(false);
               }
