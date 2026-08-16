@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { DitherShader } from "@/components/ui/dither-shader";
 
 interface DitherShaderCardRevealProps {
@@ -12,6 +13,7 @@ export function DitherShaderCardReveal({
   isOpen = true,
   onClose,
 }: DitherShaderCardRevealProps) {
+  const router = useRouter();
   const cardRef = useRef<HTMLDivElement>(null);
   const [tilt, setTilt] = useState({
     rotateX: 0,
@@ -142,9 +144,16 @@ export function DitherShaderCardReveal({
             <div className="pt-0.5 flex items-center gap-2">
               <button
                 type="button"
-                className="relative overflow-hidden px-3 py-0.5 rounded-[4px] bg-white text-neutral-950 font-semibold text-[10px] shadow-[0_0_12px_rgba(255,255,255,0.45)] hover:shadow-[0_0_18px_rgba(255,255,255,0.7)] transition-all cursor-default group"
+                onClick={() => {
+                  if (onClose) onClose();
+                  router.push('/blog');
+                }}
+                className="relative overflow-hidden px-3 py-1 rounded-[4px] bg-white text-neutral-950 font-semibold text-[10px] shadow-[0_0_12px_rgba(255,255,255,0.45)] hover:shadow-[0_0_18px_rgba(255,255,255,0.7)] transition-all cursor-pointer group active:scale-95"
               >
-                <span className="relative z-10">Soon</span>
+                <span className="relative z-10 flex items-center gap-1">
+                  <span>Announcement</span>
+                  <span className="font-mono text-[9px] opacity-70">&rarr;</span>
+                </span>
                 {/* Shiny gloss reflection animation */}
                 <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full bg-gradient-to-r from-transparent via-white/80 to-transparent transition-transform duration-700 pointer-events-none" />
               </button>
