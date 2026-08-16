@@ -21,24 +21,24 @@ export function ResearchHeader({
   url,
 }: ResearchHeaderProps) {
   return (
-    <header className="border-b border-zinc-200 dark:border-zinc-800/80 pb-8 mb-8">
+    <header className="border-b border-border/80 pb-8 mb-8">
       <div className="flex items-start justify-between gap-4 mb-4">
-        <h1 className="text-3xl font-serif font-semibold tracking-tight text-zinc-900 dark:text-zinc-50 leading-tight">
+        <h1 className="text-3xl sm:text-4xl font-serif font-medium tracking-tight text-foreground leading-[1.2]">
           {title}
         </h1>
         <a
           href={url}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-md border border-zinc-200 dark:border-zinc-800/80 text-xs font-medium text-zinc-600 dark:text-zinc-400 hover:bg-zinc-50 dark:hover:bg-zinc-900/50 transition-colors"
+          className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border bg-card/60 hover:bg-card text-xs font-mono text-muted-foreground hover:text-foreground transition-colors shadow-xs"
           title="Open original paper URL"
         >
           <span>Publisher Source</span>
-          <ExternalLink className="w-3 h-3" />
+          <ExternalLink className="w-3 h-3 text-brand-primary" />
         </a>
       </div>
 
-      <div className="flex flex-wrap gap-x-2 gap-y-1 text-sm font-medium text-zinc-600 dark:text-zinc-400 mb-4">
+      <div className="flex flex-wrap gap-x-2 gap-y-1 text-sm font-sans font-normal text-muted-foreground mb-4">
         {authors.map((author, index) => (
           <span key={index}>
             {author}
@@ -47,16 +47,16 @@ export function ResearchHeader({
         ))}
       </div>
 
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs text-zinc-400 dark:text-zinc-500 font-mono">
-        {venue && <span>{venue}</span>}
-        {publisher && <span>{publisher}</span>}
-        {publicationYear && <span>{publicationYear}</span>}
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 text-xs text-muted-foreground font-mono">
+        {venue && <span className="bg-card-muted/80 px-2 py-0.5 rounded-md border border-border/50">{venue}</span>}
+        {publisher && <span className="text-foreground/80 font-medium">{publisher}</span>}
+        {publicationYear && <span>({publicationYear})</span>}
         {doi && (
           <a
             href={`https://doi.org/${doi}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="hover:underline flex items-center gap-0.5"
+            className="hover:underline flex items-center gap-1 text-brand-primary font-medium"
           >
             <span>DOI: {doi}</span>
             <ExternalLink className="w-2.5 h-2.5" />

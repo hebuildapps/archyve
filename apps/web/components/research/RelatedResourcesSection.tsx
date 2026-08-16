@@ -32,7 +32,7 @@ export function RelatedResourcesSection({
       {/* Implementations & Datasets */}
       {implementations.length > 0 && (
         <div>
-          <h2 className="text-xs font-mono uppercase tracking-wider text-zinc-400 dark:text-zinc-500 mb-3.5">
+          <h2 className="text-xs font-mono uppercase tracking-wider text-brand-primary mb-3.5 font-semibold">
             Code & Datasets
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -42,30 +42,30 @@ export function RelatedResourcesSection({
                 href={impl.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-between p-3.5 rounded-lg border border-zinc-200 dark:border-zinc-800/80 bg-zinc-50/20 dark:bg-zinc-900/5 hover:border-zinc-300 dark:hover:border-zinc-700 transition-colors"
+                className="flex items-center justify-between p-4 rounded-xl border border-border bg-card hover:border-muted-foreground/40 transition-colors shadow-xs group"
               >
-                <div className="flex items-center gap-2.5 min-w-0">
+                <div className="flex items-center gap-3 min-w-0">
                   {impl.type === 'github' ? (
-                    <Github className="w-5 h-5 text-zinc-700 dark:text-zinc-300 shrink-0" />
+                    <Github className="w-5 h-5 text-foreground shrink-0" />
                   ) : (
-                    <BookOpen className="w-5 h-5 text-zinc-700 dark:text-zinc-300 shrink-0" />
+                    <BookOpen className="w-5 h-5 text-foreground shrink-0" />
                   )}
                   <div className="min-w-0">
-                    <div className="text-xs font-mono text-zinc-400 dark:text-zinc-500 capitalize">
+                    <div className="text-[11px] font-mono text-muted-foreground capitalize">
                       {impl.type} Implementation
                     </div>
-                    <div className="text-sm font-semibold text-zinc-800 dark:text-zinc-200 truncate">
+                    <div className="text-sm font-semibold text-foreground truncate group-hover:text-brand-primary transition-colors">
                       {impl.name}
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-1.5 shrink-0">
+                <div className="flex items-center gap-2 shrink-0">
                   {impl.stars !== undefined && impl.stars !== null && (
-                    <span className="text-xs text-zinc-500 dark:text-zinc-400 font-mono">
+                    <span className="text-xs text-muted-foreground font-mono bg-card-muted px-2 py-0.5 rounded border border-border/50">
                       ★ {impl.stars.toLocaleString()}
                     </span>
                   )}
-                  <ExternalLink className="w-3.5 h-3.5 text-zinc-400" />
+                  <ExternalLink className="w-3.5 h-3.5 text-muted-foreground group-hover:text-foreground" />
                 </div>
               </a>
             ))}
@@ -76,23 +76,23 @@ export function RelatedResourcesSection({
       {/* Related Papers */}
       {relatedPapers.length > 0 && (
         <div>
-          <h2 className="text-xs font-mono uppercase tracking-wider text-zinc-400 dark:text-zinc-500 mb-3.5">
+          <h2 className="text-xs font-mono uppercase tracking-wider text-brand-primary mb-3.5 font-semibold">
             Related Literature
           </h2>
-          <div className="divide-y divide-zinc-200 dark:divide-zinc-800/80 border border-zinc-200 dark:border-zinc-800/80 rounded-lg overflow-hidden">
+          <div className="divide-y divide-border border border-border rounded-2xl overflow-hidden bg-card shadow-xs">
             {visiblePapers.map((paper, index) => (
-              <div key={index} className="p-4 bg-zinc-50/10 dark:bg-zinc-900/5 hover:bg-zinc-50/30 dark:hover:bg-zinc-900/10 transition-colors">
+              <div key={index} className="p-4 hover:bg-card-muted/40 transition-colors">
                 <div className="flex items-start justify-between gap-4">
-                  <div className="space-y-1">
+                  <div className="space-y-1.5">
                     {paper.relationship && (
-                      <span className="inline-block text-[10px] font-mono uppercase tracking-wider text-zinc-400 dark:text-zinc-500 bg-zinc-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded">
+                      <span className="inline-block text-[10px] font-mono uppercase tracking-wider text-brand-primary bg-highlight-glow/20 border border-brand-primary/20 px-2 py-0.5 rounded">
                         {paper.relationship}
                       </span>
                     )}
-                    <h3 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 leading-snug">
+                    <h3 className="text-sm font-serif font-medium text-foreground leading-snug">
                       {paper.title}
                     </h3>
-                    <p className="text-xs text-zinc-500 dark:text-zinc-400">
+                    <p className="text-xs text-muted-foreground font-sans">
                       {paper.authors.join(', ')}
                     </p>
                   </div>
@@ -101,7 +101,7 @@ export function RelatedResourcesSection({
                       href={paper.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-zinc-400 hover:text-zinc-600 dark:hover:text-zinc-200 shrink-0"
+                      className="p-1.5 rounded-md hover:bg-card-muted text-muted-foreground hover:text-foreground transition-colors shrink-0"
                     >
                       <ExternalLink className="w-4 h-4" />
                     </a>
@@ -114,7 +114,7 @@ export function RelatedResourcesSection({
           {relatedPapers.length > 3 && (
             <button
               onClick={() => setShowAllPapers(!showAllPapers)}
-              className="mt-3 flex items-center gap-1 text-xs font-semibold text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200 transition-colors"
+              className="mt-3 flex items-center gap-1.5 text-xs font-mono text-muted-foreground hover:text-foreground transition-colors"
             >
               {showAllPapers ? (
                 <>

@@ -22,6 +22,8 @@ import {
   HelpCircle
 } from 'lucide-react';
 
+import { ThemeToggle } from '@/components/ThemeToggle';
+
 interface SessionData {
   id: string;
   userAgent: string;
@@ -235,46 +237,54 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="flex-1 bg-bg-base dark:bg-bg-base-dark py-12 px-4 font-sans">
+    <div className="flex-1 bg-background py-12 px-4 font-sans">
       <main className="max-w-xl mx-auto space-y-8">
 
-        {/* Back button */}
-        <button
-          onClick={() => router.push('/')}
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-zinc-500 hover:text-zinc-700 dark:text-zinc-400 dark:hover:text-zinc-200 transition-colors"
-        >
-          <ArrowLeft className="w-3.5 h-3.5" />
-          <span>Back to Dashboard</span>
-        </button>
+        {/* Top action row */}
+        <div className="flex items-center justify-between gap-4">
+          <button
+            onClick={() => router.push('/')}
+            className="btn-ghost inline-flex items-center gap-1.5"
+          >
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>Back to Dashboard</span>
+          </button>
+          <ThemeToggle />
+        </div>
 
-        <h1 className="text-2xl font-serif font-semibold text-zinc-900 dark:text-zinc-50">
-          Settings
-        </h1>
+        <div>
+          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-brand-primary/20 bg-highlight-glow/20 text-brand-primary text-xs font-mono font-medium mb-2">
+            <span>Preferences</span>
+          </div>
+          <h1 className="text-3xl font-serif font-medium text-foreground tracking-tight">
+            Settings & AI Configuration
+          </h1>
+        </div>
 
         {/* 1. AI Configuration (BYOK) */}
-        <section className="p-6 rounded-[24px] border border-zinc-200 dark:border-zinc-800/80 bg-white dark:bg-zinc-900/5 space-y-4 shadow-sm">
-          <div className="flex items-center gap-2 text-zinc-850 dark:text-zinc-100 border-b border-zinc-200 dark:border-zinc-800/80 pb-3">
-            <Key className="w-4.5 h-4.5 text-zinc-400" />
-            <h2 className="text-sm font-semibold">AI Settings</h2>
+        <section className="p-6 rounded-2xl border border-border bg-card space-y-4 shadow-xs">
+          <div className="flex items-center gap-2 text-foreground border-b border-border pb-3">
+            <Key className="w-4 h-4 text-brand-primary" />
+            <h2 className="text-sm font-semibold font-serif">AI Settings (Bring Your Own Key)</h2>
           </div>
 
           <form onSubmit={handleSaveSettings} className="space-y-4">
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">
+              <label className="text-xs font-mono font-medium text-muted-foreground">
                 AI Provider
               </label>
               <select
                 value={provider}
                 onChange={(e) => handleProviderChange(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg border border-zinc-200 dark:border-zinc-800/80 bg-transparent text-sm focus:outline-none focus:ring-1 focus:ring-zinc-400 dark:focus:ring-zinc-650"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-card-muted/40 text-sm text-foreground focus:outline-none focus:border-brand-primary font-sans"
               >
-                <option value="gemini">Google Gemini</option>
-                <option value="groq">Groq (BYOK)</option>
+                <option value="gemini" className="bg-card text-foreground">Google Gemini</option>
+                <option value="groq" className="bg-card text-foreground">Groq (BYOK)</option>
               </select>
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">
+              <label className="text-xs font-mono font-medium text-muted-foreground">
                 {provider === 'groq' ? 'Groq API Key' : 'Gemini API Key'}
               </label>
               <input
@@ -282,27 +292,27 @@ export default function SettingsPage() {
                 value={apiKey}
                 onChange={(e) => setApiKey(e.target.value)}
                 placeholder={provider === 'groq' ? 'gsk_...' : 'AIzaSy...'}
-                className="w-full px-3 py-2 rounded-lg border border-zinc-200 dark:border-zinc-800/80 bg-transparent text-sm focus:outline-none focus:ring-1 focus:ring-zinc-400 dark:focus:ring-zinc-650"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-card-muted/40 text-sm text-foreground focus:outline-none focus:border-brand-primary font-mono text-xs"
               />
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">
+              <label className="text-xs font-mono font-medium text-muted-foreground">
                 Model Name
               </label>
               <select
                 value={model}
                 onChange={(e) => setModel(e.target.value)}
-                className="w-full px-3 py-2 rounded-lg border border-zinc-200 dark:border-zinc-800/80 bg-transparent text-sm focus:outline-none focus:ring-1 focus:ring-zinc-400 dark:focus:ring-zinc-650"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-card-muted/40 text-sm text-foreground focus:outline-none focus:border-brand-primary font-mono text-xs"
               >
                 {!availableModels.includes(model) && model && (
-                  <option value={model}>{model} (Current)</option>
+                  <option value={model} className="bg-card text-foreground">{model} (Current)</option>
                 )}
                 {availableModels.map((m) => (
-                  <option key={m} value={m}>{m}</option>
+                  <option key={m} value={m} className="bg-card text-foreground">{m}</option>
                 ))}
               </select>
-              <p className="text-[10px] text-zinc-400 dark:text-zinc-500 leading-relaxed font-mono">
+              <p className="text-[10px] text-muted-foreground leading-relaxed font-mono">
                 API Keys and configuration are stored client-side in LocalStorage. They are never sent to our database.
               </p>
             </div>
@@ -310,14 +320,14 @@ export default function SettingsPage() {
             <div className="flex gap-3 pt-2">
               <button
                 type="submit"
-                className="px-4 py-2 rounded-lg bg-zinc-950 text-white dark:bg-zinc-100 dark:text-zinc-900 text-xs font-semibold hover:opacity-90 transition-opacity"
+                className="btn-primary"
               >
                 Save Settings
               </button>
               <button
                 type="button"
                 onClick={handleTestConnection}
-                className="px-4 py-2 rounded-lg border border-zinc-200 dark:border-zinc-800 text-zinc-700 dark:text-zinc-300 text-xs font-semibold hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors"
+                className="btn-ghost"
               >
                 Test Connection
               </button>
@@ -325,84 +335,84 @@ export default function SettingsPage() {
           </form>
 
           {testStatus !== 'idle' && (
-            <div className={`p-3 rounded-lg flex items-start gap-2.5 text-xs ${testStatus === 'success' ? 'bg-emerald-50 text-emerald-800 dark:bg-emerald-950/20 dark:text-emerald-400' :
-              testStatus === 'error' ? 'bg-rose-50 text-rose-800 dark:bg-rose-950/20 dark:text-rose-400' :
-                'bg-zinc-50 text-zinc-700 dark:bg-zinc-900/50 dark:text-zinc-300'
-              }`}>
-              {testStatus === 'testing' && <Loader2 className="w-4 h-4 animate-spin shrink-0 mt-0.5" />}
-              {testStatus === 'success' && <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />}
-              {testStatus === 'error' && <XCircle className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />}
+            <div className={`p-3 rounded-xl flex items-start gap-2.5 text-xs ${
+              testStatus === 'success' ? 'bg-highlight-glow/20 border border-brand-primary/20 text-brand-primary' :
+              testStatus === 'error' ? 'bg-rose-500/10 border border-rose-500/20 text-rose-700 dark:text-rose-400' :
+              'bg-card-muted border border-border text-foreground'
+            }`}>
+              {testStatus === 'testing' && <Loader2 className="w-4 h-4 animate-spin shrink-0 mt-0.5 text-brand-primary" />}
+              {testStatus === 'success' && <CheckCircle className="w-4 h-4 text-brand-primary shrink-0 mt-0.5" />}
+              {testStatus === 'error' && <XCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />}
               <span className="font-mono text-[11px] leading-relaxed break-all">{testMessage}</span>
             </div>
           )}
         </section>
 
         {/* 2. Account Information */}
-        <section className="p-6 rounded-[24px] border border-zinc-200 dark:border-zinc-800/80 bg-white dark:bg-zinc-900/5 space-y-4 shadow-sm">
-          <div className="flex items-center gap-2 text-zinc-850 dark:text-zinc-100 border-b border-zinc-200 dark:border-zinc-800/80 pb-3">
-            <User className="w-4.5 h-4.5 text-zinc-400" />
-            <h2 className="text-sm font-semibold">Account Settings</h2>
+        <section className="p-6 rounded-2xl border border-border bg-card space-y-4 shadow-xs">
+          <div className="flex items-center gap-2 text-foreground border-b border-border pb-3">
+            <User className="w-4 h-4 text-brand-primary" />
+            <h2 className="text-sm font-semibold font-serif">Account Settings</h2>
           </div>
 
           {loadingSession ? (
-            <div className="flex items-center gap-2 text-xs text-zinc-400">
-              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            <div className="flex items-center gap-2 text-xs text-muted-foreground font-mono">
+              <Loader2 className="w-3.5 h-3.5 animate-spin text-brand-primary" />
               <span>Verifying account status...</span>
             </div>
           ) : userEmail && sessionData ? (
             <div className="space-y-6">
 
-              {/* Profile Card Header (Inspiration: img 1) */}
-              <div className="flex flex-col sm:flex-row justify-between sm:items-start gap-4 pb-4 border-b border-zinc-150 dark:border-zinc-800/80">
+              {/* Profile Card Header */}
+              <div className="flex flex-col sm:flex-row justify-between sm:items-start gap-4 pb-4 border-b border-border">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <span className="text-lg font-bold font-sans tracking-tight text-zinc-900 dark:text-zinc-50">
+                    <span className="text-lg font-bold font-serif tracking-tight text-foreground">
                       {userEmail.split('@')[0]}
                     </span>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 256 256"><rect width="256" height="256" fill="none"></rect><path d="M232,128c0,12.51-17.82,21.95-22.68,33.69-4.68,11.32,1.42,30.64-7.78,39.85s-28.53,3.1-39.85,7.78C150,214.18,140.5,232,128,232s-22-17.82-33.69-22.68c-11.32-4.68-30.65,1.42-39.85-7.78s-3.1-28.53-7.78-39.85C41.82,150,24,140.5,24,128s17.82-22,22.68-33.69C51.36,83,45.26,63.66,54.46,54.46S83,51.36,94.31,46.68C106.05,41.82,115.5,24,128,24S150,41.82,161.69,46.68c11.32,4.68,30.65-1.42,39.85,7.78s3.1,28.53,7.78,39.85C214.18,106.05,232,115.5,232,128Z" opacity="0.2"></path><path d="M225.86,102.82c-3.77-3.94-7.67-8-9.14-11.57-1.36-3.27-1.44-8.69-1.52-13.94-.15-9.76-.31-20.82-8-28.51s-18.75-7.85-28.51-8c-5.25-.08-10.67-.16-13.94-1.52-3.56-1.47-7.63-5.37-11.57-9.14C146.28,23.51,138.44,16,128,16s-18.27,7.51-25.18,14.14c-3.94,3.77-8,7.67-11.57,9.14C88,40.64,82.56,40.72,77.31,40.8c-9.76.15-20.82.31-28.51,8S41,67.55,40.8,77.31c-.08,5.25-.16,10.67-1.52,13.94-1.47,3.56-5.37,7.63-9.14,11.57C23.51,109.72,16,117.56,16,128s7.51,18.27,14.14,25.18c3.77,3.94,7.67,8,9.14,11.57,1.36,3.27,1.44,8.69,1.52,13.94.15,9.76.31,20.82,8,28.51s18.75,7.85,28.51,8c5.25.08,10.67.16,13.94,1.52,3.56,1.47,7.63,5.37,11.57,9.14C109.72,232.49,117.56,240,128,240s18.27-7.51,25.18-14.14c3.94-3.77,8-7.67,11.57-9.14,3.27-1.36,8.69-1.44,13.94-1.52,9.76-.15,20.82-.31,28.51-8s7.85-18.75,8-28.51c.08-5.25.16-10.67,1.52-13.94,1.47-3.56,5.37-7.63,9.14-11.57C232.49,146.28,240,138.44,240,128S232.49,109.73,225.86,102.82Zm-11.55,39.29c-4.79,5-9.75,10.17-12.38,16.52-2.52,6.1-2.63,13.07-2.73,19.82-.1,7-.21,14.33-3.32,17.43s-10.39,3.22-17.43,3.32c-6.75.1-13.72.21-19.82,2.73-6.35,2.63-11.52,7.59-16.52,12.38S132,224,128,224s-9.15-4.92-14.11-9.69-10.17-9.75-16.52-12.38c-6.1-2.52-13.07-2.63-19.82-2.73-7-.1-14.33-.21-17.43-3.32s-3.22-10.39-3.32-17.43c-.1-6.75-.21-13.72-2.73-19.82-2.63-6.35-7.59-11.52-12.38-16.52S32,132,32,128s4.92-9.15,9.69-14.11,9.75-10.17,12.38-16.52c2.52-6.1,2.63-13.07,2.73-19.82.1-7,.21-14.33,3.32-17.43S70.51,56.9,77.55,56.8c6.75-.1,13.72-.21,19.82-2.73,6.35-2.63,11.52-7.59,16.52-12.38S124,32,128,32s9.15,4.92,14.11,9.69,10.17,9.75,16.52,12.38c6.1,2.52,13.07,2.63,19.82,2.73,7,.1,14.33.21,17.43,3.32s3.22,10.39,3.32,17.43c.1,6.75.21,13.72,2.73,19.82,2.63,6.35,7.59,11.52,12.38,16.52S224,124,224,128,219.08,137.15,214.31,142.11ZM140,180a12,12,0,1,1-12-12A12,12,0,0,1,140,180Zm28-72c0,17.38-13.76,31.93-32,35.28V144a8,8,0,0,1-16,0v-8a8,8,0,0,1,8-8c13.23,0,24-9,24-20s-10.77-20-24-20-24,9-24,20v4a8,8,0,0,1-16,0v-4c0-19.85,17.94-36,40-36S168,88.15,168,108Z"></path></svg>
-                    <span className="px-2 py-0.5 rounded-full bg-zinc-100 dark:bg-zinc-800 text-[10px] font-semibold text-zinc-500">
-                      User
+                    <span className="px-2 py-0.5 rounded-full bg-highlight-glow/20 border border-brand-primary/20 text-[10px] font-mono font-semibold text-brand-primary">
+                      Verified
                     </span>
                   </div>
-                  <p className="text-xs text-zinc-500 font-mono">{userEmail}</p>
+                  <p className="text-xs text-muted-foreground font-mono">{userEmail}</p>
                 </div>
 
                 {/* Created Date */}
-                <div className="text-xs text-zinc-400 dark:text-zinc-500 sm:text-right font-sans">
+                <div className="text-xs text-muted-foreground sm:text-right font-mono">
                   Since {sessionData.createdAt.split(',')[0]}
                 </div>
               </div>
 
-              {/* Inner Session Info Card (Inspiration: img 1) */}
-              <div className="p-5 rounded-[24px] border border-zinc-200 dark:border-zinc-800/60 bg-zinc-50/50 dark:bg-zinc-900/30 space-y-4">
+              {/* Inner Session Info Card */}
+              <div className="p-4 rounded-xl border border-border bg-card-muted/40 space-y-4">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-xs font-semibold text-zinc-850 dark:text-zinc-100">Session Info</h3>
-                  <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 dark:bg-emerald-950/20 dark:text-emerald-400 text-[10px] font-semibold">
+                  <h3 className="text-xs font-semibold font-mono uppercase tracking-wider text-muted-foreground">Session Info</h3>
+                  <span className="px-2 py-0.5 rounded-full bg-highlight-glow/20 border border-brand-primary/20 text-brand-primary text-[10px] font-mono font-semibold">
                     Active
                   </span>
                 </div>
 
-                <div className="space-y-4 text-xs">
+                <div className="space-y-3.5 text-xs">
                   {/* Session ID */}
                   <div className="space-y-1.5">
-                    <div className="flex items-center gap-2 text-zinc-500">
-                      <KeyRound className="w-3.5 h-3.5" />
-                      <span className="font-semibold">Session ID</span>
+                    <div className="flex items-center gap-1.5 text-muted-foreground font-mono text-[11px]">
+                      <KeyRound className="w-3 h-3" />
+                      <span>Session ID</span>
                     </div>
                     <input
                       type="text"
                       readOnly
                       value={sessionData.id}
-                      className="w-full px-3 py-1.5 rounded-lg border border-zinc-200 dark:border-zinc-800/60 bg-zinc-100/50 dark:bg-zinc-905/30 font-mono text-[10px] text-zinc-600 dark:text-zinc-450 focus:outline-none"
+                      className="w-full px-3 py-1.5 rounded-lg border border-border bg-card font-mono text-[10px] text-muted-foreground focus:outline-none"
                     />
                   </div>
 
                   {/* User Agent */}
                   <div className="flex gap-3">
-                    <Laptop className="w-4 h-4 text-zinc-400 shrink-0 mt-0.5" />
+                    <Laptop className="w-3.5 h-3.5 text-muted-foreground shrink-0 mt-0.5" />
                     <div>
-                      <div className="font-semibold text-zinc-650 dark:text-zinc-300">User Agent</div>
-                      <div className="text-[11px] text-zinc-500 dark:text-zinc-450 font-mono leading-relaxed mt-0.5 max-w-sm">
+                      <div className="font-mono text-[11px] text-muted-foreground">User Agent</div>
+                      <div className="text-[11px] text-foreground font-mono leading-relaxed mt-0.5 max-w-sm">
                         {sessionData.userAgent}
                       </div>
                     </div>
@@ -410,10 +420,10 @@ export default function SettingsPage() {
 
                   {/* IP Address */}
                   <div className="flex gap-3">
-                    <Globe className="w-4 h-4 text-zinc-400 shrink-0 mt-0.5" />
+                    <Globe className="w-3.5 h-3.5 text-muted-foreground shrink-0 mt-0.5" />
                     <div>
-                      <div className="font-semibold text-zinc-650 dark:text-zinc-300">IP Address</div>
-                      <div className="text-[11px] text-zinc-500 dark:text-zinc-450 font-mono mt-0.5">
+                      <div className="font-mono text-[11px] text-muted-foreground">IP Address</div>
+                      <div className="text-[11px] text-foreground font-mono mt-0.5">
                         {sessionData.ipAddress}
                       </div>
                     </div>
@@ -421,10 +431,10 @@ export default function SettingsPage() {
 
                   {/* Created */}
                   <div className="flex gap-3">
-                    <Calendar className="w-4 h-4 text-zinc-400 shrink-0 mt-0.5" />
+                    <Calendar className="w-3.5 h-3.5 text-muted-foreground shrink-0 mt-0.5" />
                     <div>
-                      <div className="font-semibold text-zinc-650 dark:text-zinc-300">Created</div>
-                      <div className="text-[11px] text-zinc-500 dark:text-zinc-450 font-mono mt-0.5">
+                      <div className="font-mono text-[11px] text-muted-foreground">Created</div>
+                      <div className="text-[11px] text-foreground font-mono mt-0.5">
                         {sessionData.createdAt}
                       </div>
                     </div>
@@ -436,7 +446,7 @@ export default function SettingsPage() {
               <div className="flex justify-end pt-2">
                 <button
                   onClick={handleLogout}
-                  className="px-4 py-2 rounded-lg border border-rose-200 dark:border-rose-900/40 text-rose-600 dark:text-rose-450 text-xs font-semibold hover:bg-rose-50 dark:hover:bg-rose-950/20 transition-colors inline-flex items-center gap-1.5"
+                  className="px-3.5 py-1.5 rounded-lg border border-rose-500/30 text-rose-600 hover:bg-rose-500/10 text-xs font-semibold transition-colors inline-flex items-center gap-1.5"
                 >
                   <LogOut className="w-3.5 h-3.5" />
                   <span>Log Out Session</span>
@@ -446,12 +456,12 @@ export default function SettingsPage() {
             </div>
           ) : (
             <div className="space-y-3">
-              <p className="text-xs text-zinc-650 dark:text-zinc-400 leading-relaxed">
+              <p className="text-xs text-muted-foreground leading-relaxed">
                 You are currently signed out. Sign in to analyze new papers and record your research history.
               </p>
               <button
                 onClick={() => router.push('/login')}
-                className="px-4 py-2 rounded-lg bg-zinc-950 text-white dark:bg-zinc-100 dark:text-zinc-900 text-xs font-semibold hover:opacity-90 transition-opacity"
+                className="btn-primary"
               >
                 Sign In / Register
               </button>
@@ -460,22 +470,22 @@ export default function SettingsPage() {
         </section>
 
         {/* 3. Extension Info */}
-        <section className="p-6 rounded-[24px] border border-zinc-200 dark:border-zinc-800/80 bg-white dark:bg-zinc-900/5 space-y-4 shadow-sm">
-          <div className="flex items-center gap-2 text-zinc-850 dark:text-zinc-100 border-b border-zinc-200 dark:border-zinc-800/80 pb-3">
-            <Keyboard className="w-4.5 h-4.5 text-zinc-400" />
-            <h2 className="text-sm font-semibold">Extension Information</h2>
+        <section className="p-6 rounded-2xl border border-border bg-card space-y-4 shadow-xs">
+          <div className="flex items-center gap-2 text-foreground border-b border-border pb-3">
+            <Keyboard className="w-4 h-4 text-brand-primary" />
+            <h2 className="text-sm font-semibold font-serif">Extension Information</h2>
           </div>
 
-          <div className="space-y-4 text-xs">
+          <div className="space-y-3.5 text-xs">
             <div>
-              <h4 className="font-semibold text-zinc-800 dark:text-zinc-200 mb-0.5">Keyboard Shortcut</h4>
-              <p className="text-zinc-500 dark:text-zinc-400 leading-relaxed">
-                Trigger analysis instantly using <kbd className="px-1.5 py-0.5 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded font-mono text-[10px]">Ctrl+Shift+H</kbd> (Mac: <kbd className="px-1.5 py-0.5 bg-zinc-100 dark:bg-zinc-800 border border-zinc-200 dark:border-zinc-700 rounded font-mono text-[10px]">Cmd+Shift+H</kbd>).
+              <h4 className="font-semibold text-foreground mb-0.5">Keyboard Shortcut</h4>
+              <p className="text-muted-foreground leading-relaxed">
+                Trigger analysis instantly using <kbd className="px-1.5 py-0.5 bg-card-muted border border-border rounded font-mono text-[10px] text-foreground">Ctrl+Shift+H</kbd> (Mac: <kbd className="px-1.5 py-0.5 bg-card-muted border border-border rounded font-mono text-[10px] text-foreground">Cmd+Shift+H</kbd>).
               </p>
             </div>
-            <div className="pt-2 border-t border-zinc-100 dark:border-zinc-850">
-              <h4 className="font-semibold text-zinc-800 dark:text-zinc-200 mb-0.5">Extension Behavior</h4>
-              <p className="text-zinc-500 dark:text-zinc-400 leading-relaxed">
+            <div className="pt-2 border-t border-border">
+              <h4 className="font-semibold text-foreground mb-0.5">Extension Behavior</h4>
+              <p className="text-muted-foreground leading-relaxed">
                 Preferences and configuration (such as custom URLs or local overrides) are managed directly within the extension's Options page, accessible via your browser's extension manager.
               </p>
             </div>
@@ -483,23 +493,23 @@ export default function SettingsPage() {
         </section>
 
         {/* 4. About */}
-        <section className="p-6 rounded-[24px] border border-zinc-200 dark:border-zinc-800/80 bg-white dark:bg-zinc-900/5 space-y-3 shadow-sm">
-          <div className="flex items-center gap-2 text-zinc-850 dark:text-zinc-100 border-b border-zinc-200 dark:border-zinc-800/80 pb-3">
-            <Info className="w-4.5 h-4.5 text-zinc-400" />
-            <h2 className="text-sm font-semibold">About</h2>
+        <section className="p-6 rounded-2xl border border-border bg-card space-y-3 shadow-xs">
+          <div className="flex items-center gap-2 text-foreground border-b border-border pb-3">
+            <Info className="w-4 h-4 text-brand-primary" />
+            <h2 className="text-sm font-semibold font-serif">About</h2>
           </div>
 
           <div className="text-xs space-y-2">
             <div className="flex justify-between">
-              <span className="text-zinc-500">Version</span>
-              <span className="font-mono text-zinc-800 dark:text-zinc-200 font-semibold">2.0.0 (Phase 1B MVP)</span>
+              <span className="text-muted-foreground">Version</span>
+              <span className="font-mono text-foreground font-semibold">2.0.0 (Phase 1B MVP)</span>
             </div>
-            <div className="flex gap-3 pt-2 border-t border-zinc-100 dark:border-zinc-850 text-zinc-650 dark:text-zinc-400 font-semibold">
-              <a href="#" className="hover:underline">Documentation</a>
+            <div className="flex gap-3 pt-2 border-t border-border text-muted-foreground font-semibold">
+              <a href="#" className="hover:text-foreground transition-colors">Documentation</a>
               <span>·</span>
-              <a href="#" className="hover:underline">Changelog</a>
+              <a href="#" className="hover:text-foreground transition-colors">Changelog</a>
               <span>·</span>
-              <a href="#" className="hover:underline text-rose-500">Report Issue</a>
+              <a href="#" className="hover:text-rose-600 transition-colors">Report Issue</a>
             </div>
           </div>
         </section>

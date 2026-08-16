@@ -68,16 +68,16 @@ function LoginContent() {
   };
 
   return (
-    <div className="max-w-md mx-auto w-full border border-zinc-200 dark:border-zinc-800/80 rounded-xl bg-white dark:bg-zinc-900/5 p-8 shadow-sm space-y-6">
+    <div className="max-w-md mx-auto w-full border border-border rounded-2xl bg-card p-8 shadow-xs space-y-6">
       
       {/* Tab selection */}
-      <div className="flex border-b border-zinc-200 dark:border-zinc-800/80">
+      <div className="flex border-b border-border">
         <button
           onClick={() => { setIsSignUp(false); setError(null); }}
           className={`flex-1 pb-3 text-sm font-semibold border-b-2 transition-colors ${
             !isSignUp 
-              ? 'border-zinc-900 text-zinc-900 dark:border-zinc-100 dark:text-zinc-100' 
-              : 'border-transparent text-zinc-400 hover:text-zinc-600'
+              ? 'border-brand-primary text-foreground' 
+              : 'border-transparent text-muted-foreground hover:text-foreground'
           }`}
         >
           Sign In
@@ -86,8 +86,8 @@ function LoginContent() {
           onClick={() => { setIsSignUp(true); setError(null); }}
           className={`flex-1 pb-3 text-sm font-semibold border-b-2 transition-colors ${
             isSignUp 
-              ? 'border-zinc-900 text-zinc-900 dark:border-zinc-100 dark:text-zinc-100' 
-              : 'border-transparent text-zinc-400 hover:text-zinc-600'
+              ? 'border-brand-primary text-foreground' 
+              : 'border-transparent text-muted-foreground hover:text-foreground'
           }`}
         >
           Register
@@ -96,7 +96,7 @@ function LoginContent() {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-1.5">
-          <label className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">
+          <label className="text-xs font-mono font-medium text-muted-foreground">
             Email Address
           </label>
           <input
@@ -105,12 +105,12 @@ function LoginContent() {
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="you@example.com"
-            className="w-full px-3 py-2 rounded-lg border border-zinc-200 dark:border-zinc-800/80 bg-transparent text-sm focus:outline-none focus:ring-1 focus:ring-zinc-400 dark:focus:ring-zinc-650"
+            className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-card-muted/40 text-sm text-foreground focus:outline-none focus:border-brand-primary transition-colors"
           />
         </div>
 
         <div className="space-y-1.5">
-          <label className="text-xs font-semibold text-zinc-500 dark:text-zinc-400">
+          <label className="text-xs font-mono font-medium text-muted-foreground">
             Password
           </label>
           <input
@@ -119,19 +119,19 @@ function LoginContent() {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="••••••••"
-            className="w-full px-3 py-2 rounded-lg border border-zinc-200 dark:border-zinc-800/80 bg-transparent text-sm focus:outline-none focus:ring-1 focus:ring-zinc-400 dark:focus:ring-zinc-650"
+            className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-card-muted/40 text-sm text-foreground focus:outline-none focus:border-brand-primary transition-colors"
           />
         </div>
 
         {error && (
-          <div className="p-3 rounded-lg bg-rose-50 text-rose-800 dark:bg-rose-950/20 dark:text-rose-400 flex items-start gap-2.5 text-xs">
+          <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-700 dark:text-rose-400 flex items-start gap-2.5 text-xs">
             <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
             <span className="leading-relaxed font-mono">{error}</span>
           </div>
         )}
 
         {successMsg && (
-          <div className="p-3 rounded-lg bg-emerald-50 text-emerald-800 dark:bg-emerald-950/20 dark:text-emerald-400 text-xs">
+          <div className="p-3 rounded-xl bg-highlight-glow/20 border border-brand-primary/20 text-brand-primary text-xs">
             <span className="leading-relaxed font-mono">{successMsg}</span>
           </div>
         )}
@@ -139,7 +139,7 @@ function LoginContent() {
         <button
           type="submit"
           disabled={loading}
-          className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg bg-zinc-950 text-white dark:bg-zinc-100 dark:text-zinc-900 text-sm font-semibold hover:opacity-90 transition-opacity disabled:opacity-50"
+          className="w-full btn-primary flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold disabled:opacity-50"
         >
           {loading && <Loader2 className="w-4 h-4 animate-spin" />}
           <span>{isSignUp ? 'Create Account' : 'Sign In'}</span>
@@ -151,10 +151,10 @@ function LoginContent() {
 
 export default function LoginPage() {
   return (
-    <div className="flex-1 bg-bg-base dark:bg-bg-base-dark flex flex-col justify-center py-20 px-4">
+    <div className="flex-1 bg-background flex flex-col justify-center py-20 px-4">
       <Suspense fallback={
-        <div className="flex justify-center text-zinc-400 text-xs gap-2">
-          <Loader2 className="w-4 h-4 animate-spin" />
+        <div className="flex justify-center text-muted-foreground text-xs gap-2 font-mono">
+          <Loader2 className="w-4 h-4 animate-spin text-brand-primary" />
           <span>Loading login form...</span>
         </div>
       }>
