@@ -53,7 +53,7 @@ export default function SettingsPage() {
   const [copiedSessionId, setCopiedSessionId] = useState(false);
 
   const fallbackGemini = ['gemini-3.5-pro', 'gemini-3.5-flash'];
-  const fallbackGroq = ['openai/gpt-oss-20b', 'qwen/qwen3.6-27b'];
+  const fallbackGroq = ['openai/gpt-oss-20b', 'openai/gpt-oss-20b', 'qwen/qwen3.6-27b'];
 
   const fetchModels = async (currentProvider: string, currentApiKey: string) => {
     if (!currentApiKey.trim()) {
@@ -72,8 +72,8 @@ export default function SettingsPage() {
             .filter((m: any) => m.active !== false && !m.id.includes('whisper') && !m.id.includes('guard') && !m.id.includes('tts'))
             .map((m: any) => m.id)
             .sort((a: string, b: string) => {
-              if (a.includes('llama-3.3') || a.includes('llama-3.1-70b')) return -1;
-              if (b.includes('llama-3.3') || b.includes('llama-3.1-70b')) return 1;
+              if (a === 'openai/gpt-oss-120b') return -1;
+              if (b === 'openai/gpt-oss-120b') return 1;
               return a.localeCompare(b);
             });
           setAvailableModels(list.length > 0 ? list : fallbackGroq);
@@ -111,7 +111,14 @@ export default function SettingsPage() {
     if (key) setApiKey(key);
 
     const currentModel = keyStore.getModel(currentProvider);
-    setModel(currentModel);
+    if (
+      currentProvider === 'groq' &&
+      (!currentModel || currentModel === 'llama-3.3-70b-versatile')
+    ) {
+      setModel('openai/gpt-oss-120b');
+    } else {
+      setModel(currentModel);
+    }
 
     fetchModels(currentProvider, key);
 
@@ -264,8 +271,7 @@ export default function SettingsPage() {
       label: 'Account & Sessions',
       icon: (
         <svg width="16" height="16" viewBox="0 0 256 256" fill="currentColor">
-          <path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24ZM74.08,197.5a64,64,0,0,1,107.84,0,87.83,87.83,0,0,1-107.84,0ZM128,120a32,32,0,1,1,32-32A32,32,0,0,1,128,120Z" opacity="0.2" />
-          <path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24ZM74.08,197.5a64,64,0,0,1,107.84,0,87.83,87.83,0,0,1-107.84,0ZM128,120a32,32,0,1,1,32-32A32,32,0,0,1,128,120Z" />
+          <path d="M128,32A96,96,0,0,0,63.8,199.38h0A72,72,0,0,1,128,160a40,40,0,1,1,40-40,40,40,0,0,1-40,40,72,72,0,0,1,64.2,39.37A96,96,0,0,0,128,32Z" opacity="0.2" fill="#000000" /><path d="M63.8,199.37a72,72,0,0,1,128.4,0" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-width="16" /><circle cx="128" cy="128" r="96" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-width="16" /><circle cx="128" cy="120" r="40" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-width="16" />
         </svg>
       ),
     },
@@ -480,7 +486,7 @@ export default function SettingsPage() {
                           >
                             <div className="flex flex-col">
                               <span className="font-semibold">Groq (BYOK)</span>
-                              <span className="text-[10px] text-muted-foreground font-sans">Ultra-fast inference with Llama 3.3 70B & Mixtral</span>
+                              <span className="text-[10px] text-muted-foreground font-sans">Ultra-fast inference with GPT-OSS 120B & other supported models</span>
                             </div>
                             {provider === 'groq' && <Check className="w-3.5 h-3.5 text-brand-primary dark:text-brand-accent" />}
                           </button>
@@ -776,7 +782,7 @@ export default function SettingsPage() {
                       Download Extension Here &rarr;
                     </h3>
                     <a
-                      href="https://github.com/hebuildapps/archyve-v2"
+                      href="https://github.com/hebuildapps/archyve_v2"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-brand-primary hover:underline"
@@ -805,11 +811,6 @@ export default function SettingsPage() {
                     <span className="font-mono text-foreground font-bold">2.0.0 (Release)</span>
                   </div>
 
-                  <div className="flex justify-between py-2 border-b border-border">
-                    <span className="text-muted-foreground font-mono">Key Architecture</span>
-                    <span className="font-mono text-foreground">Local BYOK (Encrypted LocalStorage)</span>
-                  </div>
-
                   <div className="flex flex-wrap items-center gap-4 pt-2 font-mono text-xs font-semibold">
                     <button
                       onClick={() => router.push('/blog')}
@@ -826,7 +827,7 @@ export default function SettingsPage() {
                     </button>
                     <span className="text-border">·</span>
                     <a
-                      href="https://github.com/hebuildapps/archyve-v2"
+                      href="https://github.com/hebuildapps/archyve_v2"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-muted-foreground hover:text-foreground hover:underline"

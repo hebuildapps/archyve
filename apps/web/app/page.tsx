@@ -342,7 +342,7 @@ export default function Home() {
             Settings
           </button>
           <a
-            href="https://github.com/hebuildapps/archyve-v2"
+            href="https://github.com/hebuildapps/archyve_v2"
             target="_blank"
             rel="noopener noreferrer"
             className="hover:text-foreground transition-colors"

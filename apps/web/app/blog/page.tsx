@@ -10,7 +10,7 @@ import { DitherShader } from '@/components/ui/dither-shader';
 export default function BlogAnnouncementPage() {
   return (
     <div className="min-h-screen bg-background text-foreground font-sans selection:bg-brand-primary/20">
-      
+
       {/* Top Floating Nav */}
       <header className="sticky top-0 z-40 w-full border-b border-border bg-background/80 backdrop-blur-md">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
@@ -99,7 +99,7 @@ export default function BlogAnnouncementPage() {
             Why Archyve exists.
           </h2>
           <p>
-            The academic web is deeply fragmented. When researchers discover an intriguing paper on IEEE Xplore, Springer Nature, Elsevier ScienceDirect, JSTOR, or arXiv, the publisher page provides only a tiny sliver of the truth. Crucial context—whether an open-access pre-print exists, who cited what, what real implementations are hosted on GitHub, and what prior art laid the foundation—is scattered across dozens of disconnected tools and databases.
+            The academic web is deeply fragmented. When researchers discover an intriguing paper on IEEE Xplore, Springer Nature, Elsevier ScienceDirect, JSTOR, or arXiv, the publisher page provides only a tiny sliver of the truth. Crucial context whether an open-access pre-print exists, who cited what, what real implementations are hosted on GitHub, and what prior art laid the foundation is scattered across dozens of disconnected tools and databases.
           </p>
           <p>
             Information is rarely missing; instead, the workflow is prohibitively expensive in human attention. Researchers spend ten to twenty minutes per paper switching browser tabs, searching metadata registries, and cross-referencing authors just to answer a fundamental question: <em>&ldquo;Is this paper worth twenty minutes of deep reading?&rdquo;</em> We built Archyve to answer that question in under thirty seconds.
@@ -356,25 +356,9 @@ export default function BlogAnnouncementPage() {
               href="/"
               className="btn-primary inline-flex items-center gap-2"
             >
-              <span>Launch Dashboard</span>
+              <span>Start Using</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </Link>
-
-            <Link
-              href="/settings"
-              className="btn-ghost inline-flex items-center gap-2"
-            >
-              <span>Configure Settings</span>
-            </Link>
-
-            <a
-              href="https://github.com/hebuildapps/archyve-v2"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="btn-ghost inline-flex items-center gap-2 font-mono text-xs"
-            >
-              <span>GitHub Repo &rarr;</span>
-            </a>
           </div>
         </section>
 
@@ -396,7 +380,7 @@ export default function BlogAnnouncementPage() {
             <Link href="/privacy" className="hover:text-foreground transition-colors">Privacy</Link>
             <Link href="/settings" className="hover:text-foreground transition-colors">Settings</Link>
             <a
-              href="https://github.com/hebuildapps/archyve-v2"
+              href="https://github.com/hebuildapps/archyve_v2"
               target="_blank"
               rel="noopener noreferrer"
               className="hover:text-foreground transition-colors"

@@ -9,7 +9,7 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 export default function PrivacyPolicyPage() {
   return (
     <div className="min-h-screen bg-background text-foreground font-sans selection:bg-brand-primary/20">
-      
+
       {/* Top Floating Nav */}
       <header className="sticky top-0 z-40 w-full border-b border-border bg-background/80 backdrop-blur-md">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
@@ -231,12 +231,12 @@ export default function PrivacyPolicyPage() {
             <div className="p-4 rounded-xl border border-border bg-card space-y-1">
               <span className="font-mono text-xs text-muted-foreground block">Project Support & Issues</span>
               <a
-                href="https://github.com/hebuildapps/archyve-v2/issues"
+                href="https://github.com/hebuildapps/archyve_v2/issues"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="font-mono text-xs text-brand-primary hover:underline"
               >
-                https://github.com/hebuildapps/archyve-v2/issues &rarr;
+                https://github.com/hebuildapps/archyve_v2/issues &rarr;
               </a>
             </div>
           </div>
@@ -260,7 +260,7 @@ export default function PrivacyPolicyPage() {
             <Link href="/privacy" className="text-foreground font-semibold">Privacy</Link>
             <Link href="/settings" className="hover:text-foreground transition-colors">Settings</Link>
             <a
-              href="https://github.com/hebuildapps/archyve-v2"
+              href="https://github.com/hebuildapps/archyve_v2"
               target="_blank"
               rel="noopener noreferrer"
               className="hover:text-foreground transition-colors"
