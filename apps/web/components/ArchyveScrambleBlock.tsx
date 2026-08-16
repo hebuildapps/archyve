@@ -112,26 +112,29 @@ export function ArchyveScrambleBlock({
     >
       {/* 
         Sharp-cornered rectangular background block matching @archyve-logo.svg.
-        The block height is sized from top to baseline so characters with descenders 
-        ('y', 'g', 'p', etc.) extend outside the bottom edge, recreating the Greptile effect.
+        The block height covers the text cleanly in both light and dark themes.
       */}
       <span
-        className="absolute inset-x-0 top-0 bottom-[5px] bg-[#B7FF38] shadow-[0_1px_3px_rgba(10,28,0,0.15)] group-hover:bg-[#a6f720] transition-colors"
+        className="absolute inset-0 bg-[#B7FF38] shadow-[0_1px_3px_rgba(10,28,0,0.15)] group-hover:bg-[#a6f720] transition-colors overflow-hidden"
         style={{
           borderRadius: "0px", // Strict sharp geometric corners
         }}
-      />
+      >
+        {/* Dark glare sweeping from right to left on hover */}
+        <span
+          className="absolute inset-0 bg-gradient-to-l from-transparent via-black/25 to-transparent translate-x-full group-hover:-translate-x-full transition-transform duration-700 ease-in-out pointer-events-none"
+        />
+      </span>
 
       {/* Text layer with sharp monospace/geometric character */}
-      <span className="relative z-10 px-2.5 pt-0.5 pb-1 font-mono text-xs font-bold tracking-tight block-text leading-none select-none flex items-center">
+      <span className="relative z-10 px-2.5 py-0.5 font-mono text-xs font-bold tracking-tight block-text leading-none select-none flex items-center">
         {displayText.split("").map((char, index) => {
           // Check if char naturally breaks out below baseline
           const isDescender = "ygjpq,".includes(char);
           return (
             <span
               key={index}
-              className={`inline-block transition-transform duration-75 ${isDescender ? "relative z-20 font-bold" : ""
-                }`}
+              className={`inline-block transition-transform duration-75 ${isDescender ? "font-bold" : ""}`}
             >
               {char === " " ? "\u00A0" : char}
             </span>

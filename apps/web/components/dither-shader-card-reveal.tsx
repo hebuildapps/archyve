@@ -2,7 +2,6 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { DitherShader } from "@/components/ui/dither-shader";
-import { ArrowUpRight, X, Sparkles } from "lucide-react";
 
 interface DitherShaderCardRevealProps {
   isOpen?: boolean;
@@ -44,8 +43,9 @@ export function DitherShaderCardReveal({
     const centerX = rect.width / 2;
     const centerY = rect.height / 2;
 
-    const rotateX = ((y - centerY) / centerY) * -12; // Max 12 deg tilt
-    const rotateY = ((x - centerX) / centerX) * 12;
+    // Subtle micro-tilt (max 3 degrees)
+    const rotateX = ((y - centerY) / centerY) * -3;
+    const rotateY = ((x - centerX) / centerX) * 3;
 
     const glareX = (x / rect.width) * 100;
     const glareY = (y / rect.height) * 100;
@@ -55,7 +55,7 @@ export function DitherShaderCardReveal({
       rotateY,
       glareX,
       glareY,
-      glareOpacity: 0.25,
+      glareOpacity: 0.12,
       isHovered: true,
     });
   };
@@ -75,7 +75,7 @@ export function DitherShaderCardReveal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/70 backdrop-blur-md transition-all duration-300 animate-in fade-in [perspective:1200px]"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 bg-black/35 backdrop-blur-[2px] transition-all duration-200 animate-in fade-in"
       onClick={onClose}
     >
       <div
@@ -84,38 +84,27 @@ export function DitherShaderCardReveal({
         onMouseLeave={handleMouseLeave}
         style={{
           transform: tilt.isHovered
-            ? `perspective(1000px) rotateX(${tilt.rotateX}deg) rotateY(${tilt.rotateY}deg) scale3d(1.02, 1.02, 1.02)`
+            ? `perspective(1000px) rotateX(${tilt.rotateX}deg) rotateY(${tilt.rotateY}deg) scale3d(1.005, 1.005, 1.005)`
             : "perspective(1000px) rotateX(0deg) rotateY(0deg) scale3d(1, 1, 1)",
           transition: tilt.isHovered
-            ? "transform 0.08s ease-out, box-shadow 0.15s ease-out"
-            : "transform 0.6s cubic-bezier(0.23, 1, 0.32, 1), box-shadow 0.6s ease",
+            ? "transform 0.1s ease-out"
+            : "transform 0.5s cubic-bezier(0.23, 1, 0.32, 1)",
           transformStyle: "preserve-3d",
         }}
-        className="relative w-full max-w-[620px] overflow-hidden rounded-3xl border border-white/20 bg-neutral-950 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.85)] cursor-default will-change-transform select-none"
+        className="relative w-full max-w-[400px] sm:max-w-[420px] overflow-hidden rounded-2xl border border-white/15 bg-neutral-950 shadow-2xl cursor-default will-change-transform select-none"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Dynamic Specular 3D Glare Sheen */}
+        {/* Subtle Specular Glare */}
         <div
-          className="pointer-events-none absolute inset-0 z-30 rounded-3xl transition-opacity duration-300"
+          className="pointer-events-none absolute inset-0 z-30 rounded-2xl transition-opacity duration-300"
           style={{
             opacity: tilt.glareOpacity,
-            background: `radial-gradient(circle at ${tilt.glareX}% ${tilt.glareY}%, rgba(255, 255, 255, 0.35) 0%, transparent 60%)`,
+            background: `radial-gradient(circle at ${tilt.glareX}% ${tilt.glareY}%, rgba(255, 255, 255, 0.25) 0%, transparent 60%)`,
           }}
         />
 
-        {/* Close Button */}
-        {onClose && (
-          <button
-            onClick={onClose}
-            className="absolute top-4 right-4 z-40 flex h-8 w-8 items-center justify-center rounded-full bg-black/60 text-white/70 backdrop-blur-md transition-all hover:bg-black/80 hover:text-white border border-white/15"
-            aria-label="Close modal"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        )}
-
-        {/* Dither Shader Container */}
-        <div className="relative h-[420px] sm:h-[460px] w-full overflow-hidden">
+        {/* Dither Shader Container with Credit-Card proportions */}
+        <div className="relative h-[250px] sm:h-[265px] w-full overflow-hidden">
           <DitherShader
             src="https://images.unsplash.com/photo-1493246507139-91e8fad9978e?q=80&w=2670&auto=format&fit=crop"
             gridSize={2}
@@ -123,65 +112,42 @@ export function DitherShaderCardReveal({
             colorMode="grayscale"
             invert={false}
             animated={false}
-            animationSpeed={0.02}
-            primaryColor="#000000"
-            secondaryColor="#f5f5f5"
-            threshold={0.5}
+            primaryColor="#050505"
+            secondaryColor="#ffffff"
+            threshold={0.44}
             className="h-full w-full"
           />
 
-          {/* Gradients & Vignettes */}
-          <div className="absolute inset-0 bg-gradient-to-t from-neutral-950 via-neutral-950/75 to-neutral-950/30 pointer-events-none" />
-          <div className="absolute inset-0 bg-radial-at-c from-transparent via-black/20 to-black/70 pointer-events-none" />
+          {/* Minimal bottom gradient strictly for text legibility */}
+          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/35 to-transparent pointer-events-none" />
 
-          {/* Parallax Content Floating in 3D */}
-          <div
-            className="absolute inset-0 z-20 flex flex-col justify-end p-6 sm:p-8 text-white space-y-4"
-            style={{
-              transform: "translateZ(30px)",
-              transformStyle: "preserve-3d",
-            }}
-          >
-            <div className="space-y-3">
-              {/* Badge */}
-              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full border border-white/20 bg-white/10 backdrop-blur-md text-[11px] font-mono tracking-wide text-white/90">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                <Sparkles className="w-3 h-3 text-emerald-300" />
-                <span>ARCHYVE EVOLUTION</span>
+          {/* Minimal, Short & Uncluttered Content */}
+          <div className="absolute inset-0 z-20 flex flex-col justify-end p-4 sm:p-5 text-white space-y-2.5">
+            <div className="space-y-1">
+              <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full border border-white/15 bg-black/40 backdrop-blur-md text-[10px] font-mono tracking-wider text-white/90">
+                <img src="/archyve-logo.svg" alt="Archyve Logo" className="w-3 h-3 object-contain" />
+                <span>ARCHYVE V2</span>
               </div>
 
-              {/* Headline */}
-              <h2 className="text-2xl sm:text-3xl font-serif font-medium tracking-tight text-white leading-snug drop-shadow-md">
-                The Archyve browser extension is sunsetting. Archyve v2 is here.
+              <h2 className="text-lg sm:text-xl font-serif font-medium tracking-tight text-white leading-tight">
+                Research intelligence layer.
               </h2>
 
-              {/* Body */}
-              <p className="text-sm font-sans text-white/80 leading-relaxed max-w-lg">
-                We are transitioning from the legacy browser extension to Archyve v2 — a dedicated, privacy-first research intelligence layer with direct URL parsing, local provider key vaults, and multi-publisher knowledge synthesis.
+              <p className="text-[11px] font-sans text-white/75 leading-relaxed line-clamp-2 max-w-[320px]">
+                Direct URL parsing, private key vaults, and multi-source synthesis.
               </p>
             </div>
 
-            {/* CTAs */}
-            <div className="pt-2 flex flex-wrap items-center gap-3">
-              <a
-                href="https://github.com/hebuildapps/archyve-v2"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white text-neutral-950 font-sans text-xs font-semibold hover:bg-neutral-200 transition-all shadow-md active:scale-95"
+            {/* Shiny White Announcement Button */}
+            <div className="pt-0.5 flex items-center gap-2">
+              <button
+                type="button"
+                className="relative overflow-hidden px-3 py-0.5 rounded-[4px] bg-white text-neutral-950 font-semibold text-[10px] shadow-[0_0_12px_rgba(255,255,255,0.45)] hover:shadow-[0_0_18px_rgba(255,255,255,0.7)] transition-all cursor-default group"
               >
-                <span>Read the Sunset & Migration Blog</span>
-                <ArrowUpRight className="w-3.5 h-3.5" />
-              </a>
-
-              {onClose && (
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="px-4 py-2.5 rounded-xl bg-white/10 hover:bg-white/20 text-white/90 font-sans text-xs font-medium backdrop-blur-md border border-white/15 transition-all active:scale-95"
-                >
-                  Dismiss
-                </button>
-              )}
+                <span className="relative z-10">Soon</span>
+                {/* Shiny gloss reflection animation */}
+                <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full bg-gradient-to-r from-transparent via-white/80 to-transparent transition-transform duration-700 pointer-events-none" />
+              </button>
             </div>
           </div>
         </div>

@@ -35,8 +35,8 @@
   /* warm slate-tan */
   --muted: hsl(54 15% 92%);
   --muted-foreground: hsl(35 30% 40%);
-  --brand-primary: #3D6F12;
-  /* deep botanical olive green */
+  --brand-primary: #355e14;
+  --brand-primary-foreground: #ffffff;
   --brand-accent: #2d5a3d;
   --highlight-glow: #8dfe7a;
   --destructive: #dc2626;
@@ -56,8 +56,8 @@
   --border: hsl(180 8% 30%);
   --muted: hsl(180 8% 18%);
   --muted-foreground: hsl(30 3% 55%);
-  --brand-primary: #5fa51f;
-  /* slightly brighter olive green in dark */
+  --brand-primary: #9ee618;
+  --brand-primary-foreground: #0a1c00;
   --brand-accent: #B7FF38;
   --highlight-glow: #8dfe7a;
   --destructive: #ef4444;
@@ -98,7 +98,7 @@ body {
 }
 
 .dark .block-text {
-  color: #2d411f;
+  color: #0a1c00;
 }
 
 .btn-ghost {
@@ -125,17 +125,19 @@ body {
   align-items: center;
   justify-content: center;
   background-color: var(--brand-primary);
-  color: #182000;
-  padding: 0.5rem 1rem;
+  color: var(--brand-primary-foreground);
+  padding: 0.5rem 1.15rem;
   border-radius: 9999px;
   font-weight: 600;
   font-size: 13px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
   transition: all 0.15s ease-in-out;
 }
 
 .btn-primary:hover {
-  opacity: 0.92;
+  opacity: 0.94;
   transform: translateY(-0.5px);
+  filter: brightness(1.05);
 }
 
 /* Custom Scrollbar */

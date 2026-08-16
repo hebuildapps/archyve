@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState } from 'react';
 import { useTheme } from 'next-themes';
-import { Sun, Moon } from 'lucide-react';
 
 export function ThemeToggle({ className = '' }: { className?: string }) {
   const { resolvedTheme, setTheme } = useTheme();
@@ -50,10 +49,14 @@ export function ThemeToggle({ className = '' }: { className?: string }) {
         </svg>
 
       ) : (
-        // <Moon className="w-4 h-4 text-brand-primary group-hover:-rotate-12 transition-transform duration-200" />
-        // icon representing moon
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="group-hover:-rotate-12 transition-transform duration-200">
-          <path d="M210.69,158.18A96.78,96.78,0,0,1,192,160,96.08,96.08,0,0,1,97.82,45.31,88,88,0,1,0,210.69,158.18Z" fill="none" stroke="#000000" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" />
+        <svg width="15" height="15" viewBox="0 0 256 256" className="group-hover:-rotate-12 transition-transform duration-200">
+          <rect width="256" height="256" fill="none" />
+          <path d="M210.69,158.18A96.78,96.78,0,0,1,192,160,96.08,96.08,0,0,1,97.82,45.31,88,88,0,1,0,210.69,158.18Z" opacity="0.2" fill="currentColor" />
+          <line x1="208" y1="120" x2="208" y2="72" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="16" />
+          <line x1="232" y1="96" x2="184" y2="96" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="16" />
+          <line x1="160" y1="32" x2="160" y2="64" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="16" />
+          <line x1="176" y1="48" x2="144" y2="48" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="16" />
+          <path d="M210.69,158.18A96.78,96.78,0,0,1,192,160,96.08,96.08,0,0,1,97.82,45.31,88,88,0,1,0,210.69,158.18Z" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="16" />
         </svg>
       )}
     </button>

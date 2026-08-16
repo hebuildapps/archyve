@@ -68,7 +68,26 @@ function LoginContent() {
   };
 
   return (
-    <div className="max-w-md mx-auto w-full border border-border rounded-2xl bg-card p-8 shadow-xs space-y-6">
+    <div className="max-w-md mx-auto w-full space-y-6">
+      {/* Branding Logo Header */}
+      <div className="flex flex-col items-center justify-center space-y-2 text-center">
+        <button
+          type="button"
+          onClick={() => router.push('/')}
+          className="inline-flex items-center gap-2 hover:opacity-85 transition-opacity"
+        >
+          <img
+            src="/archyve-logo.svg"
+            alt="Archyve Logo"
+            className="w-8 h-8 object-contain"
+          />
+          <span className="font-serif font-semibold text-2xl text-foreground tracking-tight">
+            archyve
+          </span>
+        </button>
+      </div>
+
+      <div className="border border-border rounded-2xl bg-card p-8 shadow-xs space-y-6">
       
       {/* Tab selection */}
       <div className="flex border-b border-border">
@@ -145,6 +164,7 @@ function LoginContent() {
           <span>{isSignUp ? 'Create Account' : 'Sign In'}</span>
         </button>
       </form>
+      </div>
     </div>
   );
 }
