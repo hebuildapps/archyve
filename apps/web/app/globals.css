@@ -11,11 +11,11 @@
   --color-border: var(--border);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
-  
+
   --color-brand-primary: var(--brand-primary);
   --color-brand-accent: var(--brand-accent);
   --color-highlight-glow: var(--highlight-glow);
-  
+
   --font-sans: var(--font-lexend), ui-sans-serif, system-ui, sans-serif;
   --font-serif: var(--font-lora), "EB Garamond", Georgia, serif;
   --font-mono: var(--font-geist-mono), var(--font-jetbrains-mono), monospace;
@@ -23,15 +23,20 @@
 
 :root {
   /* Light Theme (Warm Paper / Editorial) */
-  --background: hsl(22 100% 98%); /* #FAF6F0 warm parchment */
-  --foreground: hsl(35 100% 8%); /* #291D00 deep warm ink */
-  --card: hsl(22 60% 96%); /* #F8F3ED */
+  --background: hsl(22 100% 98%);
+  /* #FAF6F0 warm parchment */
+  --foreground: hsl(35 100% 8%);
+  /* #291D00 deep warm ink */
+  --card: hsl(22 60% 96%);
+  /* #F8F3ED */
   --card-muted: hsl(54 15% 92%);
   --card-subtle: hsl(54 15% 88%);
-  --border: hsl(54 15% 75%); /* warm slate-tan */
+  --border: hsl(54 15% 75%);
+  /* warm slate-tan */
   --muted: hsl(54 15% 92%);
   --muted-foreground: hsl(35 30% 40%);
-  --brand-primary: #3D6F12; /* deep botanical olive green */
+  --brand-primary: #3D6F12;
+  /* deep botanical olive green */
   --brand-accent: #2d5a3d;
   --highlight-glow: #8dfe7a;
   --destructive: #dc2626;
@@ -40,16 +45,20 @@
 
 .dark {
   /* Dark Theme (Slate Obsidian) */
-  --background: hsl(180.06 8.12% 12.02%); /* #1B2222 */
-  --foreground: hsl(30 3% 76%); /* #C5C2BF soft warm ivory */
-  --card: hsl(180 8% 22%); /* #333D3D */
+  --background: hsl(180.06 8.12% 12.02%);
+  /* #1B2222 */
+  --foreground: hsl(30 3% 76%);
+  /* #C5C2BF soft warm ivory */
+  --card: hsl(180 8% 22%);
+  /* #333D3D */
   --card-muted: hsl(180 8% 18%);
   --card-subtle: hsl(180 8% 15%);
   --border: hsl(180 8% 30%);
   --muted: hsl(180 8% 18%);
   --muted-foreground: hsl(30 3% 55%);
-  --brand-primary: #5fa51f; /* slightly brighter olive green in dark */
-  --brand-accent: #3D6F12;
+  --brand-primary: #5fa51f;
+  /* slightly brighter olive green in dark */
+  --brand-accent: #B7FF38;
   --highlight-glow: #8dfe7a;
   --destructive: #ef4444;
   --destructive-foreground: #ffffff;
@@ -84,6 +93,14 @@ body {
   }
 }
 
+.block-text {
+  color: #0a1c00;
+}
+
+.dark .block-text {
+  color: #2d411f;
+}
+
 .btn-ghost {
   display: inline-flex;
   align-items: center;
@@ -108,7 +125,7 @@ body {
   align-items: center;
   justify-content: center;
   background-color: var(--brand-primary);
-  color: #ffffff;
+  color: #182000;
   padding: 0.5rem 1rem;
   border-radius: 9999px;
   font-weight: 600;
@@ -139,4 +156,3 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--muted-foreground);
 }
-

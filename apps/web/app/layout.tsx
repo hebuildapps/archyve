@@ -28,8 +28,8 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Archyve — AI Research Dossier",
-  description: "AI-powered research intelligence layer for supported publishers.",
+  title: "Archyve: AI Research Dossier",
+  description: "AI-powered research intelligence layer for everyone.",
 };
 
 export default function RootLayout({

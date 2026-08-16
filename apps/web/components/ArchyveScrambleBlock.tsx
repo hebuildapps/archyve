@@ -123,7 +123,7 @@ export function ArchyveScrambleBlock({
       />
 
       {/* Text layer with sharp monospace/geometric character */}
-      <span className="relative z-10 px-2.5 pt-0.5 pb-1 font-mono text-xs font-bold tracking-tight text-[#0a1c00] leading-none select-none flex items-center">
+      <span className="relative z-10 px-2.5 pt-0.5 pb-1 font-mono text-xs font-bold tracking-tight block-text leading-none select-none flex items-center">
         {displayText.split("").map((char, index) => {
           // Check if char naturally breaks out below baseline
           const isDescender = "ygjpq,".includes(char);
