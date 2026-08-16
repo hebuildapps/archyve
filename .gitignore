@@ -14,3 +14,5 @@ yarn-error.log*
 .vercel/
 tasks.md
 task.md
+/.commandcode
+/local-notes
