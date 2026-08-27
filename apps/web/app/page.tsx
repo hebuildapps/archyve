@@ -283,7 +283,7 @@ export default function Home() {
               </h3>
             </div>
             <p className="text-xs text-muted-foreground leading-relaxed">
-              Detects and parses specific identifiers from IEEE Xplore URLs(more support coming soon) .
+              Detects and parses specific identifiers from IEEE Xplore URLs(more support coming soon).
             </p>
           </div>
 
