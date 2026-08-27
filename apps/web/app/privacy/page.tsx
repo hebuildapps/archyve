@@ -57,7 +57,7 @@ export default function PrivacyPolicyPage() {
           </h1>
 
           <p className="text-xs font-mono text-muted-foreground">
-            Last Updated: August 16, 2026 &middot; Architecture Version 2.0.0
+            Last Updated: August 26, 2026 &middot; Architecture Version 2.0.0
           </p>
 
           <p className="text-sm font-sans text-muted-foreground leading-relaxed">
@@ -76,9 +76,9 @@ export default function PrivacyPolicyPage() {
               Archyve operates on a <strong>Bring Your Own Key (BYOK)</strong> model for AI synthesis. When you input your Google Gemini or Groq API key in Settings:
             </p>
             <ul className="list-disc pl-5 space-y-1 text-muted-foreground">
-              <li>Your API key is saved <strong>exclusively in your browser&apos;s <code className="font-mono text-[11px] text-foreground">localStorage</code></strong> (<code className="font-mono text-[11px] text-foreground">archyve_gemini_api_key</code> or <code className="font-mono text-[11px] text-foreground">archyve_groq_api_key</code>).</li>
-              <li>Your API keys are <strong>never stored in our Supabase database tables</strong> and are never written to permanent disk logs on our servers.</li>
-              <li>When you generate a research dossier for a paper not yet in cache, your key is transmitted via secure HTTPS request headers (<code className="font-mono text-[11px] text-foreground">x-ai-key</code>) directly to our server route, used in-memory solely to authorize the completion request to Google or Groq, and discarded immediately after the stream closes.</li>
+              <li>Your API key is saved <strong>exclusively in your browser&apos;s <code className="font-mono text-[11px] text-foreground">localStorage</code></strong>.</li>
+              <li>Your API keys are <strong>never stored in our database tables</strong> and are never written to permanent disk logs on our servers.</li>
+              <li>When you generate a research dossier for a paper not yet in cache, your key is transmitted via secure HTTPS request headers (<code className="font-mono text-[11px] text-foreground">x-ai-key</code>) directly to our server route, used in-memory solely to authorize the completion request to your selected respective AI Provider, and discarded immediately after the stream closes.</li>
             </ul>
           </div>
         </section>
@@ -98,21 +98,21 @@ export default function PrivacyPolicyPage() {
               <div className="p-4 rounded-xl border border-border bg-card space-y-1.5">
                 <strong className="font-mono text-xs text-foreground uppercase tracking-wide block">Account & Auth Data</strong>
                 <p className="text-xs text-muted-foreground">
-                  If you register an account, your email address, hashed password, and session tokens are managed securely via Supabase Authentication. Unauthenticated users may read existing public dossiers without creating an account.
+                  If you register an account, your account creds remain hashed. Unauthenticated users may read existing public dossiers without creating an account.
                 </p>
               </div>
 
               <div className="p-4 rounded-xl border border-border bg-card space-y-1.5">
                 <strong className="font-mono text-xs text-foreground uppercase tracking-wide block">Paper URLs & Queries</strong>
                 <p className="text-xs text-muted-foreground">
-                  When you submit a paper URL (e.g. IEEE, Springer, JSTOR, arXiv) for analysis, the URL and extracted public bibliographic identifiers (such as DOI and title) are processed by our backend.
+                  When you submit a paper URL (e.g. IEEE, Springer, JSTOR, arXiv) for analysis, the URL and extracted public bibliographic identifiers are processed by our backend.
                 </p>
               </div>
 
               <div className="p-4 rounded-xl border border-border bg-card space-y-1.5">
                 <strong className="font-mono text-xs text-foreground uppercase tracking-wide block">Research Dossier Corpus</strong>
                 <p className="text-xs text-muted-foreground">
-                  Generated paper summaries, reading assessments, and source citations are saved to our public papers index in Supabase to enable fast, shared community lookup.
+                  Generated paper summaries, reading assessments, and source citations are saved to our public papers index in our database to enable fast.
                 </p>
               </div>
 
@@ -171,7 +171,7 @@ export default function PrivacyPolicyPage() {
 
               <div className="p-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                 <div>
-                  <strong className="text-foreground font-semibold">Google Gemini & Groq APIs</strong>
+                  <strong className="text-foreground font-semibold">Gemini & Groq provider support</strong>
                   <p className="text-muted-foreground mt-0.5">Receives structured metadata prompts using your provided API key to produce the research dossier.</p>
                 </div>
                 <span className="font-mono text-[10px] text-muted-foreground px-2 py-0.5 rounded bg-card-muted border border-border shrink-0">AI Synthesis</span>
@@ -194,7 +194,6 @@ export default function PrivacyPolicyPage() {
               <li><code className="text-foreground">archyve_gemini_api_key</code> / <code className="text-foreground">archyve_groq_api_key</code>: Your local BYOK API keys.</li>
               <li><code className="text-foreground">archyve_ai_provider</code>: Selected provider (<code className="text-foreground">gemini</code> or <code className="text-foreground">groq</code>).</li>
               <li><code className="text-foreground">archyve_theme</code>: Dark or light appearance preference.</li>
-              <li><code className="text-foreground">sb-*-auth-token</code>: Standard Supabase authentication session token.</li>
             </ul>
           </div>
         </section>
@@ -207,10 +206,10 @@ export default function PrivacyPolicyPage() {
           </h2>
           <div className="space-y-2 text-xs sm:text-sm text-foreground/85 leading-relaxed">
             <p>
-              <strong>Upstash Redis Cache:</strong> Paper dossiers are cached in Redis with a 7-day Time-To-Live (TTL) to deliver near-instant responses for subsequent queries.
+              <strong>Redis Caching:</strong> Paper dossiers are cached in Redis with a 7-day Time-To-Live (TTL) to deliver near-instant responses for subsequent queries.
             </p>
             <p>
-              <strong>Supabase Database:</strong> Public paper metadata (title, abstract, authors, DOI) and generated dossiers are stored permanently in the public corpus to allow all researchers to benefit from previously generated intelligence.
+              <strong>Database:</strong> Public paper metadata (title, abstract, authors, DOI) and generated dossiers are stored permanently in the public corpus to allow all researchers to benefit from previously generated intelligence.
             </p>
           </div>
         </section>
@@ -236,7 +235,7 @@ export default function PrivacyPolicyPage() {
                 rel="noopener noreferrer"
                 className="font-mono text-xs text-brand-primary hover:underline"
               >
-                https://github.com/hebuildapps/archyve_v2/issues &rarr;
+                https://github.com/hebuildapps/archyve_v2/issues
               </a>
             </div>
           </div>

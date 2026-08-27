@@ -199,7 +199,7 @@ export default function Home() {
             Research intelligence layer.
           </h1>
           <p className="text-sm font-sans text-muted-foreground max-w-md mx-auto leading-relaxed">
-            Analyze publisher pages instantly. Existing corpus is free to read anonymously. New generations require local AI key store.
+            Analyze publisher pages instantly. Existing corpus is free to read anonymously. New generations require account login .
           </p>
         </div>
 
@@ -214,7 +214,7 @@ export default function Home() {
                 type="text"
                 value={urlInput}
                 onChange={(e) => setUrlInput(e.target.value)}
-                placeholder="Paste a paper URL (IEEE, Springer, Elsevier, JSTOR, arXiv)..."
+                placeholder="Paste a paper URL (IEEE Xplore)..."
                 className="w-full bg-transparent py-2.5 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none font-sans"
               />
               <button
@@ -283,7 +283,7 @@ export default function Home() {
               </h3>
             </div>
             <p className="text-xs text-muted-foreground leading-relaxed">
-              Detects and parses specific identifiers from IEEE, Springer, JSTOR, and arXiv URLs.
+              Detects and parses specific identifiers from IEEE Xplore URLs(more support coming soon) .
             </p>
           </div>
 
