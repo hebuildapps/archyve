@@ -84,7 +84,7 @@ export default function BlogAnnouncementPage() {
           </div>
 
           <div className="pt-2">
-            <p className="text-lg sm:text-xl font-serif italic text-foreground/90 leading-relaxed">
+            <p className="text-lg sm:text-xl font-instrument italic text-foreground/90 leading-relaxed">
               Archyve V2 is a research-intelligence platform engineered to turn scattered, paywalled, and noisy scientific literature into trustworthy, accessible, and structured research dossiers.
             </p>
           </div>
@@ -201,7 +201,7 @@ export default function BlogAnnouncementPage() {
                 <span>Publisher-Aware Extraction</span>
               </div>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                Dedicated adapter parsers for IEEE Xplore, Springer Nature, Elsevier ScienceDirect, JSTOR, and arXiv extract exact document IDs and DOIs straight from the DOM.
+                Dedicated parsers for IEEE Xplore extract exact document IDs and DOIs straight from the DOM.
               </p>
             </div>
 
@@ -231,7 +231,7 @@ export default function BlogAnnouncementPage() {
                 <span>BYOK Local Key Vault</span>
               </div>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                Bring Your Own Key architecture. Your Gemini and Groq API keys remain strictly in local browser storage, and are never saved to our database.
+                Bring Your Own Key architecture. Your API keys remain strictly in private to yourself, and are never saved to our database.
               </p>
             </div>
           </div>
@@ -297,7 +297,7 @@ export default function BlogAnnouncementPage() {
             <div className="p-4 rounded-xl border border-border bg-card flex items-start gap-3">
               <span className="font-mono text-brand-primary font-bold">01</span>
               <div>
-                <strong className="text-foreground">Modern Next.js & TypeScript Architecture:</strong> A complete rewrite with clean modular packages (<code className="px-1.5 py-0.5 bg-card-muted rounded font-mono text-[11px] text-foreground">apps/web</code>, <code className="px-1.5 py-0.5 bg-card-muted rounded font-mono text-[11px] text-foreground">apps/extension</code>, <code className="px-1.5 py-0.5 bg-card-muted rounded font-mono text-[11px] text-foreground">packages/shared</code>) and Zod schema safety.
+                <strong className="text-foreground">Supported with Modern Architecture:</strong> A complete rewrite with modern framework.
               </div>
             </div>
             <div className="p-4 rounded-xl border border-border bg-card flex items-start gap-3">
@@ -336,7 +336,6 @@ export default function BlogAnnouncementPage() {
             <li><strong>Deeper Full-Text Parsing:</strong> Extracting figures, equations, and benchmark tables directly from open-access PDFs.</li>
             <li><strong>Citation Graph Exploration:</strong> Visualizing how papers branch from seminal foundational works over time.</li>
             <li><strong>Broader Publisher Adapters:</strong> Expanding adapter support to Nature, Science, ACM Digital Library, and PubMed.</li>
-            <li><strong>Self-Hosted Local Models:</strong> Direct support for local Ollama and vLLM inference endpoints.</li>
           </ul>
         </section>
 
