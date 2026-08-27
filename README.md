@@ -1,4 +1,4 @@
-Live at: https://https://www.archyve.xyz/archyve-v2-nu.vercel.app
+Live at: https://archyve-v2-nu.vercel.app
 
 # Archyve V2
 
