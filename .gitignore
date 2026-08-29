@@ -15,4 +15,10 @@ yarn-error.log*
 tasks.md
 task.md
 /.commandcode
+.commandcode/
 /local-notes
+local-notes/
+prd.md
+PROMPT.md
+prompt.md
+PROMPT.MD
