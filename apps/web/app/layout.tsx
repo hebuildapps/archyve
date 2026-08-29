@@ -28,13 +28,13 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://archyve.app"),
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://archyve.xyz"),
   title: "Archyve: AI Research Dossier",
   description: "AI-powered research intelligence layer for everyone.",
   openGraph: {
     title: "Archyve: AI Research Dossier",
     description: "AI-powered research intelligence layer for everyone.",
-    url: "https://archyve.app",
+    url: "https://archyve.xyz",
     siteName: "Archyve",
     images: [
       {
