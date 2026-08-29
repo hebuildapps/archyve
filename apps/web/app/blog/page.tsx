@@ -201,7 +201,7 @@ export default function BlogAnnouncementPage() {
                 <span>Publisher-Aware Extraction</span>
               </div>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                Dedicated parsers for IEEE Xplore extract exact document IDs and DOIs straight from the DOM.
+                Dedicated parsers for IEEE Xplore, ScienceDirect, Springer Nature, JSTOR, and arXiv extract exact document IDs and DOIs straight from the DOM.
               </p>
             </div>
 
@@ -379,7 +379,7 @@ export default function BlogAnnouncementPage() {
             <Link href="/privacy" className="hover:text-foreground transition-colors">Privacy</Link>
             <Link href="/settings" className="hover:text-foreground transition-colors">Settings</Link>
             <a
-              href="https://github.com/hebuildapps/archyve_v2"
+              href="https://github.com/hebuildapps/archyve"
               target="_blank"
               rel="noopener noreferrer"
               className="hover:text-foreground transition-colors"

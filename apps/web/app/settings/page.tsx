@@ -782,7 +782,7 @@ export default function SettingsPage() {
                       Download Extension Here &rarr;
                     </h3>
                     <a
-                      href="https://github.com/hebuildapps/archyve_v2"
+                      href="https://github.com/hebuildapps/archyve"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-brand-primary hover:underline"
@@ -827,7 +827,7 @@ export default function SettingsPage() {
                     </button>
                     <span className="text-border">·</span>
                     <a
-                      href="https://github.com/hebuildapps/archyve_v2"
+                      href="https://github.com/hebuildapps/archyve"
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-muted-foreground hover:text-foreground hover:underline"

@@ -214,7 +214,7 @@ export default function Home() {
                 type="text"
                 value={urlInput}
                 onChange={(e) => setUrlInput(e.target.value)}
-                placeholder="Paste a paper URL (IEEE Xplore)..."
+                placeholder="Paste a paper URL (IEEE, ScienceDirect, Springer, arXiv, JSTOR)..."
                 className="w-full bg-transparent py-2.5 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none font-sans"
               />
               <button
@@ -283,7 +283,7 @@ export default function Home() {
               </h3>
             </div>
             <p className="text-xs text-muted-foreground leading-relaxed">
-              Detects and parses specific identifiers from IEEE Xplore URLs(more support coming soon).
+              Detects and parses specific identifiers from IEEE Xplore, ScienceDirect, Springer, JSTOR, and arXiv URLs.
             </p>
           </div>
 
@@ -342,7 +342,7 @@ export default function Home() {
             Settings
           </button>
           <a
-            href="https://github.com/hebuildapps/archyve_v2"
+            href="https://github.com/hebuildapps/archyve"
             target="_blank"
             rel="noopener noreferrer"
             className="hover:text-foreground transition-colors"

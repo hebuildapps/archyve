@@ -230,12 +230,12 @@ export default function PrivacyPolicyPage() {
             <div className="p-4 rounded-xl border border-border bg-card space-y-1">
               <span className="font-mono text-xs text-muted-foreground block">Project Support & Issues</span>
               <a
-                href="https://github.com/hebuildapps/archyve_v2/issues"
+                href="https://github.com/hebuildapps/archyve/issues"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="font-mono text-xs text-brand-primary hover:underline"
               >
-                https://github.com/hebuildapps/archyve_v2/issues
+                https://github.com/hebuildapps/archyve/issues
               </a>
             </div>
           </div>
@@ -259,7 +259,7 @@ export default function PrivacyPolicyPage() {
             <Link href="/privacy" className="text-foreground font-semibold">Privacy</Link>
             <Link href="/settings" className="hover:text-foreground transition-colors">Settings</Link>
             <a
-              href="https://github.com/hebuildapps/archyve_v2"
+              href="https://github.com/hebuildapps/archyve"
               target="_blank"
               rel="noopener noreferrer"
               className="hover:text-foreground transition-colors"

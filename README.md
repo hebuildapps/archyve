@@ -15,13 +15,13 @@
   <a href="https://archyve.xyz/blog">Blog / Manifesto</a> ·
   <a href="https://archyve.xyz/privacy">Privacy & BYOK</a> ·
   <a href="https://archyve.xyz/settings">Settings</a> ·
-  <a href="https://github.com/hebuildapps/archyve_v2/issues">Issues</a>
+  <a href="https://github.com/hebuildapps/archyve/issues">Issues</a>
 </p>
 
 <p align="center">
   <a href="https://archyve.xyz/blog"><img src="https://img.shields.io/badge/Announcements-archyve%2Fblog-blue?style=flat-square" alt="Announcements" /></a>
   <a href="https://archyve.xyz"><img src="https://img.shields.io/badge/Live%20Demo-archyve.xyz-black?style=flat-square" alt="Live Demo" /></a>
-  <a href="https://github.com/hebuildapps/archyve_v2/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-green?style=flat-square" alt="License" /></a>
+  <a href="https://github.com/hebuildapps/archyve/blob/main/LICENSE"><img src="https://img.shields.io/badge/License-MIT-green?style=flat-square" alt="License" /></a>
 </p>
 
 <p align="center">
@@ -122,8 +122,8 @@ This repository is organized as an npm monorepo:
 ### 1. Clone & Install
 
 ```bash
-git clone https://github.com/hebuildapps/archyve_v2.git
-cd archyve_v2
+git clone https://github.com/hebuildapps/archyve.git
+cd archyve
 npm install
 ```
 
@@ -176,7 +176,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 - 🌐 [Live Application](https://archyve.xyz)
 - 📝 [Manifesto & Architecture Blog](https://archyve.xyz/blog)
 - 🔒 [Privacy Policy & Key Management](https://archyve.xyz/privacy)
-- 🛡️ [Report an Issue](https://github.com/hebuildapps/archyve_v2/issues)
+- 🛡️ [Report an Issue](https://github.com/hebuildapps/archyve/issues)
 
 ---
 
