@@ -28,8 +28,31 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://archyve.app"),
   title: "Archyve: AI Research Dossier",
   description: "AI-powered research intelligence layer for everyone.",
+  openGraph: {
+    title: "Archyve: AI Research Dossier",
+    description: "AI-powered research intelligence layer for everyone.",
+    url: "https://archyve.app",
+    siteName: "Archyve",
+    images: [
+      {
+        url: "/archyve-og-image2.png",
+        width: 1200,
+        height: 630,
+        alt: "Archyve - AI Research Dossier",
+      },
+    ],
+    locale: "en_US",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Archyve: AI Research Dossier",
+    description: "AI-powered research intelligence layer for everyone.",
+    images: ["/archyve-og-image2.png"],
+  },
 };
 
 export default function RootLayout({
