@@ -1,5 +1,9 @@
 <p align="center">
-  <img src="apps/web/public/archyve-trademark.png" alt="Archyve" width="400" />
+  <picture>
+    <source srcset="apps/web/public/archyve-trademark-dark.png" media="(prefers-color-scheme: dark)">
+    <source srcset="apps/web/public/archyve-trademark.png" media="(prefers-color-scheme: light)">
+    <img src="apps/web/public/archyve-trademark.png" alt="Archyve" width="400" />
+  </picture>
 </p>
 
 <p align="center">
