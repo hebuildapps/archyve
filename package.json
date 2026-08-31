@@ -9,6 +9,7 @@
   ],
   "scripts": {
     "build": "npm run build:shared && npm run build:web",
+    "dev": "npm run dev -w apps/web",
     "dev:web": "npm run dev -w apps/web",
     "build:web": "npm run build:shared && npm run build -w apps/web",
     "build:shared": "npm run build -w packages/shared",
