@@ -62,5 +62,14 @@ CREATE TABLE IF NOT EXISTS public.analytics (
     latency_ms INTEGER NOT NULL
 );
 
--- Enable Row Level Security (RLS) on tables if desired.
--- For a server-side app running with SERVICE_ROLE key, RLS rules can remain default or bypassed.
+-- 5. Row Level Security (RLS) policies
+-- Enable read access for anonymous and authenticated users on public research corpus
+ALTER TABLE public.papers ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow public read access to papers" ON public.papers FOR SELECT USING (true);
+
+ALTER TABLE public.research_results ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow public read access to research_results" ON public.research_results FOR SELECT USING (true);
+
+ALTER TABLE public.sources ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow public read access to sources" ON public.sources FOR SELECT USING (true);
+
