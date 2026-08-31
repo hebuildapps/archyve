@@ -455,7 +455,7 @@ export default function ResearchDossierPage() {
             className="btn-ghost inline-flex items-center gap-1.5"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
-            <span>Search Dashboard</span>
+            <span>go back</span>
           </button>
 
           {/* Scraped metadata details are visible! */}
@@ -517,7 +517,7 @@ export default function ResearchDossierPage() {
             className="btn-ghost inline-flex items-center gap-1.5"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
-            <span>Search Dashboard</span>
+            <span>go back</span>
           </button>
 
           <ResearchHeader
@@ -580,7 +580,7 @@ export default function ResearchDossierPage() {
             className="btn-ghost inline-flex items-center gap-1.5"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
-            <span>Search Dashboard</span>
+            <span>go back</span>
           </button>
           <ThemeToggle />
         </div>

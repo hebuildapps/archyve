@@ -27,12 +27,12 @@ const defaultSteps: LoadingStep[] = [
 
 const CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*<>[]{}/~+=-_";
 
-function ScrambleStepText({ 
-  targetText, 
+function ScrambleStepText({
+  targetText,
   detailText,
-  isCompleted 
-}: { 
-  targetText: string; 
+  isCompleted
+}: {
+  targetText: string;
   detailText?: string;
   isCompleted: boolean;
 }) {
@@ -94,30 +94,26 @@ function ScrambleStepText({
   );
 }
 
-export function LoadingSkeleton({ 
-  steps = defaultSteps, 
-  paperTitle, 
+export function LoadingSkeleton({
+  steps = defaultSteps,
+  paperTitle,
   paperAuthors,
   progressPercent: customProgressPercent,
   statusMessage
 }: LoadingSkeletonProps) {
   // Compute progress percentage based on completed steps or custom value
   const completedCount = steps.filter((s) => s.status === 'completed').length;
-  const progressPercent = typeof customProgressPercent === 'number' 
-    ? customProgressPercent 
+  const progressPercent = typeof customProgressPercent === 'number'
+    ? customProgressPercent
     : Math.min(completedCount * 25, 100);
 
   const activeStep = steps.find((s) => s.status === 'loading') || steps.find((s) => s.status === 'pending');
 
   return (
     <div className="space-y-6 max-w-xl mx-auto py-12 px-4 font-sans selection:bg-brand-primary/20">
-      
+
       {/* Header with Pulsating Status */}
       <div className="text-center space-y-1.5 pb-2">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-border bg-card shadow-xs text-xs font-mono text-muted-foreground">
-          <div className="w-2 h-2 rounded-full bg-brand-primary animate-ping shrink-0" />
-          <span>Real-Time Research Pipeline</span>
-        </div>
         <h2 className="text-2xl sm:text-3xl font-serif font-medium text-foreground tracking-tight flex items-center justify-center gap-2.5">
           <span>Synthesizing Intelligence...</span>
         </h2>
@@ -173,7 +169,7 @@ export function LoadingSkeleton({
 
         {/* Dynamic Progress Track with high-tech glowing sweep */}
         <div className="relative w-full h-2.5 bg-card-muted rounded-full overflow-hidden border border-border/50">
-          <div 
+          <div
             className="h-full bg-brand-primary rounded-full transition-all duration-500 ease-out relative"
             style={{ width: `${Math.min(progressPercent, 100)}%` }}
           >
@@ -198,26 +194,24 @@ export function LoadingSkeleton({
           {steps.map((step, idx) => {
             const isCompleted = step.status === 'completed';
             const isLoading = step.status === 'loading';
-            
+
             return (
-              <div 
-                key={step.id} 
-                className={`flex items-start gap-3.5 p-2.5 rounded-xl transition-all duration-300 ${
-                  isLoading 
-                    ? 'bg-brand-primary/5 border border-brand-primary/20 shadow-xs' 
+              <div
+                key={step.id}
+                className={`flex items-start gap-3.5 p-2.5 rounded-xl transition-all duration-300 ${isLoading
+                    ? 'bg-brand-primary/5 border border-brand-primary/20 shadow-xs'
                     : isCompleted
-                    ? 'bg-card-muted/20 border border-transparent'
-                    : 'opacity-50 border border-transparent'
-                }`}
+                      ? 'bg-card-muted/20 border border-transparent'
+                      : 'opacity-50 border border-transparent'
+                  }`}
               >
                 {/* Step indicator circle */}
-                <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5 border transition-colors duration-300 ${
-                  isCompleted 
-                    ? 'bg-brand-primary border-brand-primary text-brand-primary-foreground shadow-xs' 
-                    : isLoading 
-                    ? 'border-brand-primary bg-highlight-glow/30 text-brand-primary shadow-[0_0_8px_rgba(183,255,56,0.35)]' 
-                    : 'border-border bg-card text-transparent'
-                }`}>
+                <div className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 mt-0.5 border transition-colors duration-300 ${isCompleted
+                    ? 'bg-brand-primary border-brand-primary text-brand-primary-foreground shadow-xs'
+                    : isLoading
+                      ? 'border-brand-primary bg-highlight-glow/30 text-brand-primary shadow-[0_0_8px_rgba(183,255,56,0.35)]'
+                      : 'border-border bg-card text-transparent'
+                  }`}>
                   {isCompleted ? (
                     <Check className="w-3 h-3 stroke-[3]" />
                   ) : isLoading ? (
@@ -229,13 +223,12 @@ export function LoadingSkeleton({
 
                 {/* Step Label with Scramble Animation */}
                 <div className="min-w-0 flex-1 space-y-0.5">
-                  <div className={`transition-colors duration-200 ${
-                    isCompleted 
-                      ? 'text-foreground font-medium' 
-                      : isLoading 
-                      ? 'text-brand-primary font-semibold' 
-                      : 'text-muted-foreground'
-                  }`}>
+                  <div className={`transition-colors duration-200 ${isCompleted
+                      ? 'text-foreground font-medium'
+                      : isLoading
+                        ? 'text-brand-primary font-semibold'
+                        : 'text-muted-foreground'
+                    }`}>
                     <ScrambleStepText
                       targetText={step.label}
                       detailText={step.detail}
