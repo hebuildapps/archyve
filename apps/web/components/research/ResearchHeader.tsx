@@ -1,5 +1,5 @@
 import React from 'react';
-import { ExternalLink } from 'lucide-react';
+import { BrandExternalArrow } from '@/components/ui/BrandExternalArrow';
 
 interface ResearchHeaderProps {
   title: string;
@@ -30,11 +30,11 @@ export function ResearchHeader({
           href={url}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex-shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border bg-card/60 hover:bg-card text-xs font-mono text-muted-foreground hover:text-foreground transition-colors shadow-xs"
+          className="flex-shrink-0 flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border bg-card/60 hover:bg-card text-xs font-mono text-muted-foreground hover:text-foreground transition-colors shadow-xs group"
           title="Open original paper URL"
         >
           <span>Publisher Source</span>
-          <ExternalLink className="w-3 h-3 text-brand-primary" />
+          <BrandExternalArrow className="h-3 w-3" />
         </a>
       </div>
 
@@ -56,10 +56,10 @@ export function ResearchHeader({
             href={`https://doi.org/${doi}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="hover:underline flex items-center gap-1 text-brand-primary font-medium"
+            className="hover:underline flex items-center gap-1.5 text-brand-primary font-medium group"
           >
             <span>DOI: {doi}</span>
-            <ExternalLink className="w-2.5 h-2.5" />
+            <BrandExternalArrow className="h-2.5 w-2.5" />
           </a>
         )}
       </div>

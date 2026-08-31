@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
-import { ExternalLink, Github, BookOpen, ChevronDown, ChevronUp } from 'lucide-react';
+import { Github, BookOpen, ChevronDown, ChevronUp } from 'lucide-react';
+import { BrandExternalArrow } from '@/components/ui/BrandExternalArrow';
 
-interface RelatedPaper {
+export interface RelatedPaper {
   title: string;
   authors: string[];
   url?: string;
   relationship?: string;
 }
 
-interface Implementation {
+export interface Implementation {
   name: string;
   url: string;
   type: 'github' | 'official' | 'dataset' | 'other';
@@ -21,10 +22,15 @@ interface RelatedResourcesSectionProps {
 }
 
 export function RelatedResourcesSection({
-  relatedPapers,
-  implementations,
+  relatedPapers = [],
+  implementations = [],
 }: RelatedResourcesSectionProps) {
   const [showAllPapers, setShowAllPapers] = useState(false);
+
+  if (relatedPapers.length === 0 && implementations.length === 0) {
+    return null;
+  }
+
   const visiblePapers = showAllPapers ? relatedPapers : relatedPapers.slice(0, 3);
 
   return (
@@ -65,7 +71,7 @@ export function RelatedResourcesSection({
                       ★ {impl.stars.toLocaleString()}
                     </span>
                   )}
-                  <ExternalLink className="w-3.5 h-3.5 text-muted-foreground group-hover:text-foreground" />
+                  <BrandExternalArrow />
                 </div>
               </a>
             ))}
@@ -80,16 +86,16 @@ export function RelatedResourcesSection({
             Related Literature
           </h2>
           <div className="divide-y divide-border border border-border rounded-2xl overflow-hidden bg-card shadow-xs">
-            {visiblePapers.map((paper, index) => (
-              <div key={index} className="p-4 hover:bg-card-muted/40 transition-colors">
+            {visiblePapers.map((paper, index) => {
+              const Content = (
                 <div className="flex items-start justify-between gap-4">
-                  <div className="space-y-1.5">
+                  <div className="space-y-1.5 min-w-0 flex-1">
                     {paper.relationship && (
                       <span className="inline-block text-[10px] font-mono uppercase tracking-wider text-brand-primary bg-highlight-glow/20 border border-brand-primary/20 px-2 py-0.5 rounded">
                         {paper.relationship}
                       </span>
                     )}
-                    <h3 className="text-sm font-serif font-medium text-foreground leading-snug">
+                    <h3 className="text-sm font-serif font-medium text-foreground leading-snug group-hover:text-brand-primary transition-colors">
                       {paper.title}
                     </h3>
                     <p className="text-xs text-muted-foreground font-sans">
@@ -97,18 +103,29 @@ export function RelatedResourcesSection({
                     </p>
                   </div>
                   {paper.url && (
-                    <a
-                      href={paper.url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="p-1.5 rounded-md hover:bg-card-muted text-muted-foreground hover:text-foreground transition-colors shrink-0"
-                    >
-                      <ExternalLink className="w-4 h-4" />
-                    </a>
+                    <div className="p-1.5 rounded-md text-muted-foreground group-hover:text-foreground transition-colors shrink-0 mt-0.5">
+                      <BrandExternalArrow />
+                    </div>
                   )}
                 </div>
-              </div>
-            ))}
+              );
+
+              return paper.url ? (
+                <a
+                  key={index}
+                  href={paper.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block p-4 hover:bg-card-muted/40 transition-colors group cursor-pointer"
+                >
+                  {Content}
+                </a>
+              ) : (
+                <div key={index} className="p-4">
+                  {Content}
+                </div>
+              );
+            })}
           </div>
 
           {relatedPapers.length > 3 && (
