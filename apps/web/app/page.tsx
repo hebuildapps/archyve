@@ -18,15 +18,8 @@ import {
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { DitherShaderCardReveal } from '@/components/dither-shader-card-reveal';
 import { ArchyveScrambleBlock } from '@/components/ArchyveScrambleBlock';
-
-interface RecentPaper {
-  id: string;
-  title: string;
-  publisher: string;
-  publication_year: number | null;
-  url: string;
-  updated_at: string;
-}
+import { HistoryReportCard, HistoryPaper } from '@/components/HistoryReportCard';
+import { WorkspaceHistoryModal } from '@/components/WorkspaceHistoryModal';
 
 export default function Home() {
   const router = useRouter();
@@ -41,11 +34,12 @@ export default function Home() {
   const [loadingSession, setLoadingSession] = useState(true);
 
   // Recent papers
-  const [recentPapers, setRecentPapers] = useState<RecentPaper[]>([]);
+  const [recentPapers, setRecentPapers] = useState<HistoryPaper[]>([]);
   const [loadingRecent, setLoadingRecent] = useState(false);
 
-  // Sunset Modal state
+  // Modal states
   const [isSunsetModalOpen, setIsSunsetModalOpen] = useState(false);
+  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
 
   useEffect(() => {
     // Check Auth status
@@ -104,7 +98,7 @@ export default function Home() {
       // 2. Fallback to client-side Supabase query
       const { data, error } = await supabaseClient
         .from('papers')
-        .select('id, title, publisher, publication_year, url, updated_at')
+        .select('id, title, publisher, publication_year, url, updated_at, abstract, authors, doi, venue, confidence_score, publisher_id')
         .order('updated_at', { ascending: false })
         .limit(10);
 
@@ -196,7 +190,7 @@ export default function Home() {
         </div>
       </header>
 
-      <main className="max-w-2xl mx-auto w-full space-y-10 my-auto">
+      <main className="max-w-3xl mx-auto w-full space-y-10 my-auto">
 
         {/* Branding header */}
         <div className="text-center space-y-3">
@@ -215,7 +209,7 @@ export default function Home() {
         </div>
 
         {/* Input Form */}
-        <form onSubmit={handleSubmit} className="space-y-3">
+        <form onSubmit={handleSubmit} className="space-y-3 max-w-2xl mx-auto w-full">
           <div className="relative rounded-2xl border border-border bg-card p-1.5 shadow-xs focus-within:border-brand-primary/70 transition-colors">
             <div className="flex items-center">
               <div className="pl-3.5 pr-2 text-muted-foreground">
@@ -243,35 +237,49 @@ export default function Home() {
 
         {/* Authenticated Workspace History */}
         {isAuthenticated && (
-          <div className="space-y-4 pt-6 border-t border-border">
-            <div className="flex items-center gap-2 text-brand-primary">
-              <History className="w-4 h-4 text-brand-primary" />
-              <h2 className="text-xs font-mono uppercase tracking-wider font-semibold">
-                Your Workspace Recent History
-              </h2>
+          <div className="space-y-4 pt-6 border-t border-border w-full">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-brand-primary">
+                <History className="w-4 h-4 text-brand-primary" />
+                <h2 className="text-xs font-mono uppercase tracking-wider font-semibold">
+                  Your Workspace Recent History
+                </h2>
+              </div>
             </div>
 
             {loadingRecent ? (
-              <div className="text-xs text-muted-foreground font-mono">Loading history...</div>
-            ) : recentPapers.length > 0 ? (
-              <div className="divide-y divide-border border border-border rounded-2xl overflow-hidden bg-card shadow-xs">
-                {recentPapers.map((paper) => (
-                  <button
-                    key={paper.id}
-                    onClick={() => router.push(`/${encodeURIComponent(paper.url)}`)}
-                    className="w-full flex items-center justify-between p-4 text-left hover:bg-card-muted/40 transition-colors group"
-                  >
-                    <div className="min-w-0 pr-4">
-                      <div className="text-sm font-serif font-medium text-foreground truncate group-hover:text-brand-primary transition-colors">
-                        {paper.title}
-                      </div>
-                      <div className="text-xs text-muted-foreground font-mono mt-0.5">
-                        {paper.publisher} {paper.publication_year ? `(${paper.publication_year})` : ''}
-                      </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {[1, 2].map((n) => (
+                  <div key={n} className="h-[230px] rounded-2xl border border-border bg-card animate-pulse p-4 flex flex-col justify-between">
+                    <div className="space-y-2">
+                      <div className="w-24 h-4 bg-border/60 rounded" />
+                      <div className="w-3/4 h-5 bg-border/60 rounded" />
+                      <div className="w-1/2 h-3 bg-border/40 rounded" />
                     </div>
-                    <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-foreground shrink-0 transition-colors" />
-                  </button>
+                    <div className="w-full h-8 bg-border/30 rounded" />
+                  </div>
                 ))}
+              </div>
+            ) : recentPapers.length > 0 ? (
+              <div className="space-y-3">
+                {/* Max 2 Cards on Homepage */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {recentPapers.slice(0, 2).map((paper) => (
+                    <HistoryReportCard key={paper.id} paper={paper} />
+                  ))}
+                </div>
+
+                {/* Left-Aligned Ghost View More Button */}
+                {recentPapers.length > 2 && (
+                  <div className="flex justify-start pt-1">
+                    <button
+                      onClick={() => setIsHistoryModalOpen(true)}
+                      className="inline-flex items-center text-xs font-mono font-semibold uppercase tracking-wider text-brand-primary hover:text-brand-primary/80 dark:text-lime-400 dark:hover:text-lime-300 transition-colors cursor-pointer p-0 bg-transparent border-none"
+                    >
+                      <span>VIEW MORE</span>
+                    </button>
+                  </div>
+                )}
               </div>
             ) : (
               <p className="text-xs text-muted-foreground font-mono leading-relaxed">
@@ -367,6 +375,13 @@ export default function Home() {
       <DitherShaderCardReveal
         isOpen={isSunsetModalOpen}
         onClose={() => setIsSunsetModalOpen(false)}
+      />
+
+      {/* Full Workspace History Modal with Search & Filters */}
+      <WorkspaceHistoryModal
+        isOpen={isHistoryModalOpen}
+        onClose={() => setIsHistoryModalOpen(false)}
+        papers={recentPapers}
       />
 
     </div>

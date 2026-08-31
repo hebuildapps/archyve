@@ -239,13 +239,19 @@ export async function getRecentPapers(limit: number = 10): Promise<Array<{
   publication_year: number | null;
   url: string;
   updated_at: string;
+  abstract?: string | null;
+  authors?: string[];
+  doi?: string | null;
+  venue?: string | null;
+  confidence_score?: number;
+  publisher_id?: string | null;
 }>> {
   if (!supabase) return [];
 
   try {
     const { data, error } = await supabase
       .from('papers')
-      .select('id, title, publisher, publication_year, url, updated_at')
+      .select('id, title, publisher, publication_year, url, updated_at, abstract, authors, doi, venue, confidence_score, publisher_id')
       .order('updated_at', { ascending: false })
       .limit(limit);
 
