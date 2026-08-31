@@ -228,3 +228,36 @@ export async function logAnalytics(
     console.error('Analytics log exception:', error);
   }
 }
+
+/**
+ * Retrieve recent papers from the persistent database
+ */
+export async function getRecentPapers(limit: number = 10): Promise<Array<{
+  id: string;
+  title: string;
+  publisher: string;
+  publication_year: number | null;
+  url: string;
+  updated_at: string;
+}>> {
+  if (!supabase) return [];
+
+  try {
+    const { data, error } = await supabase
+      .from('papers')
+      .select('id, title, publisher, publication_year, url, updated_at')
+      .order('updated_at', { ascending: false })
+      .limit(limit);
+
+    if (error) {
+      console.error('Supabase get recent papers error:', error);
+      return [];
+    }
+
+    return data || [];
+  } catch (error) {
+    console.error('Supabase get recent papers exception:', error);
+    return [];
+  }
+}
+

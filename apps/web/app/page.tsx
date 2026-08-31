@@ -91,16 +91,27 @@ export default function Home() {
   const fetchRecentHistory = async () => {
     setLoadingRecent(true);
     try {
+      // 1. Fetch from server API route (bypasses browser RLS issues securely)
+      const res = await fetch('/api/research/recent');
+      if (res.ok) {
+        const json = await res.json();
+        if (Array.isArray(json.papers)) {
+          setRecentPapers(json.papers);
+          return;
+        }
+      }
+
+      // 2. Fallback to client-side Supabase query
       const { data, error } = await supabaseClient
         .from('papers')
         .select('id, title, publisher, publication_year, url, updated_at')
         .order('updated_at', { ascending: false })
-        .limit(5);
+        .limit(10);
 
       if (error) throw error;
       setRecentPapers(data || []);
     } catch (err) {
-      console.warn('Recent papers query error (tables may not be set up):', err);
+      console.warn('Recent papers query error:', err);
     } finally {
       setLoadingRecent(false);
     }
