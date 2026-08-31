@@ -172,7 +172,6 @@ export async function POST(req: NextRequest) {
                 name: 'Crossref Citation Database',
                 url: `https://api.crossref.org/works/${encodeURIComponent(doi)}`,
                 type: 'crossref',
-                confidence: 0.95,
               });
             }
             if (openalexData) {
@@ -181,7 +180,6 @@ export async function POST(req: NextRequest) {
                 name: 'OpenAlex Scientific Index',
                 url: `https://api.openalex.org/works/https://doi.org/${encodeURIComponent(doi)}`,
                 type: 'openalex',
-                confidence: 0.9,
               });
             }
             if (openAccessResult.available && openAccessResult.url) {
@@ -190,7 +188,6 @@ export async function POST(req: NextRequest) {
                 name: 'Unpaywall Open Access Registry',
                 url: `https://api.unpaywall.org/v2/${encodeURIComponent(doi)}`,
                 type: 'unpaywall',
-                confidence: 0.98,
               });
             }
           }
@@ -198,9 +195,8 @@ export async function POST(req: NextRequest) {
           sources.push({
             id: 'ai_analysis',
             name: 'Archyve AI Research Engine',
-            url: 'https://archyve.app/ai',
+            url: 'https://github.com/hebuildapps/archyve',
             type: 'community',
-            confidence: 0.85,
           });
           
           dossier.sources = sources;
