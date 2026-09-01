@@ -152,7 +152,7 @@ export function DitherShaderCardReveal({
               >
                 <span className="relative z-10 flex items-center gap-1">
                   <span>Announcement</span>
-                  <span className="font-mono text-[9px] opacity-70">&rarr;</span>
+                  <span className="font-mono pl-1 text-[9px] opacity-70">&gt;&gt;</span>
                 </span>
                 {/* Shiny gloss reflection animation */}
                 <span className="absolute inset-0 -translate-x-full group-hover:translate-x-full bg-gradient-to-r from-transparent via-white/80 to-transparent transition-transform duration-700 pointer-events-none" />
