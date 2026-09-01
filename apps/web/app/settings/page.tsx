@@ -1,8 +1,8 @@
 'use client';
 export const dynamic = 'force-dynamic';
 
-import React, { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import React, { useEffect, useState, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { keyStore } from '@/lib/security/AIKeyStore';
 import { supabaseClient } from '@/lib/db/supabaseClient';
 import {
@@ -30,8 +30,11 @@ interface SessionData {
 
 type SectionKey = 'ai-config' | 'account' | 'shortcuts' | 'about';
 
-export default function SettingsPage() {
+function SettingsContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const rawResumeUrl = searchParams.get('resumeUrl');
+  const resumeUrl = rawResumeUrl ? decodeURIComponent(rawResumeUrl) : null;
 
   // Navigation state
   const [activeSection, setActiveSection] = useState<SectionKey>('ai-config');
@@ -180,11 +183,24 @@ export default function SettingsPage() {
 
   const handleSaveSettings = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
+
+    if (resumeUrl && !apiKey.trim()) {
+      setTestStatus('error');
+      setTestMessage('Please enter a valid API key to resume research.');
+      return;
+    }
+
     keyStore.setProvider(provider);
     keyStore.setApiKey(apiKey, provider);
     keyStore.setModel(model, provider);
     setTestStatus('success');
     setTestMessage('Configurations saved to local client vault.');
+
+    if (resumeUrl) {
+      router.push(resumeUrl);
+      return;
+    }
+
     setTimeout(() => {
       setTestStatus('idle');
       setTestMessage('');
@@ -305,12 +321,12 @@ export default function SettingsPage() {
       <header className="h-14 border-b border-border bg-card/60 backdrop-blur-md px-4 sm:px-6 flex items-center justify-between shrink-0 sticky top-0 z-30">
         <div className="flex items-center gap-3">
           <button
-            onClick={() => router.push('/')}
+            onClick={() => router.push(resumeUrl || '/')}
             className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors group text-xs font-semibold"
-            title="Return to search dashboard"
+            title={resumeUrl ? "Return to research paper" : "Return to search dashboard"}
           >
             <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
-            <span className="hidden sm:inline font-mono">Dashboard</span>
+            <span className="hidden sm:inline font-mono">{resumeUrl ? 'Return to Paper' : 'Dashboard'}</span>
           </button>
 
           <span className="text-border">/</span>
@@ -418,6 +434,22 @@ export default function SettingsPage() {
                     Manage client-side provider keys and active models. Keys remain exclusively in local browser storage.
                   </p>
                 </div>
+
+                {resumeUrl && (
+                  <div className="p-3.5 rounded-2xl bg-highlight-glow/30 border border-brand-primary/20 flex items-center justify-between gap-3 text-xs">
+                    <div className="flex items-center gap-2 text-foreground font-medium">
+                      <KeyRound className="w-4 h-4 text-brand-primary shrink-0" />
+                      <span>Configure your API key below to resume research on your paper.</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => router.push(resumeUrl)}
+                      className="text-muted-foreground hover:text-foreground underline text-[11px] font-mono shrink-0"
+                    >
+                      Cancel & Return
+                    </button>
+                  </div>
+                )}
 
                 <form onSubmit={handleSaveSettings} className="space-y-6">
 
@@ -588,9 +620,10 @@ export default function SettingsPage() {
                   <div className="flex flex-wrap items-center gap-3 pt-2">
                     <button
                       type="submit"
-                      className="btn-primary"
+                      className="btn-primary inline-flex items-center gap-1.5"
                     >
-                      Save Configurations
+                      <span>{resumeUrl ? 'Resume Research' : 'Save Configurations'}</span>
+                      {resumeUrl && <span className="font-sans">→</span>}
                     </button>
 
                     <button
@@ -845,5 +878,20 @@ export default function SettingsPage() {
       </div>
 
     </div>
+  );
+}
+
+export default function SettingsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-background flex items-center justify-center text-muted-foreground text-xs gap-2 font-mono">
+          <Loader2 className="w-4 h-4 animate-spin text-brand-primary" />
+          <span>Loading settings...</span>
+        </div>
+      }
+    >
+      <SettingsContent />
+    </Suspense>
   );
 }

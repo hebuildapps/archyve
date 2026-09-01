@@ -336,7 +336,7 @@ export default function Home() {
       <footer className="max-w-3xl mx-auto w-full pt-8 mt-6 border-t border-border/70 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-mono text-muted-foreground">
         <div className="flex items-center gap-2">
           <img src="/archyve-logo.svg" alt="Archyve" className="w-3.5 h-3.5 object-contain" />
-          <span className="font-serif font-medium text-foreground">Archyve V2</span>
+          <span className="font-serif font-medium text-foreground">archyve</span>
           <span>&middot;</span>
           <span>Research Intelligence</span>
         </div>
@@ -344,19 +344,19 @@ export default function Home() {
         <div className="flex items-center gap-4">
           <button
             onClick={() => router.push('/blog')}
-            className="hover:text-foreground transition-colors"
+            className="hover:text-foreground cursor-pointer transition-colors"
           >
             Blog
           </button>
           <button
             onClick={() => router.push('/privacy')}
-            className="hover:text-foreground transition-colors"
+            className="hover:text-foreground cursor-pointer transition-colors"
           >
             Privacy
           </button>
           <button
             onClick={() => router.push('/settings')}
-            className="hover:text-foreground transition-colors"
+            className="hover:text-foreground cursor-pointer transition-colors"
           >
             Settings
           </button>
@@ -364,7 +364,7 @@ export default function Home() {
             href="https://github.com/hebuildapps/archyve"
             target="_blank"
             rel="noopener noreferrer"
-            className="hover:text-foreground transition-colors"
+            className="hover:text-foreground cursor-pointer transition-colors"
           >
             GitHub
           </a>
