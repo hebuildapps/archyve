@@ -208,7 +208,7 @@ export default function ResearchDossierPage() {
                 const finalResult = chunk.data.result;
                 setPaper(finalPaper);
                 setResult(finalResult);
-                setSteps((prev) => 
+                setSteps((prev) =>
                   prev.map((s) => {
                     if (s.id === 'identify') return { ...s, status: 'completed', detail: finalPaper.publisher || 'Verified' };
                     if (s.id === 'metadata') return { ...s, status: 'completed', detail: finalPaper.doi ? `DOI: ${finalPaper.doi}` : 'Verified' };
@@ -343,7 +343,7 @@ export default function ResearchDossierPage() {
                 console.log('[FRONTEND] Final completed dossier response received:', chunk.data);
                 const finalPaper = chunk.data.paper || paper;
                 const finalResult = chunk.data.result;
-                setSteps((prev) => 
+                setSteps((prev) =>
                   prev.map((s) => {
                     if (s.id === 'identify') return { ...s, status: 'completed', detail: finalPaper.publisher || 'Verified' };
                     if (s.id === 'metadata') return { ...s, status: 'completed', detail: finalPaper.doi ? `DOI: ${finalPaper.doi}` : 'Verified' };
@@ -402,10 +402,10 @@ export default function ResearchDossierPage() {
   if (loading) {
     return (
       <main className="flex-1 bg-bg-base dark:bg-bg-base-dark flex flex-col justify-center min-h-screen">
-        <LoadingSkeleton 
-          steps={steps} 
-          paperTitle={paper?.title} 
-          paperAuthors={paper?.authors} 
+        <LoadingSkeleton
+          steps={steps}
+          paperTitle={paper?.title}
+          paperAuthors={paper?.authors}
           progressPercent={currentPercent}
           statusMessage={statusMessage}
         />
@@ -452,10 +452,15 @@ export default function ResearchDossierPage() {
         <div className="max-w-3xl mx-auto space-y-8">
           <button
             onClick={() => router.push('/')}
-            className="btn-ghost inline-flex items-center gap-1.5"
+            className="hover:opacity-80 transition-opacity inline-flex items-center gap-1 cursor-pointer"
+
           >
-            <ArrowLeft className="w-3.5 h-3.5" />
-            <span>go back</span>
+            <img
+              src="/archyve-logo.svg"
+              alt="Archyve Logo"
+              className="w-2 h-2 object-contain"
+            />
+            <span className="font-serif font-semibold text-[18px] text-foreground tracking-tight leading-none">archyve</span>
           </button>
 
           {/* Scraped metadata details are visible! */}
@@ -487,7 +492,7 @@ export default function ResearchDossierPage() {
 
               <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
                 <button
-                  onClick={() => router.push(`/login?resumeUrl=${encodeURIComponent(window.location.pathname)}`)}
+                  onClick={() => router.push(`/login?resumeUrl=${encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname + window.location.search : '')}`)}
                   className="w-full sm:w-auto btn-primary inline-flex items-center justify-center gap-1.5"
                 >
                   <span>Sign Up / Login</span>
@@ -514,10 +519,15 @@ export default function ResearchDossierPage() {
         <div className="max-w-3xl mx-auto space-y-8">
           <button
             onClick={() => router.push('/')}
-            className="btn-ghost inline-flex items-center gap-1.5"
+            className="hover:opacity-80 transition-opacity inline-flex items-center gap-1 cursor-pointer"
+
           >
-            <ArrowLeft className="w-3.5 h-3.5" />
-            <span>go back</span>
+            <img
+              src="/archyve-logo.svg"
+              alt="Archyve Logo"
+              className="w-2 h-2 object-contain"
+            />
+            <span className="font-serif font-semibold text-[18px] text-foreground tracking-tight leading-none">archyve</span>
           </button>
 
           <ResearchHeader
@@ -548,7 +558,7 @@ export default function ResearchDossierPage() {
 
               <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
                 <button
-                  onClick={() => router.push('/settings')}
+                  onClick={() => router.push(`/settings?resumeUrl=${encodeURIComponent(typeof window !== 'undefined' ? window.location.pathname + window.location.search : '')}`)}
                   className="w-full sm:w-auto btn-primary inline-flex items-center justify-center gap-1.5"
                 >
                   <span>Go to Settings</span>
@@ -577,10 +587,15 @@ export default function ResearchDossierPage() {
         <div className="flex items-center justify-between gap-4 mb-8">
           <button
             onClick={() => router.push('/')}
-            className="btn-ghost inline-flex items-center gap-1.5"
+            className="hover:opacity-80 transition-opacity inline-flex items-center gap-1 cursor-pointer"
+
           >
-            <ArrowLeft className="w-3.5 h-3.5" />
-            <span>go back</span>
+            <img
+              src="/archyve-logo.svg"
+              alt="Archyve Logo"
+              className="w-2 h-2 object-contain"
+            />
+            <span className="font-serif font-semibold text-[18px] text-foreground tracking-tight leading-none">archyve</span>
           </button>
           <ThemeToggle />
         </div>

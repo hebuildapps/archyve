@@ -30,7 +30,7 @@ export function ResearchHeader({
           href={url}
           target="_blank"
           rel="noopener noreferrer"
-          className="flex-shrink-0 flex items-center gap-2 px-3 py-1.5 rounded-lg border border-border bg-card/60 hover:bg-card text-xs font-mono text-muted-foreground hover:text-foreground transition-colors shadow-xs group"
+          className="flex-shrink-0 flex items-center gap-2 px-3 py-1 rounded-lg border border-border bg-card/60 hover:bg-card text-xs font-mono text-muted-foreground hover:text-foreground transition-colors shadow-xs group"
           title="Open original paper URL"
         >
           <span>Publisher Source</span>
