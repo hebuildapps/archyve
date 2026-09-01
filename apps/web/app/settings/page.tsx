@@ -1,7 +1,7 @@
 'use client';
 export const dynamic = 'force-dynamic';
 
-import React, { useEffect, useState, Suspense } from 'react';
+import React, { useEffect, useState, useRef, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { keyStore } from '@/lib/security/AIKeyStore';
 import { supabaseClient } from '@/lib/db/supabaseClient';
@@ -39,6 +39,31 @@ function SettingsContent() {
   // Navigation state
   const [activeSection, setActiveSection] = useState<SectionKey>('ai-config');
 
+  // Sliding pill navigation ref & state
+  const navItemRefs = useRef<Record<string, HTMLButtonElement | null>>({});
+  const [pillStyle, setPillStyle] = useState<{ top: number; height: number; ready: boolean }>({
+    top: 0,
+    height: 0,
+    ready: false,
+  });
+
+  useEffect(() => {
+    const updatePill = () => {
+      const activeEl = navItemRefs.current[activeSection];
+      if (activeEl) {
+        setPillStyle({
+          top: activeEl.offsetTop,
+          height: activeEl.offsetHeight,
+          ready: true,
+        });
+      }
+    };
+
+    updatePill();
+    window.addEventListener('resize', updatePill);
+    return () => window.removeEventListener('resize', updatePill);
+  }, [activeSection]);
+
   // AI Config states
   const [provider, setProvider] = useState('gemini');
   const [isProviderDropdownOpen, setIsProviderDropdownOpen] = useState(false);
@@ -56,7 +81,7 @@ function SettingsContent() {
   const [copiedSessionId, setCopiedSessionId] = useState(false);
 
   const fallbackGemini = ['gemini-3.5-pro', 'gemini-3.5-flash'];
-  const fallbackGroq = ['openai/gpt-oss-20b', 'openai/gpt-oss-20b', 'qwen/qwen3.6-27b'];
+  const fallbackGroq = ['openai/gpt-oss-20b', 'openai/gpt-oss-120b', 'qwen/qwen3.6-27b'];
 
   const fetchModels = async (currentProvider: string, currentApiKey: string) => {
     if (!currentApiKey.trim()) {
@@ -287,7 +312,7 @@ function SettingsContent() {
       label: 'Account & Sessions',
       icon: (
         <svg width="16" height="16" viewBox="0 0 256 256" fill="currentColor">
-          <path d="M128,32A96,96,0,0,0,63.8,199.38h0A72,72,0,0,1,128,160a40,40,0,1,1,40-40,40,40,0,0,1-40,40,72,72,0,0,1,64.2,39.37A96,96,0,0,0,128,32Z" opacity="0.2" fill="currentColor" /><path d="M63.8,199.37a72,72,0,0,1,128.4,0" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16" /><circle cx="128" cy="128" r="96" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16" /><circle cx="128" cy="120" r="40" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="16" />
+          <path d="M128,32A96,96,0,0,0,63.8,199.38h0A72,72,0,0,1,128,160a40,40,0,1,1,40-40,40,40,0,0,1-40,40,72,72,0,0,1,64.2,39.37A96,96,0,0,0,128,32Z" opacity="0.2" fill="currentColor" /><path d="M63.8,199.37a72,72,0,0,1,128.4,0" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="16" /><circle cx="128" cy="128" r="96" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="16" /><circle cx="128" cy="120" r="40" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round" strokeWidth="16" />
         </svg>
       ),
     },
@@ -351,32 +376,51 @@ function SettingsContent() {
             <div className="px-3 pt-2.5 pb-1 text-[11px] font-mono uppercase tracking-wider text-muted-foreground font-semibold">
               Preferences
             </div>
-            {navItems.map((item) => {
-              const isActive = activeSection === item.key;
-              return (
-                <button
-                  key={item.key}
-                  type="button"
-                  onClick={() => setActiveSection(item.key)}
-                  className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs font-medium transition-all text-left ${isActive
-                    ? 'bg-card-subtle text-foreground font-semibold shadow-xs border border-border/80 text-brand-primary dark:text-brand-accent'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-card-muted/40'
-                    }`}
-                >
-                  <div className="flex items-center gap-2.5 min-w-0">
-                    <span className={`shrink-0 ${isActive ? 'text-brand-primary dark:text-brand-accent' : 'text-muted-foreground'}`}>
-                      {item.icon}
-                    </span>
-                    <span className="truncate">{item.label}</span>
-                  </div>
-                  {item.badge && (
-                    <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-brand-primary/10 text-brand-primary dark:bg-brand-accent/10 dark:text-brand-accent border border-brand-primary/20">
-                      {item.badge}
-                    </span>
-                  )}
-                </button>
-              );
-            })}
+
+            {/* Vertical Segmented Control container */}
+            <div className="relative flex flex-col gap-1">
+              {/* Sliding active background pill layer */}
+              <div
+                className="absolute left-0 right-0 rounded-xl bg-card-subtle shadow-xs border border-border/80 pointer-events-none z-0 transition-all duration-300 ease-[cubic-bezier(0.2,0,0,1)]"
+                style={{
+                  top: 0,
+                  height: pillStyle.height ? `${pillStyle.height}px` : undefined,
+                  transform: `translateY(${pillStyle.top}px)`,
+                  opacity: pillStyle.ready ? 1 : 0,
+                }}
+              />
+
+              {navItems.map((item) => {
+                const isActive = activeSection === item.key;
+                return (
+                  <button
+                    key={item.key}
+                    ref={(el) => {
+                      navItemRefs.current[item.key] = el;
+                    }}
+                    type="button"
+                    onClick={() => setActiveSection(item.key)}
+                    className={`relative z-10 w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-xs transition-colors duration-200 text-left cursor-pointer select-none ${isActive
+                      ? 'text-foreground font-semibold text-brand-primary dark:text-brand-accent'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-card-muted/30 font-medium'
+                      }`}
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <span className={`shrink-0 transition-colors duration-200 ${isActive ? 'text-brand-primary dark:text-brand-accent' : 'text-muted-foreground'
+                        }`}>
+                        {item.icon}
+                      </span>
+                      <span className="truncate">{item.label}</span>
+                    </div>
+                    {item.badge && (
+                      <span className="text-[9px] font-mono font-bold px-1.5 py-0.5 rounded bg-brand-primary/10 text-brand-primary dark:bg-brand-accent/10 dark:text-brand-accent border border-brand-primary/20 transition-colors duration-200">
+                        {item.badge}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           {/* User status card widget in sidebar */}
@@ -479,7 +523,7 @@ function SettingsContent() {
                             {provider === 'groq' ? 'Groq' : 'Google Gemini'}
                           </span>
                           <span className="text-[10px] text-muted-foreground font-mono">
-                            {provider === 'groq' ? '· Llama and other models' : '· Gemini 3.5 Flash / Pro'}
+                            {provider === 'groq' ? '· GPT-OSS 120B & other models' : '· Gemini 3.5 Flash / Pro'}
                           </span>
                         </div>
                         <ChevronDown className={`w-3.5 h-3.5 text-muted-foreground transition-transform duration-200 ${isProviderDropdownOpen ? 'rotate-180' : ''}`} />
@@ -609,7 +653,7 @@ function SettingsContent() {
                           type="text"
                           value={model}
                           onChange={(e) => setModel(e.target.value)}
-                          placeholder={provider === 'groq' ? 'e.g. llama-3.3-70b-spec' : 'e.g. gemini-2.5-pro-experimental'}
+                          placeholder={provider === 'groq' ? 'e.g. openai/gpt-oss-120b' : 'e.g. gemini-2.5-pro-experimental'}
                           className="w-full px-3.5 py-2 rounded-xl border border-border bg-card text-xs text-foreground focus:outline-none focus:border-brand-primary font-mono shadow-xs"
                         />
                       </div>
@@ -798,11 +842,11 @@ function SettingsContent() {
                       </span>
                     </div>
                     <p className="text-xs text-foreground/80 leading-relaxed">
-                      Press <kbd className="px-2 py-0.5 bg-card border border-border rounded font-mono text-xs text-foreground font-bold shadow-xs">Ctrl + Shift + H</kbd> (Mac: <kbd className="px-2 py-0.5 bg-card border border-border rounded font-mono text-xs text-foreground font-bold shadow-xs">Cmd + Shift + H</kbd>) on supported publisher pages (IEEE, Springer, Elsevier, JSTOR, arXiv) to trigger instant dossier extraction.
+                      Press <kbd className="px-2 py-0.5 bg-card border border-border rounded font-mono text-xs text-foreground font-bold shadow-xs">Ctrl + Shift + H</kbd> &#91; Mac: <kbd className="px-2 py-0.5 bg-card border border-border rounded font-mono text-xs text-foreground font-bold shadow-xs">Cmd + Shift + H</kbd> &#93; on supported publisher pages (IEEE, Springer, Elsevier, JSTOR, arXiv) to trigger instant dossier extraction.
                     </p>
                   </div>
 
-                  <div className="p-5 rounded-2xl border border-border bg-card-muted/40 space-y-2">
+                  <div className="p-5 rounded-2xl border border-border bg-card-muted/40 space-y-2">&lbra
                     <h3 className="text-xs font-mono font-semibold uppercase tracking-wider text-muted-foreground">
                       Extension Options Bridge
                     </h3>
@@ -812,13 +856,13 @@ function SettingsContent() {
                   </div>
                   <div className="p-5 rounded-2xl border border-border bg-card-muted/40 space-y-2">
                     <h3 className="text-xs font-mono font-semibold uppercase tracking-wider text-muted-foreground">
-                      Download Extension Here &rarr;
+                      Download Extension Here &gt;
                     </h3>
                     <a
                       href="https://github.com/hebuildapps/archyve"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-brand-primary hover:underline"
+                      className="font-mono  hover:underline"
                     >
                       Download here
                     </a>
@@ -849,14 +893,14 @@ function SettingsContent() {
                       onClick={() => router.push('/blog')}
                       className="text-brand-primary hover:underline"
                     >
-                      Announcement Blog &rarr;
+                      Announcement Blog &gt;
                     </button>
                     <span className="text-border">·</span>
                     <button
                       onClick={() => router.push('/privacy')}
                       className="text-brand-primary hover:underline"
                     >
-                      Privacy Policy &rarr;
+                      Privacy Policy &gt;
                     </button>
                     <span className="text-border">·</span>
                     <a
@@ -865,7 +909,7 @@ function SettingsContent() {
                       rel="noopener noreferrer"
                       className="text-muted-foreground hover:text-foreground hover:underline"
                     >
-                      GitHub Repository &rarr;
+                      GitHub Repository &gt;
                     </a>
                   </div>
                 </div>

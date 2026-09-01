@@ -46,7 +46,7 @@ export class LocalAIKeyStore implements AIKeyStore {
     const currentProvider = provider || this.getProvider();
     const stored = localStorage.getItem(`archyve_${currentProvider}_model`);
     if (stored) return stored;
-    return currentProvider === 'groq' ? 'llama-3.3-70b-versatile' : 'gemini-3.5-flash';
+    return currentProvider === 'groq' ? 'openai/gpt-oss-120b' : 'gemini-3.5-flash';
   }
 
   setModel(model: string, provider?: string): void {

@@ -13,7 +13,7 @@ export class GroqProvider implements AIProvider {
     relatedPapers: any[] = [],
     implementations: any[] = []
   ): Promise<ResearchResult> {
-    const targetModel = model || process.env.AI_MODEL || 'llama-3.3-70b-versatile';
+    const targetModel = model || process.env.AI_MODEL || 'openai/gpt-oss-120b';
     const url = 'https://api.groq.com/openai/v1/chat/completions';
 
     // Format retrieved records as context
