@@ -452,15 +452,14 @@ export default function ResearchDossierPage() {
         <div className="max-w-3xl mx-auto space-y-8">
           <button
             onClick={() => router.push('/')}
-            className="hover:opacity-80 transition-opacity inline-flex items-center gap-1 cursor-pointer"
-
+            className="hover:opacity-85 transition-opacity inline-flex items-center gap-2 cursor-pointer"
           >
             <img
               src="/archyve-logo.svg"
               alt="Archyve Logo"
-              className="w-2 h-2 object-contain"
+              className="w-6 h-6 object-contain"
             />
-            <span className="font-serif font-semibold text-[18px] text-foreground tracking-tight leading-none">archyve</span>
+            <span className="font-serif font-semibold text-base text-foreground tracking-tight">archyve</span>
           </button>
 
           {/* Scraped metadata details are visible! */}
@@ -519,15 +518,14 @@ export default function ResearchDossierPage() {
         <div className="max-w-3xl mx-auto space-y-8">
           <button
             onClick={() => router.push('/')}
-            className="hover:opacity-80 transition-opacity inline-flex items-center gap-1 cursor-pointer"
-
+            className="hover:opacity-85 transition-opacity inline-flex items-center gap-2 cursor-pointer"
           >
             <img
               src="/archyve-logo.svg"
               alt="Archyve Logo"
-              className="w-2 h-2 object-contain"
+              className="w-6 h-6 object-contain"
             />
-            <span className="font-serif font-semibold text-[18px] text-foreground tracking-tight leading-none">archyve</span>
+            <span className="font-serif font-semibold text-base text-foreground tracking-tight">archyve</span>
           </button>
 
           <ResearchHeader
@@ -587,15 +585,14 @@ export default function ResearchDossierPage() {
         <div className="flex items-center justify-between gap-4 mb-8">
           <button
             onClick={() => router.push('/')}
-            className="hover:opacity-80 transition-opacity inline-flex items-center gap-1 cursor-pointer"
-
+            className="hover:opacity-85 transition-opacity inline-flex items-center gap-2 cursor-pointer"
           >
             <img
               src="/archyve-logo.svg"
               alt="Archyve Logo"
-              className="w-2 h-2 object-contain"
+              className="w-6 h-6 object-contain"
             />
-            <span className="font-serif font-semibold text-[18px] text-foreground tracking-tight leading-none">archyve</span>
+            <span className="font-serif font-semibold text-base text-foreground tracking-tight">archyve</span>
           </button>
           <ThemeToggle />
         </div>
