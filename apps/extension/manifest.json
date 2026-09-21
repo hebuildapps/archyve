@@ -1,12 +1,17 @@
 {
   "manifest_version": 3,
-  "name": "Archyve V2",
+  "name": "archyve",
   "version": "2.0.0",
-  "description": "AI-powered research intelligence layer for the academic web.",
+  "description": "academic research intelligence layer for the academic web.",
   "permissions": [
     "activeTab",
     "storage",
-    "contextMenus"
+    "contextMenus",
+    "cookies"
+  ],
+  "host_permissions": [
+    "https://archyve.xyz/*",
+    "http://localhost:3000/*"
   ],
   "background": {
     "service_worker": "background.js"
@@ -27,7 +32,21 @@
     }
   ],
   "action": {
-    "default_title": "Analyze with Archyve"
+    "default_title": "analyze with archyve",
+    "default_icon": {
+      "16": "assets/icons/icon-16.png",
+      "48": "assets/icons/icon-48.png",
+      "128": "assets/icons/icon-128.png"
+    }
+  },
+  "icons": {
+    "16": "assets/icons/icon-16.png",
+    "48": "assets/icons/icon-48.png",
+    "128": "assets/icons/icon-128.png"
+  },
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": true
   },
   "commands": {
     "trigger_archyve": {
@@ -35,7 +54,7 @@
         "default": "Ctrl+Shift+H",
         "mac": "Command+Shift+H"
       },
-      "description": "Analyze the active academic paper with Archyve"
+      "description": "analyze paper with archyve"
     }
   }
 }

@@ -23,9 +23,9 @@ function triggerArchyve(url: string) {
     return;
   }
 
-  // Retrieve configurable web application host URL from extension storage (defaults to https://archyve.app)
+  // Retrieve configurable web application host URL from extension storage (defaults to https://archyve.xyz)
   chrome.storage.local.get(['webUrl'], (result) => {
-    const baseWebUrl = result.webUrl || 'https://archyve.app';
+    const baseWebUrl = result.webUrl || 'https://archyve.xyz';
     const targetUrl = `${baseWebUrl}/${encodeURIComponent(url)}`;
     chrome.tabs.create({ url: targetUrl });
   });
@@ -52,7 +52,7 @@ chrome.runtime.onInstalled.addListener((details) => {
 
   chrome.contextMenus.create({
     id: 'open-archyve',
-    title: 'Open with Archyve',
+    title: 'open with archyve',
     contexts: ['page'],
     documentUrlPatterns: [
       "*://ieeexplore.ieee.org/document/*",
