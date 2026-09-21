@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <defs>
+    <!-- Solid deep-green background -->
+    <linearGradient id="edge" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stop-color="#0a1c00" stop-opacity="0.35"/>
+      <stop offset="22%"  stop-color="#0a1c00" stop-opacity="0"/>
+      <stop offset="80%"  stop-color="#0a1c00" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#0a1c00" stop-opacity="0.20"/>
+    </linearGradient>
+
+    <!-- Lime A -->
+    <linearGradient id="mark" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%"   stop-color="#B7FF38"/>
+      <stop offset="100%" stop-color="#9FF01D"/>
+    </linearGradient>
+
+    <!-- Same background hue, slightly brighter -->
+    <linearGradient id="innerShadow" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#123704" stop-opacity="0.70"/>
+      <stop offset="100%" stop-color="#183d0b" stop-opacity="0.85"/>
+    </linearGradient>
+
+    <filter id="markDepth" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow
+        dx="0"
+        dy="3"
+        stdDeviation="3"
+        flood-color="#061800"
+        flood-opacity="0.42"
+      />
+    </filter>
+  </defs>
+
+  <!-- Black outer canvas -->
+  <!-- <rect width="256" height="256" fill="#000000"/> -->
+
+  <!-- Solid green container -->
+  <rect
+    x="24"
+    y="24"
+    width="208"
+    height="208"
+    rx="42"
+    fill="#0a1c00"
+  />
+
+  <!-- Subtle edge elevation -->
+  <rect
+    x="24"
+    y="24"
+    width="208"
+    height="208"
+    rx="42"
+    fill="url(#edge)"
+  />
+
+  <!-- Inner triangular shadow
+       EXACT same geometry as before;
+       only visibility increased -->
+  <polygon
+    points="78 136 172 82 172 136 78 136"
+    fill="url(#innerShadow)"
+  />
+
+  <!-- Archyve A -->
+  <polyline
+    points="78 136 172 82 172 190"
+    fill="none"
+    stroke="url(#mark)"
+    stroke-width="16"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    filter="url(#markDepth)"
+  />
+</svg>
