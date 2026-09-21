@@ -1,101 +1,303 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="utf-8">
-  <title>Archyve Settings</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>archyve settings</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      background-color: #fafafa;
-      color: #18181b;
+    :root {
+      --bg: #0d1211;
+      --bg-card: #151d1c;
+      --bg-card-subtle: #192423;
+      --border: #233230;
+      --border-focus: #9ee618;
+      --text: #e2e8e5;
+      --text-muted: #8b9d99;
+      --text-dim: #5c6e6a;
+      --brand-lime: #9ee618;
+      --brand-lime-hover: #b5ff24;
+      --brand-glow: rgba(158, 230, 24, 0.15);
+      --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-serif: 'Instrument Serif', Georgia, serif;
+      --font-lora: 'Lora', Georgia, serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
       margin: 0;
-      padding: 24px;
-      font-size: 14px;
+      padding: 0;
     }
-    .container {
+
+    body {
+      font-family: var(--font-sans);
+      background-color: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 20px;
+      line-height: 1.6;
+      position: relative;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    body::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 400px;
+      background: radial-gradient(circle at 50% 10%, rgba(158, 230, 24, 0.07) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .wrapper {
+      position: relative;
+      z-index: 1;
+      width: 100%;
       max-width: 480px;
-      margin: 0 auto;
-      background-color: #ffffff;
-      border: 1px solid #e4e4e7;
-      border-radius: 12px;
-      padding: 24px;
-      box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+      margin: auto;
     }
-    h1 {
-      font-family: Georgia, serif;
-      font-size: 20px;
-      margin-top: 0;
+
+    .header-logo {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
       margin-bottom: 24px;
-      font-weight: 600;
+      text-decoration: none;
     }
+
+    .header-logo img {
+      width: 38px;
+      height: 38px;
+      border-radius: 9px;
+    }
+
+    .brand-title {
+      font-family: var(--font-lora);
+      font-size: 26px;
+      font-weight: 500;
+      color: #ffffff;
+      letter-spacing: -0.02em;
+    }
+
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 30px 28px;
+      box-shadow: 0 20px 40px -15px rgba(0, 0, 0, 0.5);
+      position: relative;
+    }
+
+    .card::after {
+      content: '';
+      position: absolute;
+      top: -1px;
+      left: 15%;
+      right: 15%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(158, 230, 24, 0.35), transparent);
+    }
+
+    h1 {
+      font-family: var(--font-serif);
+      font-size: 26px;
+      font-weight: 400;
+      font-style: italic;
+      color: #ffffff;
+      margin-bottom: 4px;
+    }
+
+    .subtitle {
+      color: var(--text-muted);
+      font-size: 12px;
+      margin-bottom: 22px;
+    }
+
     .form-group {
-      margin-bottom: 16px;
       display: flex;
       flex-direction: column;
       gap: 6px;
     }
+
     label {
-      font-size: 12px;
+      font-size: 11px;
+      font-family: var(--font-mono);
       font-weight: 600;
-      color: #52525b;
+      color: var(--text);
+      display: flex;
+      justify-content: space-between;
     }
-    input[type="text"], input[type="password"] {
-      padding: 8px 12px;
-      border-radius: 6px;
-      border: 1px solid #e4e4e7;
-      font-size: 13px;
+
+    label span.tag {
+      color: var(--brand-lime);
+      font-weight: 400;
+      font-size: 10px;
+    }
+
+    input[type="password"], input[type="text"] {
+      width: 100%;
+      background: var(--bg-card-subtle);
+      color: #ffffff;
+      border: 1px solid var(--border);
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-family: var(--font-mono);
+      font-size: 12px;
       outline: none;
+      transition: all 0.15s;
     }
-    input[type="text"]:focus, input[type="password"]:focus {
-      border-color: #a1a1aa;
+
+    input:focus {
+      border-color: var(--border-focus);
+      box-shadow: 0 0 0 2px rgba(158, 230, 24, 0.15);
     }
+
     .hint {
       font-size: 11px;
-      color: #71717a;
+      color: var(--text-dim);
       line-height: 1.4;
     }
+
+    .hint a {
+      color: var(--brand-lime);
+      text-decoration: none;
+    }
+
+    .hint a:hover {
+      text-decoration: underline;
+    }
+
+    /* Center OR separator */
+    .or-divider {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 18px 0;
+    }
+
+    .or-divider::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .or-label {
+      position: relative;
+      background: var(--bg-card);
+      padding: 0 14px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
     .btn-save {
-      background-color: #18181b;
-      color: #ffffff;
+      width: 100%;
+      background: var(--brand-lime);
+      color: #0d1211;
       border: none;
-      padding: 8px 16px;
-      border-radius: 6px;
+      padding: 12px 20px;
+      border-radius: 9px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      margin-top: 18px;
+      font-family: var(--font-sans);
+      transition: all 0.15s;
+      box-shadow: 0 4px 14px var(--brand-glow);
+    }
+
+    .btn-save:hover {
+      background: var(--brand-lime-hover);
+      transform: translateY(-1px);
+    }
+
+    .status-msg {
+      margin-top: 14px;
+      padding: 9px 12px;
+      border-radius: 8px;
+      background: rgba(158, 230, 24, 0.1);
+      border: 1px solid rgba(158, 230, 24, 0.25);
+      color: var(--brand-lime);
       font-size: 12px;
       font-weight: 600;
-      cursor: pointer;
-      margin-top: 8px;
-    }
-    .btn-save:hover {
-      opacity: 0.9;
-    }
-    .status-msg {
-      margin-top: 12px;
-      font-size: 12px;
-      font-weight: 500;
-      color: #16a34a;
+      text-align: center;
       display: none;
+    }
+
+    .footer {
+      text-align: center;
+      margin-top: 22px;
+      font-size: 11px;
+      font-family: var(--font-mono);
+      color: var(--text-dim);
+    }
+
+    .footer a {
+      color: var(--brand-lime);
+      text-decoration: none;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <h1>Archyve Settings</h1>
-    
-    <div class="form-group">
-      <label for="web-url">Web App Host URL</label>
-      <input type="text" id="web-url" placeholder="https://archyve.app">
-      <span class="hint">Configure this to http://localhost:3000 during local development/testing.</span>
+  <div class="wrapper">
+    <a href="https://archyve.xyz" target="_blank" class="header-logo">
+      <img src="assets/icons/icon-48.png" alt="archyve">
+      <span class="brand-title">archyve</span>
+    </a>
+
+    <div class="card">
+      <h1>api configuration</h1>
+      <p class="subtitle">provide either key to analyze papers locally without account limits.</p>
+
+      <div class="form-group">
+        <label for="groq-api-key">
+          groq api key
+          <span class="tag">recommended</span>
+        </label>
+        <input type="password" id="groq-api-key" placeholder="gsk_...">
+        <span class="hint">get a free key from <a href="https://console.groq.com/keys" target="_blank">console.groq.com</a></span>
+      </div>
+
+      <div class="or-divider">
+        <span class="or-label">OR</span>
+      </div>
+
+      <div class="form-group">
+        <label for="api-key">
+          gemini api key
+          <span class="tag">byok</span>
+        </label>
+        <input type="password" id="api-key" placeholder="AIzaSy...">
+        <span class="hint">get a key from <a href="https://aistudio.google.com/app/apikey" target="_blank">aistudio.google.com</a></span>
+      </div>
+
+      <button id="save-btn" class="btn-save">save settings</button>
+      <div id="status" class="status-msg">settings saved successfully</div>
     </div>
 
-    <div class="form-group">
-      <label for="api-key">Google Gemini API Key (BYOK)</label>
-      <input type="password" id="api-key" placeholder="AIzaSy...">
-      <span class="hint">API Key is saved locally in extension storage.</span>
+    <div class="footer">
+      <a href="https://archyve.xyz" target="_blank">archyve.xyz</a>
     </div>
-
-    <button id="save-btn" class="btn-save">Save Configuration</button>
-    <div id="status" class="status-msg">Settings saved successfully.</div>
   </div>
+
   <script src="options.js"></script>
 </body>
 </html>
