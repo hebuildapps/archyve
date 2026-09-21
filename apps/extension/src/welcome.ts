@@ -89,35 +89,11 @@ document.addEventListener('DOMContentLoaded', () => {
     if (loggedOutView) loggedOutView.style.display = 'block';
   }
 
-  // 1. Detect existing login from extension storage or archyve.xyz cookies
+  // 1. Detect existing login from extension storage
   async function checkActiveSession() {
-    // Check local extension storage first
     chrome.storage.local.get(['userSession'], (result) => {
       if (result.userSession?.user?.email) {
         updateLoggedInState(result.userSession.user.email);
-        return;
-      }
-
-      // Check cookies for archyve.xyz if available
-      if (chrome.cookies) {
-        chrome.cookies.getAll({ domain: 'archyve.xyz' }, (cookies) => {
-          const authCookie = cookies?.find(c => c.name.includes('auth-token') || c.name.includes('sb-'));
-          if (authCookie) {
-            try {
-              // Parse Supabase cookie structure if present
-              const decoded = decodeURIComponent(authCookie.value);
-              const session = JSON.parse(decoded);
-              if (session?.user?.email) {
-                chrome.storage.local.set({ userSession: session });
-                updateLoggedInState(session.user.email);
-                return;
-              }
-            } catch {
-              // fallback
-            }
-          }
-          updateLoggedOutState();
-        });
       } else {
         updateLoggedOutState();
       }

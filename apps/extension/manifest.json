@@ -1,17 +1,12 @@
 {
   "manifest_version": 3,
   "name": "archyve",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "description": "academic research intelligence layer for the academic web.",
   "permissions": [
     "activeTab",
     "storage",
-    "contextMenus",
-    "cookies"
-  ],
-  "host_permissions": [
-    "https://archyve.xyz/*",
-    "http://localhost:3000/*"
+    "contextMenus"
   ],
   "background": {
     "service_worker": "background.js"
@@ -27,7 +22,9 @@
         "https://www.jstor.org/stable/*",
         "https://arxiv.org/abs/*"
       ],
-      "js": ["content.js"],
+      "js": [
+        "content.js"
+      ],
       "run_at": "document_end"
     }
   ],
