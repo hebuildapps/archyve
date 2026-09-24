@@ -157,7 +157,6 @@ export default function Home() {
                   <button
                     onClick={handleLogout}
                     className="flex items-center gap-1 font-semibold text-rose-600 hover:text-rose-700 ml-1 transition-colors"
-                    title="Log Out"
                   >
                     <LogOut className="w-3 h-3" />
                     <span>Log Out</span>
@@ -177,7 +176,6 @@ export default function Home() {
           <button
             onClick={() => router.push('/settings')}
             className="p-2 rounded-xl border border-border bg-card text-muted-foreground hover:text-foreground hover:border-muted-foreground/40 transition-colors shadow-xs group"
-            title="Settings"
             aria-label="Settings"
           >
             <svg width="16" height="16" viewBox="0 0 256 256" className="group-hover:rotate-45 transition-transform duration-200">

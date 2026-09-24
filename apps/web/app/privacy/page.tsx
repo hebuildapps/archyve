@@ -10,7 +10,7 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 export default function PrivacyPolicyPage() {
   const router = useRouter();
   return (
-    <div className="min-h-screen bg-background text-foreground font-sans selection:bg-brand-primary/20">
+    <div className="min-h-screen bg-background text-foreground font-sans pb-10 px-4 sm:px-6 selection:bg-brand-primary/20">
 
       {/* Top Floating Nav */}
       <header className="sticky top-0 z-40 w-full border-b border-border bg-background/80 backdrop-blur-md">
