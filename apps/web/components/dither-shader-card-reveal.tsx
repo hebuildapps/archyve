@@ -128,7 +128,7 @@ export function DitherShaderCardReveal({
             <div className="space-y-1">
               <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full border border-white/15 bg-black/40 backdrop-blur-md text-[10px] font-mono tracking-wider text-white/90">
                 <img src="/archyve-logo.svg" alt="Archyve Logo" className="w-3 h-3 object-contain" />
-                <span>ARCHYVE V2</span>
+                <span>archyve v2</span>
               </div>
 
               <h2 className="text-lg sm:text-xl font-serif font-medium tracking-tight text-white leading-tight">

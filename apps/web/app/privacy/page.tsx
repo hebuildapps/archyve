@@ -2,11 +2,13 @@
 export const dynamic = 'force-dynamic';
 
 import React from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Shield, Lock, Database, KeyRound, Server, Eye, RefreshCw, FileText } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 
 export default function PrivacyPolicyPage() {
+  const router = useRouter();
   return (
     <div className="min-h-screen bg-background text-foreground font-sans selection:bg-brand-primary/20">
 
@@ -243,30 +245,48 @@ export default function PrivacyPolicyPage() {
 
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-border py-8 bg-card/40 mt-12 text-xs font-mono text-muted-foreground">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <img src="/archyve-logo.svg" alt="Archyve" className="w-4 h-4 object-contain" />
-            <span className="font-serif font-semibold text-foreground">Archyve V2</span>
-            <span>·</span>
-            <span>Research Intelligence</span>
-          </div>
+      {/* Global Minimal Editorial Footer */}
+      <footer className="max-w-3xl mx-auto w-full pt-8 mt-6 border-t border-border/70 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-mono text-muted-foreground">
+        <div className="flex items-center gap-2">
+          <img src="/archyve-logo.svg" alt="Archyve" className="w-3.5 h-3.5 object-contain" />
+          <span className="font-serif font-medium text-foreground">archyve</span>
+          <span>&middot;</span>
+          <span>Research Intelligence</span>
+        </div>
 
-          <div className="flex items-center gap-4">
-            <Link href="/" className="hover:text-foreground transition-colors">Home</Link>
-            <Link href="/blog" className="hover:text-foreground transition-colors">Blog</Link>
-            <Link href="/privacy" className="text-foreground font-semibold">Privacy</Link>
-            <Link href="/settings" className="hover:text-foreground transition-colors">Settings</Link>
-            <a
-              href="https://github.com/hebuildapps/archyve"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-foreground transition-colors"
-            >
-              GitHub
-            </a>
-          </div>
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => router.push('/')}
+            className="hover:text-foreground cursor-pointer transition-colors"
+          >
+            Home
+          </button>
+          <button
+            onClick={() => router.push('/blog')}
+            className="hover:text-foreground cursor-pointer transition-colors"
+          >
+            Blog
+          </button>
+          <button
+            onClick={() => router.push('/privacy')}
+            className="hover:text-foreground cursor-pointer transition-colors"
+          >
+            Privacy
+          </button>
+          <button
+            onClick={() => router.push('/settings')}
+            className="hover:text-foreground cursor-pointer transition-colors"
+          >
+            Settings
+          </button>
+          <a
+            href="https://github.com/hebuildapps/archyve"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-foreground cursor-pointer transition-colors"
+          >
+            GitHub
+          </a>
         </div>
       </footer>
 

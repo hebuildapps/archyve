@@ -846,7 +846,7 @@ function SettingsContent() {
                     </p>
                   </div>
 
-                  <div className="p-5 rounded-2xl border border-border bg-card-muted/40 space-y-2">&lbra
+                  <div className="p-5 rounded-2xl border border-border bg-card-muted/40 space-y-2">
                     <h3 className="text-xs font-mono font-semibold uppercase tracking-wider text-muted-foreground">
                       Extension Options Bridge
                     </h3>
@@ -856,7 +856,7 @@ function SettingsContent() {
                   </div>
                   <div className="p-5 rounded-2xl border border-border bg-card-muted/40 space-y-2">
                     <h3 className="text-xs font-mono font-semibold uppercase tracking-wider text-muted-foreground">
-                      Download Extension Here &gt;
+                      Download Extension Here <svg className="size-3 transition-transform duration-200 ease-out-quint group-hover:-translate-x-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"></path></svg>
                     </h3>
                     <a
                       href="https://github.com/hebuildapps/archyve"

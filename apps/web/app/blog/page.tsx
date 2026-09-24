@@ -1,6 +1,6 @@
 'use client';
 export const dynamic = 'force-dynamic';
-
+import { useRouter } from 'next/navigation';
 import React from 'react';
 import Link from 'next/link';
 import { ArrowLeft, ArrowRight, CheckCircle2, ShieldCheck, Sparkles, Cpu, Search, Database, Key, Heart } from 'lucide-react';
@@ -8,6 +8,8 @@ import { ThemeToggle } from '@/components/ThemeToggle';
 import { DitherShader } from '@/components/ui/dither-shader';
 
 export default function BlogAnnouncementPage() {
+  const router = useRouter();
+
   return (
     <div className="min-h-screen bg-background text-foreground font-sans selection:bg-brand-primary/20">
 
@@ -43,10 +45,8 @@ export default function BlogAnnouncementPage() {
         </div>
       </header>
 
-      {/* Main Editorial Article */}
       <main className="max-w-3xl mx-auto px-4 sm:px-6 py-12 sm:py-16 space-y-16">
 
-        {/* 1. Hero / Announcement Header with Dithered Landscape Card */}
         <section className="space-y-6">
           <div className="relative w-full h-64 sm:h-80 rounded-3xl overflow-hidden border border-border bg-card shadow-lg">
             <DitherShader
@@ -67,10 +67,10 @@ export default function BlogAnnouncementPage() {
             <div className="absolute inset-0 z-20 flex flex-col justify-end p-6 sm:p-8 text-white space-y-2">
               <div className="inline-flex items-center gap-2 px-2.5 py-0.5 rounded-full border border-white/20 bg-black/40 backdrop-blur-md text-[11px] font-mono tracking-wider text-white/90 w-fit">
                 <img src="/archyve-logo.svg" alt="Archyve" className="w-3 h-3 object-contain" />
-                <span>ARCHYVE V2 RELEASE</span>
+                <span>archyve v2</span>
               </div>
               <h1 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-normal tracking-tight text-white leading-tight">
-                Introducing Archyve V2.
+                Introducing archyve v2
               </h1>
               <p className="text-xs sm:text-sm font-sans text-white/80 max-w-xl leading-relaxed">
                 A short note on research workflows, paper validation, and turning fragmented scientific literature into actionable intelligence.
@@ -85,7 +85,7 @@ export default function BlogAnnouncementPage() {
 
           <div className="pt-2">
             <p className="text-lg sm:text-xl font-instrument italic text-foreground/90 leading-relaxed">
-              Archyve V2 is a research-intelligence platform engineered to turn scattered, paywalled, and noisy scientific literature into trustworthy, accessible, and structured research dossiers.
+              archyve v2 is a research-intelligence platform engineered to turn scattered, paywalled, and noisy scientific literature into trustworthy, accessible, and structured research dossiers.
             </p>
           </div>
         </section>
@@ -96,7 +96,7 @@ export default function BlogAnnouncementPage() {
             01 / Background
           </div>
           <h2 className="text-2xl sm:text-3xl font-serif font-medium text-foreground tracking-tight">
-            Why Archyve exists.
+            Why archyve exists.
           </h2>
           <p>
             The academic web is deeply fragmented. When researchers discover an intriguing paper on IEEE Xplore, Springer Nature, Elsevier ScienceDirect, JSTOR, or arXiv, the publisher page provides only a tiny sliver of the truth. Crucial context whether an open-access pre-print exists, who cited what, what real implementations are hosted on GitHub, and what prior art laid the foundation is scattered across dozens of disconnected tools and databases.
@@ -112,7 +112,7 @@ export default function BlogAnnouncementPage() {
             02 / Workflow Evolution
           </div>
           <h2 className="text-2xl sm:text-3xl font-serif font-medium text-foreground tracking-tight">
-            Before Archyve vs. With Archyve.
+            Before archyve vs. With archyve
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
@@ -191,7 +191,7 @@ export default function BlogAnnouncementPage() {
             03 / Core Engineering
           </div>
           <h2 className="text-2xl sm:text-3xl font-serif font-medium text-foreground tracking-tight">
-            What makes Archyve different.
+            What makes archyve different
           </h2>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -249,7 +249,7 @@ export default function BlogAnnouncementPage() {
             Most AI research tools fail silently by producing eloquent summaries of papers that do not exist or mismatching author attributions. In academic research, an ungrounded summary is worse than no summary at all.
           </p>
           <p>
-            Archyve treats identity verification as a first-class engineering invariant. If an external API returns a paper with a divergent title or conflicting author list, the system flags the mismatch, computes Jaccard word-overlap similarity, and prevents the AI synthesis pipeline from proceeding until identity is confirmed. Every claim in the dossier links directly back to verified source citations.
+            archyve treats identity verification as a first-class engineering invariant. If an external API returns a paper with a divergent title or conflicting author list, the system flags the mismatch, computes Jaccard word-overlap similarity, and prevents the AI synthesis pipeline from proceeding until identity is confirmed. Every claim in the dossier links directly back to verified source citations.
           </p>
         </section>
 
@@ -263,7 +263,7 @@ export default function BlogAnnouncementPage() {
             Grateful to our infrastructure & data providers.
           </h2>
           <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
-            Archyve stands on the shoulders of open scientific infrastructure and powerful data platforms. We would specifically like to thank:
+            archyve stands on the shoulders of open scientific infrastructure and powerful data platforms. We would specifically like to thank:
           </p>
           <ul className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-foreground/90 font-sans pt-1">
             <li className="p-3 rounded-xl border border-border bg-card-muted/30">
@@ -291,7 +291,7 @@ export default function BlogAnnouncementPage() {
             05 / Architecture
           </div>
           <h2 className="text-2xl sm:text-3xl font-serif font-medium text-foreground tracking-tight">
-            What we built in V2.
+            What we built in v2
           </h2>
           <div className="space-y-3 text-xs sm:text-sm text-muted-foreground leading-relaxed font-sans">
             <div className="p-4 rounded-xl border border-border bg-card flex items-start gap-3">
@@ -303,7 +303,7 @@ export default function BlogAnnouncementPage() {
             <div className="p-4 rounded-xl border border-border bg-card flex items-start gap-3">
               <span className="font-mono text-brand-primary font-bold">02</span>
               <div>
-                <strong className="text-foreground">Dual-Tier Caching Pipeline:</strong> High-speed Upstash Redis key-value caching with 7-day TTL paired with Supabase PostgreSQL for persistent community dossier indexing.
+                <strong className="text-foreground">Caching Pipeline:</strong> Free Public-access dossiers which are pre-generated and no user login required; users can check those anonymously.
               </div>
             </div>
             <div className="p-4 rounded-xl border border-border bg-card flex items-start gap-3">
@@ -327,10 +327,10 @@ export default function BlogAnnouncementPage() {
             06 / Roadmap
           </div>
           <h2 className="text-2xl sm:text-3xl font-serif font-medium text-foreground tracking-tight">
-            What&apos;s next.
+            What&apos;s next
           </h2>
           <p>
-            V2 represents our baseline foundation. Looking ahead, we are actively experimenting with several research directions:
+            v2 represents our baseline foundation. Looking ahead, we are actively experimenting with several research directions:
           </p>
           <ul className="list-disc pl-5 space-y-1.5 text-xs sm:text-sm text-muted-foreground font-sans">
             <li><strong>Deeper Full-Text Parsing:</strong> Extracting figures, equations, and benchmark tables directly from open-access PDFs.</li>
@@ -363,30 +363,48 @@ export default function BlogAnnouncementPage() {
 
       </main>
 
-      {/* Editorial Footer */}
-      <footer className="border-t border-border py-8 bg-card/40 mt-12 text-xs font-mono text-muted-foreground">
-        <div className="max-w-3xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <img src="/archyve-logo.svg" alt="Archyve" className="w-4 h-4 object-contain" />
-            <span className="font-serif font-semibold text-foreground">Archyve V2</span>
-            <span>·</span>
-            <span>Research Intelligence</span>
-          </div>
+      {/* Global Minimal Editorial Footer */}
+      <footer className="max-w-3xl mx-auto w-full pt-8 mt-6 border-t border-border/70 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-mono text-muted-foreground">
+        <div className="flex items-center gap-2">
+          <img src="/archyve-logo.svg" alt="Archyve" className="w-3.5 h-3.5 object-contain" />
+          <span className="font-serif font-medium text-foreground">archyve</span>
+          <span>&middot;</span>
+          <span>Research Intelligence</span>
+        </div>
 
-          <div className="flex items-center gap-4">
-            <Link href="/" className="hover:text-foreground transition-colors">Home</Link>
-            <Link href="/blog" className="text-foreground font-semibold">Blog</Link>
-            <Link href="/privacy" className="hover:text-foreground transition-colors">Privacy</Link>
-            <Link href="/settings" className="hover:text-foreground transition-colors">Settings</Link>
-            <a
-              href="https://github.com/hebuildapps/archyve"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="hover:text-foreground transition-colors"
-            >
-              GitHub
-            </a>
-          </div>
+        <div className="flex items-center gap-4">
+          <button
+            onClick={() => router.push('/')}
+            className="hover:text-foreground cursor-pointer transition-colors"
+          >
+            Home
+          </button>
+          <button
+            onClick={() => router.push('/blog')}
+            className="hover:text-foreground cursor-pointer transition-colors"
+          >
+            Blog
+          </button>
+          <button
+            onClick={() => router.push('/privacy')}
+            className="hover:text-foreground cursor-pointer transition-colors"
+          >
+            Privacy
+          </button>
+          <button
+            onClick={() => router.push('/settings')}
+            className="hover:text-foreground cursor-pointer transition-colors"
+          >
+            Settings
+          </button>
+          <a
+            href="https://github.com/hebuildapps/archyve"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:text-foreground cursor-pointer transition-colors"
+          >
+            GitHub
+          </a>
         </div>
       </footer>
 
