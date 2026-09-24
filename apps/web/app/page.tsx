@@ -233,6 +233,33 @@ export default function Home() {
           )}
         </form>
 
+        {/* Fastest way to research strip */}
+        <div className="flex items-center justify-center -mt-4">
+          <div className="inline-flex items-center gap-2.5 px-3.5 py-1.5 rounded-xl border border-border/80 bg-card-muted/60 dark:bg-card-muted/40 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06),0_1px_2px_0_rgba(0,0,0,0.06)] text-xs text-muted-foreground font-mono">
+            <span className="tracking-tight font-serif font-medium text-foreground/85">Research faster, now with browser extensions</span>
+            <div className="flex items-center gap-1.5 pl-2 border-l border-border">
+              <a
+                href="https://ggl.link/archyve"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-1 rounded-md hover:bg-card hover:scale-105 transition-all flex items-center justify-center"
+                aria-label="Chromium Extension on Chrome Web Store"
+              >
+                <img src="/chrome.svg" alt="Chrome" className="w-3.5 h-3.5 object-contain" />
+              </a>
+              <a
+                href="https://dub.sh/archyve"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-1 rounded-md hover:bg-card hover:scale-105 transition-all flex items-center justify-center"
+                aria-label="Microsoft Edge Add-on"
+              >
+                <img src="/edge-logo.svg" alt="Edge" className="w-3.5 h-3.5 object-contain" />
+              </a>
+            </div>
+          </div>
+        </div>
+
         {/* Authenticated Workspace History */}
         {isAuthenticated && (
           <div className="space-y-4 pt-6 border-t border-border w-full">

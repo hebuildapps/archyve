@@ -866,13 +866,11 @@ function SettingsContent() {
                       >
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 rounded-lg bg-card-muted border border-border flex items-center justify-center p-1.5 shrink-0 group-hover:scale-105 transition-transform">
-                            <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
-                              <circle fill="#000000" cx="64.149" cy="64.236" r="60.999" />
-                              <circle fill="#4285F4" cx="64.149" cy="64.235" r="22.736" />
-                              <path fill="#EA4335" d="M119.602 36.508C104.336 5.792 67.06-6.732 36.343 8.534A62.105 62.105 0 0012.578 29.3l24.955 43.253c-4.597-14.606 3.521-30.174 18.127-34.77a27.676 27.676 0 017.935-1.274" />
-                              <path fill="#34A853" d="M12.578 29.3c-19.1 28.492-11.486 67.071 17.005 86.171a62.133 62.133 0 0029.575 10.319l26.063-44.363c-9.745 11.811-27.22 13.486-39.032 3.74a27.717 27.717 0 01-8.657-12.613" />
-                              <path fill="#FBBC05" d="M59.158 125.791c34.204 2.585 64.027-23.047 66.613-57.25a62.097 62.097 0 00-6.17-32.031H63.595c15.312.07 27.67 12.541 27.598 27.854a27.725 27.725 0 01-5.972 17.064" />
-                            </svg>
+                            <img
+                              src="/chrome.svg"
+                              alt="Chromium"
+                              className="w-full h-full object-contain"
+                            />
                           </div>
                           <div>
                             <div className="text-xs font-semibold text-foreground group-hover:text-brand-primary transition-colors">
