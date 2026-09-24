@@ -85,7 +85,7 @@ export default function BlogAnnouncementPage() {
 
           <div className="pt-2">
             <p className="text-lg sm:text-xl font-instrument italic text-foreground/90 leading-relaxed">
-              archyve v2 is a research-intelligence platform engineered to turn scattered, paywalled, and noisy scientific literature into trustworthy, accessible, and structured research dossiers.
+              archyve is a research-intelligence platform engineered to turn scattered, paywalled, and noisy scientific literature into trustworthy, accessible, and structured research dossiers.
             </p>
           </div>
         </section>
@@ -96,7 +96,7 @@ export default function BlogAnnouncementPage() {
             01 / Background
           </div>
           <h2 className="text-2xl sm:text-3xl font-serif font-medium text-foreground tracking-tight">
-            Why archyve exists.
+            Why archyve exists
           </h2>
           <p>
             The academic web is deeply fragmented. When researchers discover an intriguing paper on IEEE Xplore, Springer Nature, Elsevier ScienceDirect, JSTOR, or arXiv, the publisher page provides only a tiny sliver of the truth. Crucial context whether an open-access pre-print exists, who cited what, what real implementations are hosted on GitHub, and what prior art laid the foundation is scattered across dozens of disconnected tools and databases.
@@ -112,7 +112,7 @@ export default function BlogAnnouncementPage() {
             02 / Workflow Evolution
           </div>
           <h2 className="text-2xl sm:text-3xl font-serif font-medium text-foreground tracking-tight">
-            Before archyve vs. With archyve
+            Without archyve vs. With archyve
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
@@ -135,11 +135,11 @@ export default function BlogAnnouncementPage() {
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="font-mono text-foreground/60 shrink-0">3.</span>
-                  <span>Search Unpaywall or arXiv repositories for legal OA PDFs.</span>
+                  <span>Search Unpaywall or arXiv repositories for legal Open-Access PDFs.</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="font-mono text-foreground/60 shrink-0">4.</span>
-                  <span>Search GitHub for reproducible repository implementations.</span>
+                  <span>Related work and research context are spread across references, papers, and separate tools.</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="font-mono text-foreground/60 shrink-0">5.</span>
@@ -174,7 +174,7 @@ export default function BlogAnnouncementPage() {
                 </li>
                 <li className="flex items-start gap-2">
                   <CheckCircle2 className="w-3.5 h-3.5 text-brand-primary shrink-0 mt-0.5" />
-                  <span><strong>Evidence Retrieval</strong> &rarr; Real GitHub codebases and foundational precursors.</span>
+                  <span><strong>Evidence Retrieval</strong> &rarr; Single aggregated dashboard for all your research papers.</span>
                 </li>
                 <li className="flex items-start gap-2">
                   <CheckCircle2 className="w-3.5 h-3.5 text-brand-primary shrink-0 mt-0.5" />
@@ -211,7 +211,7 @@ export default function BlogAnnouncementPage() {
                 <span>Pre-Synthesis Validation</span>
               </div>
               <p className="text-xs text-muted-foreground leading-relaxed">
-                Before sending a prompt to an AI model, Archyve validates external metadata against the publisher baseline to prevent hallucinating incorrect literature.
+                Before sending a prompt to an AI model, archyve validates external metadata against the publisher baseline to prevent hallucinating incorrect literature.
               </p>
             </div>
 
@@ -243,13 +243,13 @@ export default function BlogAnnouncementPage() {
             04 / Integrity
           </div>
           <h2 className="text-2xl sm:text-3xl font-serif font-medium text-foreground tracking-tight">
-            Built for trust, not just summaries.
+            Built for trust, not just summaries
           </h2>
           <p>
-            Most AI research tools fail silently by producing eloquent summaries of papers that do not exist or mismatching author attributions. In academic research, an ungrounded summary is worse than no summary at all.
+            Most AI research tools fail silently by producing strong worded summaries of papers that do not exist or mismatching author attributions. In academic research, an ungrounded summary is worse than no summary at all.
           </p>
           <p>
-            archyve treats identity verification as a first-class engineering invariant. If an external API returns a paper with a divergent title or conflicting author list, the system flags the mismatch, computes Jaccard word-overlap similarity, and prevents the AI synthesis pipeline from proceeding until identity is confirmed. Every claim in the dossier links directly back to verified source citations.
+            archyve treats identity verification as a first-class engineering invariant. If an external API returns a paper with a divergent title or conflicting author list, the system flags the mismatch, computes <em>Jaccard word-overlap similarity</em>, and prevents the AI synthesis pipeline from proceeding until identity is confirmed. Every claim in the dossier links directly back to verified source citations.
           </p>
         </section>
 

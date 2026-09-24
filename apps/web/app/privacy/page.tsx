@@ -100,7 +100,7 @@ export default function PrivacyPolicyPage() {
               <div className="p-4 rounded-xl border border-border bg-card space-y-1.5">
                 <strong className="font-mono text-xs text-foreground uppercase tracking-wide block">Account & Auth Data</strong>
                 <p className="text-xs text-muted-foreground">
-                  If you register an account, your account creds remain hashed. Unauthenticated users may read existing public dossiers without creating an account.
+                  If you register an account, your account creds remain hashed. Unauthenticated users can still read existing public dossiers without creating an account.
                 </p>
               </div>
 
