@@ -118,7 +118,6 @@ export function WorkspaceHistoryModal({
               <button
                 onClick={() => setSearchQuery('')}
                 className="p-1 rounded-lg text-muted-foreground hover:text-foreground transition-colors mr-1"
-                title="Clear search"
               >
                 <X className="w-3.5 h-3.5" />
               </button>
@@ -132,7 +131,6 @@ export function WorkspaceHistoryModal({
                   ? 'bg-brand-primary text-white dark:bg-lime-500 dark:text-neutral-950 shadow-xs'
                   : 'text-muted-foreground hover:text-foreground'
                   }`}
-                title="Grid view"
                 aria-label="Grid view"
               >
                 <LayoutGrid className="w-4 h-4" />
@@ -143,7 +141,6 @@ export function WorkspaceHistoryModal({
                   ? 'bg-brand-primary text-white dark:bg-lime-500 dark:text-neutral-950 shadow-xs'
                   : 'text-muted-foreground hover:text-foreground'
                   }`}
-                title="List view"
                 aria-label="List view"
               >
                 <List className="w-4 h-4" />

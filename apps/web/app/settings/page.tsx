@@ -15,9 +15,10 @@ import {
   Calendar,
   Laptop,
   KeyRound,
-  Copy,
   Check,
-  ChevronDown
+  ChevronDown,
+  ExternalLink,
+  Download
 } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 
@@ -288,13 +289,6 @@ function SettingsContent() {
     router.push('/');
   };
 
-  const handleCopySessionId = () => {
-    if (!sessionData?.id) return;
-    navigator.clipboard.writeText(sessionData.id);
-    setCopiedSessionId(true);
-    setTimeout(() => setCopiedSessionId(false), 2000);
-  };
-
   const navItems: { key: SectionKey; label: string; icon: React.ReactNode; badge?: string }[] = [
     {
       key: 'ai-config',
@@ -348,7 +342,6 @@ function SettingsContent() {
           <button
             onClick={() => router.push(resumeUrl || '/')}
             className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors group text-xs font-semibold"
-            title={resumeUrl ? "Return to research paper" : "Return to search dashboard"}
           >
             <ArrowLeft className="w-4 h-4 group-hover:-translate-x-0.5 transition-transform" />
             <span className="hidden sm:inline font-mono">{resumeUrl ? 'Return to Paper' : 'Dashboard'}</span>
@@ -756,13 +749,6 @@ function SettingsContent() {
                               <KeyRound className="w-3 h-3" />
                               <span>Session ID</span>
                             </span>
-                            <button
-                              onClick={handleCopySessionId}
-                              className="text-[10px] text-brand-primary hover:underline flex items-center gap-1"
-                            >
-                              {copiedSessionId ? <Check className="w-3 h-3" /> : <Copy className="w-3 h-3" />}
-                              <span>{copiedSessionId ? 'Copied' : 'Copy'}</span>
-                            </button>
                           </div>
                           <input
                             type="text"
@@ -851,21 +837,81 @@ function SettingsContent() {
                       Extension Options Bridge
                     </h3>
                     <p className="text-xs text-foreground/80 leading-relaxed">
-                      Custom URLs and local adapter overrides can be configured directly inside your browser&apos;s Extension Management pane under <em>Archyve Options</em>.
+                      Custom URLs and local adapter overrides can be configured directly inside your browser&apos;s Extension Management pane under <em>archyve Options</em>.
                     </p>
                   </div>
-                  <div className="p-5 rounded-2xl border border-border bg-card-muted/40 space-y-2">
-                    <h3 className="text-xs font-mono font-semibold uppercase tracking-wider text-muted-foreground">
-                      Download Extension Here <svg className="size-3 transition-transform duration-200 ease-out-quint group-hover:-translate-x-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"></path></svg>
-                    </h3>
-                    <a
-                      href="https://github.com/hebuildapps/archyve"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="font-mono  hover:underline"
-                    >
-                      Download here
-                    </a>
+                  <div className="p-5 rounded-2xl border border-border bg-card-muted/40 space-y-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h3 className="text-xs font-mono font-semibold uppercase tracking-wider text-muted-foreground">
+                            Browser Extensions
+                          </h3>
+                          <span className="px-2 py-0.5 rounded font-mono text-[10px] bg-brand-primary/10 text-brand-primary border border-brand-primary/20">
+                            v3.0
+                          </span>
+                        </div>
+                        <p className="text-xs text-foreground/80 mt-1">
+                          Install the archyve bridge on Chromium and Gecko browsers for 1-click dossier extraction directly on paper URLs.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                      <a
+                        href="https://ggl.link/archyve"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="group flex items-center justify-between p-3 rounded-xl border border-border bg-card hover:border-brand-primary/40 hover:bg-card-subtle/50 transition-all shadow-xs"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-lg bg-card-muted border border-border flex items-center justify-center p-1.5 shrink-0 group-hover:scale-105 transition-transform">
+                            <svg className="w-full h-full" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+                              <circle fill="#000000" cx="64.149" cy="64.236" r="60.999" />
+                              <circle fill="#4285F4" cx="64.149" cy="64.235" r="22.736" />
+                              <path fill="#EA4335" d="M119.602 36.508C104.336 5.792 67.06-6.732 36.343 8.534A62.105 62.105 0 0012.578 29.3l24.955 43.253c-4.597-14.606 3.521-30.174 18.127-34.77a27.676 27.676 0 017.935-1.274" />
+                              <path fill="#34A853" d="M12.578 29.3c-19.1 28.492-11.486 67.071 17.005 86.171a62.133 62.133 0 0029.575 10.319l26.063-44.363c-9.745 11.811-27.22 13.486-39.032 3.74a27.717 27.717 0 01-8.657-12.613" />
+                              <path fill="#FBBC05" d="M59.158 125.791c34.204 2.585 64.027-23.047 66.613-57.25a62.097 62.097 0 00-6.17-32.031H63.595c15.312.07 27.67 12.541 27.598 27.854a27.725 27.725 0 01-5.972 17.064" />
+                            </svg>
+                          </div>
+                          <div>
+                            <div className="text-xs font-semibold text-foreground group-hover:text-brand-primary transition-colors">
+                              Chromium
+                            </div>
+                            <div className="text-[10px] font-mono text-muted-foreground">
+                              Chrome Web Store
+                            </div>
+                          </div>
+                        </div>
+                        <ExternalLink className="w-3.5 h-3.5 text-muted-foreground group-hover:text-brand-primary group-hover:translate-x-0.5 transition-all" />
+                      </a>
+
+                      <a
+                        href="https://dub.sh/archyve"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="group flex items-center justify-between p-3 rounded-xl border border-border bg-card hover:border-brand-primary/40 hover:bg-card-subtle/50 transition-all shadow-xs"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-lg bg-card-muted border border-border flex items-center justify-center p-1.5 shrink-0 group-hover:scale-105 transition-transform">
+                            <img
+                              src="/edge-logo.svg"
+                              alt="Microsoft Edge"
+                              className="w-full h-full object-contain"
+                            />
+                          </div>
+                          <div>
+                            <div className="text-xs font-semibold text-foreground group-hover:text-brand-primary transition-colors">
+                              Microsoft Edge
+                            </div>
+                            <div className="text-[10px] font-mono text-muted-foreground">
+                              Edge Add-ons Store
+                            </div>
+                          </div>
+                        </div>
+                        <ExternalLink className="w-3.5 h-3.5 text-muted-foreground group-hover:text-brand-primary group-hover:translate-x-0.5 transition-all" />
+                      </a>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -875,7 +921,7 @@ function SettingsContent() {
               <div className="space-y-6">
                 <div>
                   <h1 className="text-2xl font-serif font-medium text-foreground tracking-tight">
-                    About Archyve
+                    About archyve
                   </h1>
                   <p className="text-xs text-muted-foreground font-sans mt-1">
                     Project Architecture, Announcement & Legal Policy
@@ -888,28 +934,26 @@ function SettingsContent() {
                     <span className="font-mono text-foreground font-bold">2.0.0 (Release)</span>
                   </div>
 
-                  <div className="flex flex-wrap items-center gap-4 pt-2 font-mono text-xs font-semibold">
+                  <div className="flex items-center gap-4 pt-2 font-mono text-xs font-semibold">
                     <button
                       onClick={() => router.push('/blog')}
-                      className="text-brand-primary hover:underline"
+                      className="inline-flex items-center gap-1 whitespace-nowrap text-brand-primary hover:underline group"
                     >
-                      Announcement Blog &gt;
+                      Announcement Blog <svg className="size-3 rotate-180 transition-transform duration-200 ease-out-quint group-hover:-translate-x-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"></path></svg>
                     </button>
-                    <span className="text-border">·</span>
                     <button
                       onClick={() => router.push('/privacy')}
-                      className="text-brand-primary hover:underline"
+                      className="inline-flex items-center gap-1 whitespace-nowrap text-brand-primary hover:underline group"
                     >
-                      Privacy Policy &gt;
+                      Privacy Policy <svg className="size-3 rotate-180 transition-transform duration-200 ease-out-quint group-hover:-translate-x-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"></path></svg>
                     </button>
-                    <span className="text-border">·</span>
                     <a
                       href="https://github.com/hebuildapps/archyve"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-muted-foreground hover:text-foreground hover:underline"
+                      className="inline-flex items-center gap-1 whitespace-nowrap text-brand-primary hover:underline group"
                     >
-                      GitHub Repository &gt;
+                      GitHub Repository <svg className="size-3 rotate-180 transition-transform duration-200 ease-out-quint group-hover:-translate-x-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"></path></svg>
                     </a>
                   </div>
                 </div>
