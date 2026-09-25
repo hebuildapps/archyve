@@ -23,8 +23,11 @@ export async function fetchCrossrefMetadata(doi: string): Promise<Partial<Normal
     const item = json.message;
     if (!item) return null;
 
-    // Extract title (returns array)
-    const title = Array.isArray(item.title) ? item.title[0] : item.title || null;
+    // Extract title and combine subtitle if present (e.g. JAMA / Science papers)
+    const rawTitle = Array.isArray(item.title) ? item.title[0] : item.title || null;
+    const rawSubtitle = Array.isArray(item.subtitle) && item.subtitle.length > 0 ? item.subtitle[0] : null;
+    const title = rawTitle && rawSubtitle ? `${rawTitle}: ${rawSubtitle}` : rawTitle;
+
 
     // Extract authors
     const authors: string[] = [];

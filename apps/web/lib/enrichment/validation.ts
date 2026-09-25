@@ -127,6 +127,8 @@ export function validateAndMergeMetadata(
   let crossrefMatch = false;
   let openalexMatch = false;
 
+  const cleanAdapterDoi = adapterDoi ? adapterDoi.toLowerCase().trim().replace(/\/$/, '') : null;
+
   if (crossref && crossref.title) {
     if (isIEEE && (docId || adapterDoi)) {
       const doiMatch = validateIeeeDoi(crossref.doi);
@@ -134,6 +136,10 @@ export function validateAndMergeMetadata(
       const authorsMatch = checkAuthorsOverlap(adapterPaper.authors, crossref.authors || []);
       const pubMatch = checkPublisher(crossref.publisher);
       crossrefMatch = doiMatch && titleMatch && authorsMatch && pubMatch;
+    } else if (cleanAdapterDoi && crossref.doi && crossref.doi.toLowerCase().trim().replace(/\/$/, '') === cleanAdapterDoi) {
+      // Direct DOI match: confirm title similarity or containment
+      const sim = getTitleSimilarity(adapterPaper.title, crossref.title);
+      crossrefMatch = sim > 0.35 || checkAuthorsOverlap(adapterPaper.authors, crossref.authors || []);
     } else {
       crossrefMatch = getTitleSimilarity(adapterPaper.title, crossref.title) > 0.5;
     }
@@ -146,10 +152,15 @@ export function validateAndMergeMetadata(
       const authorsMatch = checkAuthorsOverlap(adapterPaper.authors, openalex.authors || []);
       const pubMatch = checkPublisher(openalex.publisher);
       openalexMatch = doiMatch && titleMatch && authorsMatch && pubMatch;
+    } else if (cleanAdapterDoi && openalex.doi && openalex.doi.toLowerCase().trim().replace(/\/$/, '') === cleanAdapterDoi) {
+      // Direct DOI match: confirm title similarity or containment
+      const sim = getTitleSimilarity(adapterPaper.title, openalex.title);
+      openalexMatch = sim > 0.35 || checkAuthorsOverlap(adapterPaper.authors, openalex.authors || []);
     } else {
       openalexMatch = getTitleSimilarity(adapterPaper.title, openalex.title) > 0.5;
     }
   }
+
 
   // If both APIs returned matches but they disagree on the identity (different DOIs)
   if (crossrefMatch && openalexMatch && crossref?.doi && openalex?.doi) {

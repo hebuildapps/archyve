@@ -80,8 +80,12 @@ export async function searchGithubImplementations(title: string): Promise<Github
       }
     }
 
+    // Sort descending by stars so highest-starred repositories appear first
+    validated.sort((a, b) => (b.stars || 0) - (a.stars || 0));
+
     return validated;
   } catch (error) {
+
     console.error('GitHub search failed:', error);
     return [];
   }
