@@ -4,6 +4,7 @@ import { SpringerAdapter } from './SpringerAdapter';
 import { ElsevierAdapter } from './ElsevierAdapter';
 import { JSTORAdapter } from './JSTORAdapter';
 import { ArxivAdapter } from './ArxivAdapter';
+import { PubMedAdapter } from './PubMedAdapter';
 
 export const adapters: PublisherAdapter[] = [
   new IEEEAdapter(),
@@ -11,6 +12,7 @@ export const adapters: PublisherAdapter[] = [
   new ElsevierAdapter(),
   new JSTORAdapter(),
   new ArxivAdapter(),
+  new PubMedAdapter(),
 ];
 
 export function getAdapterForUrl(url: string): PublisherAdapter | null {
@@ -28,3 +30,5 @@ export * from './SpringerAdapter';
 export * from './ElsevierAdapter';
 export * from './JSTORAdapter';
 export * from './ArxivAdapter';
+export * from './PubMedAdapter';
+
