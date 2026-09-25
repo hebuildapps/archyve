@@ -25,6 +25,16 @@
 </p>
 
 <p align="center">
+  <a href="https://ggl.link/archyve" target="_blank">
+    <img src="https://labels.tahoe.be/chrome_download_dark.svg" height="44" alt="Download Archyve for Chrome" />
+  </a>
+  &nbsp;&nbsp;
+  <a href="https://dub.sh/archyve" target="_blank">
+    <img src="https://labels.tahoe.be/edge_download_dark.svg" height="44" alt="Download Archyve for Microsoft Edge" />
+  </a>
+</p>
+
+<p align="center">
   <strong>Evaluate any academic paper in under 30 seconds with verified bibliographic provenance.</strong><br/>
   <strong>Publisher Web Scraping · Crossref & OpenAlex Sync · BYOK AI Dossier Engine</strong>
 </p>
@@ -39,12 +49,31 @@ Archyve answers that question instantly by scraping paper metadata from publishe
 
 | | |
 |---|---|
-| 📑 **Publisher Adapters** | Automatic metadata & abstract extraction from IEEE Xplore, ScienceDirect / Elsevier, Springer Nature, JSTOR, and arXiv. |
+| 📑 **Publisher Adapters** | Automatic metadata & abstract extraction from IEEE Xplore, PubMed / PMC (NCBI), ScienceDirect / Elsevier, Springer Nature, JSTOR, and arXiv. |
 | 🛡️ **Provenance & Verification** | Cross-validates publisher scraped metadata with official registries (Crossref, OpenAlex) to prevent AI hallucinations on paper facts. |
 | ⚡ **AI Research Dossiers** | Generates structured breakdowns: executive summary, "Should I Read" decision matrix, core claims, methodology, limitations, and key findings. |
 | 🔓 **Legal Open-Access PDFs** | Integrates Unpaywall and OpenAlex to locate legal open-access full-text PDFs and author preprints automatically. |
 | 🔑 **Private BYOK Architecture** | Zero server-side API key retention. Your Groq or Gemini API keys stay encrypted directly in your browser's local storage. |
 | 🧩 **Browser Extension** | Instant 1-click analysis directly from publisher paper pages without copying and pasting URLs. |
+
+---
+
+## 🚀 Install Extension
+
+Get instant 1-click analysis directly on paper pages across **IEEE Xplore, PubMed, PMC, ScienceDirect, Springer Nature, JSTOR, and arXiv**:
+
+<p align="center">
+  <a href="https://ggl.link/archyve" target="_blank">
+    <img src="https://labels.tahoe.be/chrome_download_dark.svg" height="48" alt="Download Archyve for Chrome" />
+  </a>
+  &nbsp;&nbsp;&nbsp;&nbsp;
+  <a href="https://dub.sh/archyve" target="_blank">
+    <img src="https://labels.tahoe.be/edge_download_dark.svg" height="48" alt="Download Archyve for Microsoft Edge" />
+  </a>
+</p>
+
+- **Instant Shortcut**: Press <kbd>Ctrl</kbd> + <kbd>Shift</kbd> + <kbd>H</kbd> (or <kbd>Cmd</kbd> + <kbd>Shift</kbd> + <kbd>H</kbd> on macOS) on any supported paper page.
+- **Side Panel & Popup**: View the executive summary, methodology, limitations, and recommendation scores right alongside the publisher article.
 
 ---
 
