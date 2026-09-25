@@ -32,8 +32,10 @@ export function RelatedResourcesSection({
   }
 
   const visiblePapers = showAllPapers ? relatedPapers : relatedPapers.slice(0, 3);
+  const sortedImplementations = [...implementations].sort((a, b) => (b.stars || 0) - (a.stars || 0));
 
   return (
+
     <section className="mb-10 space-y-8">
       {/* Implementations & Datasets */}
       {implementations.length > 0 && (
@@ -42,8 +44,9 @@ export function RelatedResourcesSection({
             Code & Datasets
           </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {implementations.map((impl, index) => (
+            {sortedImplementations.map((impl, index) => (
               <a
+
                 key={index}
                 href={impl.url}
                 target="_blank"

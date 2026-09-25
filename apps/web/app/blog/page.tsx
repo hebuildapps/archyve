@@ -153,7 +153,7 @@ export default function BlogAnnouncementPage() {
               <div className="absolute top-0 right-0 w-24 h-24 bg-brand-primary/5 rounded-full blur-2xl pointer-events-none" />
               <div className="flex items-center justify-between border-b border-border pb-3">
                 <span className="font-mono text-xs font-semibold uppercase tracking-wider text-brand-primary">
-                  With Archyve V2
+                  With Archyve
                 </span>
                 <span className="text-[10px] font-mono text-brand-primary px-2 py-0.5 rounded-full bg-brand-primary/10 border border-brand-primary/20">
                   Single Flow
