@@ -150,8 +150,9 @@ CRITICAL PROVENANCE AND CLAIM SAFETY RULES:
 2. Do NOT invent or guess any facts, publication years, DOIs, authors, or quantitative results (e.g., specific measurement metrics or decibels) that are not directly supported by the target paper metadata and abstract.
 3. For 'relatedPapers' in the JSON schema, you MUST only use papers listed under 'VERIFIED RELATED LITERATURE' above. For each, preserve their title/authors exactly, and describe their relationship to our main paper. Do not invent any new papers or URLs. If 'NO RELATED PAPERS FOUND' is indicated, you MUST return an empty array [].
 4. For 'implementations' in the JSON schema, you MUST only use repositories listed under 'VERIFIED CODE IMPLEMENTATIONS/REPOSITORIES' above. Do not invent any new repositories or URLs. If 'NO CODE IMPLEMENTATIONS FOUND' is indicated, you MUST return an empty array [].
-5. Analyze the paper's contents objectively. Help researchers evaluate whether it is worth reading.
+5. For 'readRecommendation.score', critically evaluate the paper on a 1.0 to 5.0 scale (e.g., 2.5, 3.4, 4.1, 4.8) based on methodological rigor, novelty, sample size, and practical utility. Do NOT default to any fixed score.
 6. Return the output matching the requested schema structure strictly.`;
+
 
     const response = await fetch(url, {
       method: 'POST',
@@ -222,8 +223,12 @@ CRITICAL PROVENANCE AND CLAIM SAFETY RULES:
       }
     }
 
+    // Sort descending by stars so highest-starred repos always appear first
+    verifiedImpls.sort((a, b) => (b.stars || 0) - (a.stars || 0));
+
     parsedData.relatedPapers = verifiedRelated;
     parsedData.implementations = verifiedImpls;
+
 
     // Merge in the open access details and an empty sources array
     const fullResult = {

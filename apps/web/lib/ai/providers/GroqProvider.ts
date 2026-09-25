@@ -40,12 +40,13 @@ The JSON output must exactly match this structure:
   "summary": "A concise, editorial explanation of the paper's core premise, methodology, and outcome.",
   "keyContributions": ["contribution 1", "contribution 2"],
   "readRecommendation": {
-    "score": 4.5,
+    "score": 3.8,
     "explanation": "A short, persuasive argument for why or why not a researcher should invest time reading this paper.",
     "relevanceTopics": ["topic 1", "topic 2"],
     "difficulty": "beginner" | "intermediate" | "advanced",
     "estimatedReadingTime": "15-20 min"
   },
+
   "researchContext": "Explains where this paper fits into its broader scientific domain and literature.",
   "relatedConcepts": ["concept 1", "concept 2"],
   "relatedPapers": [
@@ -71,7 +72,9 @@ CRITICAL PROVENANCE AND CLAIM SAFETY RULES:
 1. Do NOT present AI inference or synthesis as direct statements from the authors. Use qualifying language when interpreting (e.g., "The abstract indicates...", "Based on the text, the authors propose...").
 2. Do NOT invent or guess any facts, publication years, DOIs, authors, or quantitative results (e.g., specific measurement metrics or decibels) that are not directly supported by the target paper metadata and abstract.
 3. For 'relatedPapers', you MUST only select from the list under VERIFIED RELATED LITERATURE below. For each, preserve their title/authors exactly, and describe their relationship to our main paper. Do not invent any new papers or URLs. If 'NO RELATED PAPERS FOUND' is indicated, return an empty array [].
-4. For 'implementations', you MUST only select from the list under VERIFIED CODE IMPLEMENTATIONS/REPOSITORIES below. Do not invent any new repositories or URLs. If 'NO CODE IMPLEMENTATIONS FOUND' is indicated, return an empty array [].`;
+4. For 'implementations', you MUST only select from the list under VERIFIED CODE IMPLEMENTATIONS/REPOSITORIES below. Do not invent any new repositories or URLs. If 'NO CODE IMPLEMENTATIONS FOUND' is indicated, return an empty array [].
+5. For 'readRecommendation.score', critically and dynamically evaluate the paper on a 1.0 to 5.0 scale based on its methodological rigor, uniqueness, sample size/breadth, and practical utility. Do NOT default to any fixed score.`;
+
  
     const userPrompt = `Analyze this academic paper metadata and generate the dossier:
  
@@ -157,8 +160,12 @@ Return the output matching the requested JSON structure strictly. Do not include
       }
     }
 
+    // Sort descending by stars so highest-starred repos always appear first
+    verifiedImpls.sort((a, b) => (b.stars || 0) - (a.stars || 0));
+
     parsedData.relatedPapers = verifiedRelated;
     parsedData.implementations = verifiedImpls;
+
 
     // Merge in the open access details and an empty sources array
     const fullResult = {
