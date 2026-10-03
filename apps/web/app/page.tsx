@@ -20,6 +20,7 @@ import { DitherShaderCardReveal } from '@/components/dither-shader-card-reveal';
 import { ArchyveScrambleBlock } from '@/components/ArchyveScrambleBlock';
 import { HistoryReportCard, HistoryPaper } from '@/components/HistoryReportCard';
 import { WorkspaceHistoryModal } from '@/components/WorkspaceHistoryModal';
+import { SupportedAdaptersSearchBar } from '@/components/SupportedAdaptersSearchBar';
 
 export default function Home() {
   const router = useRouter();
@@ -206,32 +207,13 @@ export default function Home() {
           </p>
         </div>
 
-        {/* Input Form */}
-        <form onSubmit={handleSubmit} className="space-y-3 max-w-2xl mx-auto w-full">
-          <div className="relative rounded-2xl border border-border bg-card p-1.5 shadow-xs focus-within:border-brand-primary/70 transition-colors">
-            <div className="flex items-center">
-              <div className="pl-3.5 pr-2 text-muted-foreground">
-                <Search className="w-4 h-4" />
-              </div>
-              <input
-                type="text"
-                value={urlInput}
-                onChange={(e) => setUrlInput(e.target.value)}
-                placeholder="Paste a paper URL (IEEE, ScienceDirect, Springer, arXiv, JSTOR)..."
-                className="w-full bg-transparent py-2.5 text-sm text-foreground placeholder:text-muted-foreground/60 focus:outline-none font-sans"
-              />
-              <button
-                type="submit"
-                className="btn-primary shrink-0 ml-2"
-              >
-                Analyze Paper
-              </button>
-            </div>
-          </div>
-          {error && (
-            <p className="text-xs text-rose-600 dark:text-rose-400 font-mono pl-2">{error}</p>
-          )}
-        </form>
+        {/* Search Input Form & Supported Adapters Strip */}
+        <SupportedAdaptersSearchBar
+          urlInput={urlInput}
+          setUrlInput={setUrlInput}
+          onSubmit={handleSubmit}
+          error={error}
+        />
 
         {/* Fastest way to research strip */}
         <div className="flex items-center justify-center -mt-4">
