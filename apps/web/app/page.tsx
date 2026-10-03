@@ -21,6 +21,7 @@ import { ArchyveScrambleBlock } from '@/components/ArchyveScrambleBlock';
 import { HistoryReportCard, HistoryPaper } from '@/components/HistoryReportCard';
 import { WorkspaceHistoryModal } from '@/components/WorkspaceHistoryModal';
 import { SupportedAdaptersSearchBar } from '@/components/SupportedAdaptersSearchBar';
+import { getAdapterForUrl } from '@/lib/adapters';
 
 export default function Home() {
   const router = useRouter();
@@ -124,6 +125,11 @@ export default function Home() {
 
     try {
       new URL(trimmed);
+      const adapter = getAdapterForUrl(trimmed);
+      if (!adapter) {
+        setError('URL not supported yet. Please paste a link from arXiv, PubMed, IEEE, ScienceDirect, Springer, or JSTOR.');
+        return;
+      }
       const pathUrl = encodeURIComponent(trimmed);
       router.push(`/${pathUrl}`);
     } catch {

@@ -13,55 +13,71 @@ export const SUPPORTED_ADAPTERS: AdapterOption[] = [
     name: 'arXiv',
     sampleUrl: 'https://arxiv.org/abs/1706.03762',
     displayUrl: 'arxiv.org/abs/1706.03762',
-    bgColor: '#9ec94c', // Crisp lively chartreuse lime like Telebirr
-    fgColor: '#1d3305',
+    // Rich forest moss green (like Telebirr / Oromia Bank)
+    bgColor: '#315822',
+    fgColor: '#8ee058',
   },
   {
     id: 'pubmed',
     name: 'PubMed',
     sampleUrl: 'https://pubmed.ncbi.nlm.nih.gov/31890786',
     displayUrl: 'pubmed.ncbi.nlm.nih.gov/31890786',
-    bgColor: '#d488c9', // Rich lilac purple like CBE
-    fgColor: '#3c0d35',
+    // Deep royal purple (like CBE / CBE Birr)
+    bgColor: '#641c6d',
+    fgColor: '#e9a4f3',
   },
   {
     id: 'ieee',
     name: 'IEEE Xplore',
     sampleUrl: 'https://ieeexplore.ieee.org/document/9987654',
     displayUrl: 'ieeexplore.ieee.org/document/9987654',
-    bgColor: '#e69929', // Golden yellow/amber like BOA / Berhan Bank
-    fgColor: '#3f2100',
+    // Vivid vibrant amber yellow (like Berhan Bank)
+    bgColor: '#f0ad00',
+    fgColor: '#0a3068',
   },
   {
     id: 'sciencedirect',
     name: 'ScienceDirect',
     sampleUrl: 'https://sciencedirect.com/science/article/pii/S009286742100000X',
     displayUrl: 'sciencedirect.com/science/article/pii/S009286742100000X',
-    bgColor: '#ef7d26', // Warm deep orange like Awash Bank
-    fgColor: '#3d1700',
+    // Rich deep burnt amber / terracotta (like Awash Bank / BOA)
+    bgColor: '#7a3e14',
+    fgColor: '#f7ad5f',
   },
   {
     id: 'springer',
     name: 'Springer',
     sampleUrl: 'https://link.springer.com/article/10.1007/s00521-023-08500-1',
     displayUrl: 'link.springer.com/article/10.1007/s00521-023-08500-1',
-    bgColor: '#d86577', // Rose berry pink like Ahadu Bank / Zemen Bank
-    fgColor: '#380a14',
+    // Rich berry wine crimson (like Zemen Bank / Ahadu Bank)
+    bgColor: '#961536',
+    fgColor: '#fca2b9',
   },
   {
     id: 'jstor',
     name: 'JSTOR',
     sampleUrl: 'https://jstor.org/stable/4130000',
     displayUrl: 'jstor.org/stable/4130000',
-    bgColor: '#718ed6', // Soft periwinkle blue like Dashen / Amara Bank
-    fgColor: '#0e1e47',
+    // Midnight sapphire blue (like Dashen Bank / Kaafi Ebirr)
+    bgColor: '#1c2e68',
+    fgColor: '#8aaaf7',
   },
   {
     id: 'pmc',
     name: 'PubMed Central',
     sampleUrl: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC7095448',
     displayUrl: 'pmc.ncbi.nlm.nih.gov/articles/PMC7095448',
-    bgColor: '#3ec778', // Vivid mint emerald green like M-PESA
-    fgColor: '#032c14',
+    // Deep emerald pine green (like M-PESA / ZamZam Bank)
+    bgColor: '#005e3a',
+    fgColor: '#53e49e',
+  },
+  {
+    id: 'crossref',
+    name: 'Crossref DOI',
+    sampleUrl: 'https://doi.org/10.1038/s41586-020-2649-2',
+    displayUrl: 'doi.org/10.1038/s41586-020-2649-2',
+    // Vibrant deep ocean cobalt blue (like Amhara Bank / COOPay)
+    bgColor: '#1152a3',
+    fgColor: '#80beff',
   },
 ];

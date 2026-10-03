@@ -131,15 +131,21 @@ export function SupportedAdaptersSearchBar({
                 color: adapter.fgColor,
               }}
             >
-              {/* Slanting lines square icon */}
-              <span
-                className="w-3.5 h-3.5 rounded-[2px] shrink-0"
+              {/* Precise 3-line slanting stripes icon matching reference image */}
+              <svg
+                width="11"
+                height="11"
+                viewBox="0 0 12 12"
+                className="shrink-0 opacity-90 rounded-[2px]"
                 style={{
-                  backgroundImage: `repeating-linear-gradient(135deg, ${adapter.fgColor} 0, ${adapter.fgColor} 1.5px, transparent 1.5px, transparent 3.5px)`,
-                  backgroundColor: `color-mix(in srgb, ${adapter.fgColor} 28%, transparent)`,
+                  backgroundColor: `color-mix(in srgb, ${adapter.fgColor} 22%, transparent)`,
                 }}
-              />
-              <span className="tracking-tight">{adapter.name}</span>
+              >
+                <line x1="1" y1="11" x2="11" y2="1" stroke={adapter.fgColor} strokeWidth="1.6" strokeLinecap="round" />
+                <line x1="0" y1="5.5" x2="5.5" y2="0" stroke={adapter.fgColor} strokeWidth="1.6" strokeLinecap="round" />
+                <line x1="6.5" y1="12" x2="12" y2="6.5" stroke={adapter.fgColor} strokeWidth="1.6" strokeLinecap="round" />
+              </svg>
+              <span className="tracking-tight text-[11px] leading-none">{adapter.name}</span>
             </button>
           );
         })}
@@ -176,7 +182,7 @@ export function SupportedAdaptersSearchBar({
 
           {/* Main Search Bar Box - Outline border is synced with the supporter color */}
           <div
-            className="relative z-10 rounded-xl bg-[#171a1c] dark:bg-[#121516] p-1 shadow-sm transition-colors duration-300"
+            className="relative z-10 rounded-xl bg-card dark:bg-[#121516] p-1 shadow-sm transition-colors duration-300"
             style={{
               border: `1.5px solid ${currentAdapter.bgColor}`,
             }}
@@ -187,7 +193,7 @@ export function SupportedAdaptersSearchBar({
                   type="text"
                   value={urlInput}
                   onChange={(e) => setUrlInput(e.target.value)}
-                  className="w-full bg-transparent py-2 text-xs sm:text-sm font-mono text-[#dcdedc] placeholder:text-transparent focus:outline-none z-20 relative"
+                  className="w-full bg-transparent py-2 text-xs sm:text-sm font-mono text-foreground focus:outline-none z-20 relative"
                   placeholder=""
                   autoComplete="off"
                   spellCheck="false"
@@ -200,7 +206,7 @@ export function SupportedAdaptersSearchBar({
                       key={`placeholder-${currentAdapter.id}-${displayedIndex}`}
                       text={currentAdapter.displayUrl}
                       isTransitioning={isTransitioning}
-                      className="font-mono text-[10px] sm:text-[10px] text-[#7e8785] truncate"
+                      className="font-mono text-[10px] sm:text-[10px] text-muted-foreground/70 truncate"
                     />
                   </div>
                 )}
@@ -210,16 +216,14 @@ export function SupportedAdaptersSearchBar({
                 type="submit"
                 className={`shrink-0 z-20 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-sans font-medium text-xs transition-all duration-200 cursor-pointer shadow-xs border ${
                   hasInput
-                    ? 'bg-white hover:bg-neutral-100 active:bg-neutral-200 text-neutral-900 border-white/20 shadow-sm'
-                    : 'bg-[#545759] hover:bg-[#626668] active:bg-[#4b4e50] text-[#e8ebec] border-white/5'
+                    ? 'bg-foreground text-background hover:opacity-90 active:scale-[0.98] border-foreground/20 shadow-sm'
+                    : 'bg-muted text-muted-foreground hover:text-foreground dark:bg-[#2b3033] dark:text-[#cfd2d4] dark:hover:bg-[#343a3e] border-border/40'
                 }`}
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 256 256"
-                  className={`pt-0.5 w-5.5 h-5.5 transition-colors duration-200 ${
-                    hasInput ? 'text-neutral-900' : 'text-[#cfd2d4]'
-                  }`}
+                  className="pt-0.5 w-5.5 h-5.5 text-current transition-colors duration-200"
                 >
                   <rect width="256" height="256" fill="none" />
                   <rect
@@ -229,8 +233,8 @@ export function SupportedAdaptersSearchBar({
                     height="176"
                     rx="8"
                     transform="translate(0 256) rotate(-90)"
-                    opacity={hasInput ? "0.15" : "0.2"}
-                    fill={hasInput ? "#000000" : "#000000"}
+                    opacity={hasInput ? '0.15' : '0.1'}
+                    fill="currentColor"
                   />
                   <rect
                     x="40"
@@ -240,7 +244,7 @@ export function SupportedAdaptersSearchBar({
                     rx="8"
                     transform="translate(0 256) rotate(-90)"
                     fill="none"
-                    stroke={hasInput ? "#171a1c" : "transparent"}
+                    stroke={hasInput ? 'currentColor' : 'transparent'}
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth="16"
@@ -251,7 +255,7 @@ export function SupportedAdaptersSearchBar({
                     x2="96"
                     y2="160"
                     fill="none"
-                    stroke={hasInput ? "#171a1c" : "#000000"}
+                    stroke="currentColor"
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth="16"
@@ -259,7 +263,7 @@ export function SupportedAdaptersSearchBar({
                   <polyline
                     points="112 96 160 96 160 144"
                     fill="none"
-                    stroke={hasInput ? "#171a1c" : "#000000"}
+                    stroke="currentColor"
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth="16"
