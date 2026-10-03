@@ -1,0 +1,118 @@
+/* Center Rise & Tilt (Center split tilt) Keyframes */
+
+/* Inward transition: rises from below, tilting from center split */
+@keyframes centerRiseTiltInLeft {
+  0% {
+    opacity: 0;
+    transform: translateY(14px) perspective(500px) rotateY(-8deg) rotateX(-12deg) scale(0.96);
+    filter: blur(2px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) perspective(500px) rotateY(0deg) rotateX(0deg) scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes centerRiseTiltInRight {
+  0% {
+    opacity: 0;
+    transform: translateY(14px) perspective(500px) rotateY(8deg) rotateX(-12deg) scale(0.96);
+    filter: blur(2px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) perspective(500px) rotateY(0deg) rotateX(0deg) scale(1);
+    filter: blur(0);
+  }
+}
+
+/* Outward transition: words fade out with upward tilt */
+@keyframes centerRiseTiltOutLeft {
+  0% {
+    opacity: 1;
+    transform: translateY(0) perspective(500px) rotateY(0deg) rotateX(0deg) scale(1);
+    filter: blur(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-10px) perspective(500px) rotateY(-6deg) rotateX(12deg) scale(0.96);
+    filter: blur(2px);
+  }
+}
+
+@keyframes centerRiseTiltOutRight {
+  0% {
+    opacity: 1;
+    transform: translateY(0) perspective(500px) rotateY(0deg) rotateX(0deg) scale(1);
+    filter: blur(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-10px) perspective(500px) rotateY(6deg) rotateX(12deg) scale(0.96);
+    filter: blur(2px);
+  }
+}
+
+/* Single line unified center-split rise and tilt */
+@keyframes centerRiseTiltIn {
+  0% {
+    opacity: 0;
+    transform: translateY(14px) perspective(600px) rotateX(-14deg) scale(0.96);
+    filter: blur(2px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) perspective(600px) rotateX(0deg) scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes centerRiseTiltOut {
+  0% {
+    opacity: 1;
+    transform: translateY(0) perspective(600px) rotateX(0deg) scale(1);
+    filter: blur(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-12px) perspective(600px) rotateX(12deg) scale(0.96);
+    filter: blur(2px);
+  }
+}
+
+.animate-center-rise-tilt-in {
+  animation: centerRiseTiltIn 400ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  transform-origin: center bottom;
+  backface-visibility: hidden;
+}
+
+.animate-center-rise-tilt-out {
+  animation: centerRiseTiltOut 280ms cubic-bezier(0.4, 0, 1, 1) forwards;
+  transform-origin: center top;
+  backface-visibility: hidden;
+}
+
+.animate-center-split-in-left {
+  animation: centerRiseTiltInLeft 400ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  transform-origin: right center;
+  backface-visibility: hidden;
+}
+
+.animate-center-split-in-right {
+  animation: centerRiseTiltInRight 400ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  transform-origin: left center;
+  backface-visibility: hidden;
+}
+
+.animate-center-split-out-left {
+  animation: centerRiseTiltOutLeft 280ms cubic-bezier(0.4, 0, 1, 1) forwards;
+  transform-origin: right center;
+  backface-visibility: hidden;
+}
+
+.animate-center-split-out-right {
+  animation: centerRiseTiltOutRight 280ms cubic-bezier(0.4, 0, 1, 1) forwards;
+  transform-origin: left center;
+  backface-visibility: hidden;
+}
