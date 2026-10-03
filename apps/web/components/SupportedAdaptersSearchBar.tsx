@@ -101,11 +101,13 @@ export function SupportedAdaptersSearchBar({
     }, 3000);
   };
 
-  const handlePillClick = (adapter: AdapterOption) => {
-    setUrlInput(adapter.sampleUrl);
+  const handlePillClick = (adapter: AdapterOption, index: number) => {
+    // Select the adapter preview without inserting any URL into the search bar
+    setActiveIndex(index);
   };
 
   const currentAdapter = SUPPORTED_ADAPTERS[displayedIndex] || SUPPORTED_ADAPTERS[0];
+  const hasInput = Boolean(urlInput.trim());
 
   return (
     <div className="w-full max-w-xl mx-auto space-y-4">
@@ -122,7 +124,7 @@ export function SupportedAdaptersSearchBar({
               type="button"
               onMouseEnter={() => handlePillMouseEnter(idx)}
               onMouseLeave={handlePillMouseLeave}
-              onClick={() => handlePillClick(adapter)}
+              onClick={() => handlePillClick(adapter, idx)}
               className="group inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[10px] font-sans font-bold transition-all duration-200 cursor-pointer shadow-xs opacity-95 hover:opacity-100 hover:-translate-y-0.5"
               style={{
                 backgroundColor: adapter.bgColor,
@@ -206,12 +208,18 @@ export function SupportedAdaptersSearchBar({
 
               <button
                 type="submit"
-                className="shrink-0 z-20 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[#545759] hover:bg-[#626668] active:bg-[#4b4e50] text-[#e8ebec] font-sans font-medium text-xs transition-colors duration-150 cursor-pointer shadow-xs border border-white/5"
+                className={`shrink-0 z-20 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-sans font-medium text-xs transition-all duration-200 cursor-pointer shadow-xs border ${
+                  hasInput
+                    ? 'bg-white hover:bg-neutral-100 active:bg-neutral-200 text-neutral-900 border-white/20 shadow-sm'
+                    : 'bg-[#545759] hover:bg-[#626668] active:bg-[#4b4e50] text-[#e8ebec] border-white/5'
+                }`}
               >
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   viewBox="0 0 256 256"
-                  className="pt-0.5 w-5.5 h-5.5 text-[#cfd2d4]"
+                  className={`pt-0.5 w-5.5 h-5.5 transition-colors duration-200 ${
+                    hasInput ? 'text-neutral-900' : 'text-[#cfd2d4]'
+                  }`}
                 >
                   <rect width="256" height="256" fill="none" />
                   <rect
@@ -221,8 +229,8 @@ export function SupportedAdaptersSearchBar({
                     height="176"
                     rx="8"
                     transform="translate(0 256) rotate(-90)"
-                    opacity="0.2"
-                    fill="#000000"
+                    opacity={hasInput ? "0.15" : "0.2"}
+                    fill={hasInput ? "#000000" : "#000000"}
                   />
                   <rect
                     x="40"
@@ -232,7 +240,7 @@ export function SupportedAdaptersSearchBar({
                     rx="8"
                     transform="translate(0 256) rotate(-90)"
                     fill="none"
-                    stroke="transparent"
+                    stroke={hasInput ? "#171a1c" : "transparent"}
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth="16"
@@ -243,7 +251,7 @@ export function SupportedAdaptersSearchBar({
                     x2="96"
                     y2="160"
                     fill="none"
-                    stroke="#000000"
+                    stroke={hasInput ? "#171a1c" : "#000000"}
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth="16"
@@ -251,7 +259,7 @@ export function SupportedAdaptersSearchBar({
                   <polyline
                     points="112 96 160 96 160 144"
                     fill="none"
-                    stroke="#000000"
+                    stroke={hasInput ? "#171a1c" : "#000000"}
                     strokeLinecap="round"
                     strokeLinejoin="round"
                     strokeWidth="16"
