@@ -16,6 +16,8 @@ import { SourcesSection } from '@/components/research/SourcesSection';
 import { LoadingSkeleton, LoadingStep } from '@/components/research/LoadingSkeleton';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { AlertCircle, ArrowLeft, Key, Lock, Settings } from 'lucide-react';
+import { Chatbox } from '@/components/research/Chatbox';
+import { TextSelectionMenu } from '@/components/research/TextSelectionMenu';
 
 export default function ResearchDossierPage() {
   const params = useParams();
@@ -41,6 +43,14 @@ export default function ResearchDossierPage() {
 
   // Generation trigger state
   const generationTriggeredRef = useRef(false);
+
+  // Assistant & Selection states
+  const [quotedText, setQuotedText] = useState<string | null>(null);
+  const dossierContainerRef = useRef<HTMLDivElement>(null);
+
+  const handleAddToAssistant = (text: string) => {
+    setQuotedText(text);
+  };
 
   // Live progress states
   const [currentPercent, setCurrentPercent] = useState<number>(0);
@@ -580,8 +590,11 @@ export default function ResearchDossierPage() {
   if (!result || !paper) return null;
 
   return (
-    <main className="flex-1 bg-background py-12 px-4 font-sans">
-      <div className="max-w-3xl mx-auto">
+    <main className="flex-1 bg-background py-12 px-4 font-sans relative min-h-screen">
+      <div
+        ref={dossierContainerRef}
+        className="max-w-3xl mx-auto"
+      >
         <div className="flex items-center justify-between gap-4 mb-8">
           <button
             onClick={() => router.push('/')}
@@ -636,6 +649,20 @@ export default function ResearchDossierPage() {
 
         <SourcesSection sources={result.sources} />
       </div>
+
+      {/* Floating Menubar when user selects text */}
+      <TextSelectionMenu
+        containerRef={dossierContainerRef}
+        onAddToAssistant={handleAddToAssistant}
+      />
+
+
+      <Chatbox
+        paper={paper}
+        result={result}
+        initialQuotedText={quotedText}
+        onClearQuotedText={() => setQuotedText(null)}
+      />
     </main>
   );
 }
