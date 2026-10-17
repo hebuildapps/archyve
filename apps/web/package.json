@@ -8,10 +8,11 @@
     "start": "next start",
     "lint": "eslint",
     "test": "node ieee-regression-test.js && npx -y tsx ncbi-test.ts"
-
   },
   "dependencies": {
     "@archyve/shared": "*",
+    "@aws-sdk/client-bedrock-runtime": "^3.1152.0",
+    "@aws-sdk/client-s3": "^3.1152.0",
     "@supabase/supabase-js": "^2.39.8",
     "@upstash/redis": "^1.28.4",
     "@vercel/analytics": "^2.0.1",
@@ -21,6 +22,8 @@
     "next-themes": "^0.4.6",
     "react": "19.2.8",
     "react-dom": "19.2.8",
+    "react-markdown": "^10.1.0",
+    "remark-gfm": "^4.0.1",
     "tailwind-merge": "^3.6.0"
   },
   "devDependencies": {
