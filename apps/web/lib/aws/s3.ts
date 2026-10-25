@@ -4,22 +4,36 @@ export const MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024; // 5 MB
 export const ALLOWED_MIME_TYPES = ['image/png', 'image/jpeg', 'image/jpg'];
 
 export function isS3Configured(): boolean {
-  return Boolean(
-    process.env.AWS_ACCESS_KEY_ID &&
-    process.env.AWS_SECRET_ACCESS_KEY &&
-    process.env.AWS_S3_BUCKET_NAME
+  const hasKeys = Boolean(
+    (process.env.AWS_ACCESS_KEY_ID || process.env.S3_ACCESS_KEY_ID) &&
+    (process.env.AWS_SECRET_ACCESS_KEY || process.env.S3_SECRET_ACCESS_KEY)
   );
+  const hasBucket = Boolean(
+    process.env.AWS_S3_BUCKET_NAME ||
+    process.env.S3_BUCKET_NAME ||
+    process.env.R2_BUCKET_NAME
+  );
+  return hasKeys && hasBucket;
 }
 
 export function getS3Client(): S3Client {
-  const region = process.env.AWS_REGION || 'us-east-1';
+  const region = process.env.AWS_REGION || process.env.S3_REGION || 'auto';
+  const endpoint =
+    process.env.S3_ENDPOINT ||
+    process.env.AWS_S3_ENDPOINT ||
+    process.env.R2_ENDPOINT;
+
   const credentials: {
     accessKeyId: string;
     secretAccessKey: string;
     sessionToken?: string;
   } = {
-    accessKeyId: process.env.AWS_ACCESS_KEY_ID || '',
-    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
+    accessKeyId:
+      process.env.AWS_ACCESS_KEY_ID || process.env.S3_ACCESS_KEY_ID || '',
+    secretAccessKey:
+      process.env.AWS_SECRET_ACCESS_KEY ||
+      process.env.S3_SECRET_ACCESS_KEY ||
+      '',
   };
 
   if (process.env.AWS_SESSION_TOKEN) {
@@ -28,7 +42,10 @@ export function getS3Client(): S3Client {
 
   return new S3Client({
     region,
+    endpoint: endpoint || undefined,
     credentials,
+    // Required for Cloudflare R2 and non-AWS S3 endpoints
+    forcePathStyle: Boolean(endpoint),
   });
 }
 
@@ -65,12 +82,24 @@ export async function uploadImageToS3(
 
   const cleanFilename = originalFilename.replace(/[^a-zA-Z0-9.-]/g, '_');
   const s3Key = `archyve-assistant/${Date.now()}-${cleanFilename}`;
-  const bucket = process.env.AWS_S3_BUCKET_NAME || 'archyve-assistant-uploads';
-  const region = process.env.AWS_REGION || 'us-east-1';
+  const bucket =
+    process.env.AWS_S3_BUCKET_NAME ||
+    process.env.S3_BUCKET_NAME ||
+    process.env.R2_BUCKET_NAME ||
+    'archyve-assistant-uploads';
+  const region = process.env.AWS_REGION || process.env.S3_REGION || 'auto';
+  const endpoint =
+    process.env.S3_ENDPOINT ||
+    process.env.AWS_S3_ENDPOINT ||
+    process.env.R2_ENDPOINT;
+  const publicUrlDomain =
+    process.env.S3_PUBLIC_URL ||
+    process.env.R2_PUBLIC_URL ||
+    process.env.NEXT_PUBLIC_S3_URL;
 
   if (!isS3Configured()) {
     console.warn(
-      '[AWS S3] AWS_ACCESS_KEY_ID or AWS_S3_BUCKET_NAME not detected in environment. Using fallback mode.'
+      '[S3 / R2] S3 credentials or bucket name not detected in environment. Using base64 fallback mode.'
     );
     const base64Data = buffer.toString('base64');
     return {
@@ -90,7 +119,6 @@ export async function uploadImageToS3(
     Key: s3Key,
     Body: buffer,
     ContentType: normalizedMime,
-    // Add tags or metadata for academic audit trails
     Metadata: {
       'uploaded-by': 'archyve-assistant',
       'original-name': cleanFilename,
@@ -99,7 +127,16 @@ export async function uploadImageToS3(
 
   await client.send(command);
 
-  const s3Url = `https://${bucket}.s3.${region}.amazonaws.com/${s3Key}`;
+  let s3Url: string;
+  if (publicUrlDomain) {
+    const domain = publicUrlDomain.replace(/\/$/, '');
+    s3Url = `${domain}/${s3Key}`;
+  } else if (endpoint) {
+    const cleanEndpoint = endpoint.replace(/\/$/, '');
+    s3Url = `${cleanEndpoint}/${bucket}/${s3Key}`;
+  } else {
+    s3Url = `https://${bucket}.s3.${region}.amazonaws.com/${s3Key}`;
+  }
 
   return {
     s3Url,
