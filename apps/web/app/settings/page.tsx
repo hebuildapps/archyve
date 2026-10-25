@@ -919,17 +919,49 @@ function SettingsContent() {
                     About archyve
                   </h1>
                   <p className="text-xs text-muted-foreground font-sans mt-1">
-                    Project Architecture, Announcement & Legal Policy
+                    AI research intelligence layer, project architecture & support
                   </p>
                 </div>
 
-                <div className="p-5 rounded-2xl border border-border bg-card-muted/40 space-y-4 text-xs">
-                  <div className="flex justify-between py-2 border-b border-border">
-                    <span className="text-muted-foreground font-mono">Architecture Version</span>
-                    <span className="font-mono text-foreground font-bold">2.0.0 (Release)</span>
+                <div className="p-6 rounded-2xl border border-border bg-card shadow-xs space-y-5">
+                  <div className="flex items-center gap-3">
+                    <img
+                      src="/archyve-logo.svg"
+                      alt="Archyve"
+                      className="w-8 h-8 object-contain"
+                    />
+                    <div>
+                      <h3 className="text-sm font-semibold text-foreground font-serif">archyve</h3>
+                      <p className="text-[11px] text-muted-foreground font-mono">v2.0.0 · Research Intelligence Layer</p>
+                    </div>
                   </div>
 
-                  <div className="flex items-center gap-4 pt-2 font-mono text-xs font-semibold">
+                  <p className="text-xs text-muted-foreground font-sans leading-relaxed">
+                    Archyve is an open-source intelligence platform designed to accelerate scientific literature discovery. It parses papers across major publishers (IEEE, arXiv, PubMed, Springer, Elsevier, JSTOR), synthesizes grounded executive dossiers, cross-references open-access legal PDFs, and powers interactive conversational research with BYOK models.
+                  </p>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
+                    <div className="p-3.5 rounded-xl border border-border/60 bg-card-muted/40 space-y-1">
+                      <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">Support & Feedback</span>
+                      <p className="text-xs font-mono">
+                        <a
+                          href="mailto:archyveai@gmail.com"
+                          className="text-brand-primary hover:underline"
+                        >
+                          archyveai@gmail.com
+                        </a>
+                      </p>
+                    </div>
+
+                    <div className="p-3.5 rounded-xl border border-border/60 bg-card-muted/40 space-y-1">
+                      <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">License & Code</span>
+                      <p className="text-xs font-mono text-foreground font-medium">
+                        Open-Source (MIT)
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-4 pt-3 border-t border-border font-mono text-xs font-semibold">
                     <button
                       onClick={() => router.push('/blog')}
                       className="inline-flex items-center gap-1 whitespace-nowrap text-brand-primary hover:underline group"
@@ -954,6 +986,7 @@ function SettingsContent() {
                 </div>
               </div>
             )}
+
 
           </div>
         </main>

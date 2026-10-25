@@ -15,7 +15,7 @@ export interface NCBIConfig {
 export const defaultNCBIConfig: NCBIConfig = {
   baseUrl: 'https://eutils.ncbi.nlm.nih.gov/entrez/eutils',
   tool: process.env.NCBI_TOOL_NAME || 'archyve',
-  email: process.env.NCBI_EMAIL || 'salunkheheramb@gmail.com',
+  email: process.env.NCBI_EMAIL || 'archyveai@gmail.com',
   apiKey: process.env.NCBI_API_KEY || undefined,
   // Official NCBI limits: 3 req/sec without API key, 10 req/sec with API key
   maxRequestsPerSecond: process.env.NCBI_API_KEY ? 9 : 3,
