@@ -8,7 +8,10 @@ export class ElsevierAdapter implements PublisherAdapter {
   supports(url: string): boolean {
     try {
       const parsedUrl = new URL(url);
-      return parsedUrl.hostname.includes('sciencedirect.com');
+      return (
+        parsedUrl.hostname.includes('sciencedirect.com') &&
+        parsedUrl.pathname.includes('/science/article/pii/')
+      );
     } catch {
       return false;
     }
