@@ -81,8 +81,8 @@ function SettingsContent() {
   const [sessionData, setSessionData] = useState<SessionData | null>(null);
   const [copiedSessionId, setCopiedSessionId] = useState(false);
 
-  const fallbackGemini = ['gemini-3.5-pro', 'gemini-3.5-flash'];
-  const fallbackGroq = ['openai/gpt-oss-20b', 'openai/gpt-oss-120b', 'qwen/qwen3.6-27b'];
+  const fallbackGemini = ['gemini-3.5-pro', 'gemini-3.5-flash', 'gemini-2.5-flash'];
+  const fallbackGroq = ['openai/gpt-oss-120b', 'openai/gpt-oss-20b', 'qwen/qwen3.8-27b'];
 
   const fetchModels = async (currentProvider: string, currentApiKey: string) => {
     if (!currentApiKey.trim()) {
