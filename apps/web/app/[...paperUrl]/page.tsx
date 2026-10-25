@@ -26,6 +26,8 @@ export default function ResearchDossierPage() {
   // Page states
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showFeedbackToast, setShowFeedbackToast] = useState(false);
+  const toastTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Auth & API Key states
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -361,20 +363,13 @@ export default function ResearchDossierPage() {
                 setCurrentPercent(100);
                 setStatusMessage('Dossier ready.');
                 setSteps((prev) =>
-                  prev.map((s) => {
-                    if (s.id === 'identify') return { ...s, status: 'completed', detail: finalPaper.publisher || 'Verified' };
-                    if (s.id === 'metadata') return { ...s, status: 'completed', detail: finalPaper.doi ? `DOI: ${finalPaper.doi}` : 'Verified' };
-                    if (s.id === 'open_access') return { ...s, status: 'completed', detail: finalResult?.openAccess?.available ? 'Legal PDF Found' : 'Paywalled' };
-                    if (s.id === 'ai') return { ...s, status: 'completed', detail: 'Dossier Synthesized' };
-                    return { ...s, status: 'completed' };
-                  })
+                  prev.map((s) => ({ ...s, status: 'completed' }))
                 );
                 setPaper(finalPaper);
                 setResult(finalResult);
                 setIsNewPaper(false);
-                setTimeout(() => {
-                  if (isMounted) setLoading(false);
-                }, 350);
+                setLoading(false);
+                return;
               }
             } else {
               console.warn('[FRONTEND] Ignored chunk because isMounted is false');
@@ -383,22 +378,8 @@ export default function ResearchDossierPage() {
         }
         console.log('[FRONTEND] Stream reading completed successfully');
 
-        // Reconcile final state: if still loading and we have a valid paper, try fetching the cache
-        if (isMounted && paper) {
-          console.log('[FRONTEND] Reconciling final state...');
-          const checkRes = await fetch(`/api/research?url=${encodeURIComponent(paper.url)}`);
-          if (checkRes.ok) {
-            const checkData = await checkRes.json();
-            if (checkData.result) {
-              setCurrentPercent(100);
-              setSteps((prev) => prev.map((s) => ({ ...s, status: 'completed' })));
-              setPaper(checkData.paper);
-              setResult(checkData.result);
-              setIsNewPaper(false);
-              setLoading(false);
-              console.log('[FRONTEND] Reconciled successfully against final cache.');
-            }
-          }
+        if (isMounted) {
+          setLoading(false);
         }
       } catch (err: any) {
         console.error('[FRONTEND] Error in generateDossier:', err);
@@ -432,37 +413,95 @@ export default function ResearchDossierPage() {
     );
   }
 
-  // Error View
+  // Error View with Retry and Feedback Toast
   if (error) {
     return (
-      <main className="flex-1 bg-background py-12 px-4">
-        <div className="max-w-md mx-auto border border-border rounded-2xl bg-card p-6 space-y-4 shadow-xs">
-          <div className="flex items-center gap-3 text-rose-600 dark:text-rose-400">
-            <AlertCircle className="w-5 h-5 shrink-0" />
-            <h2 className="text-sm font-semibold font-serif">Retrieval Failed</h2>
+      <main className="fixed inset-0 z-50 flex flex-col items-center justify-center bg-[#0d0d0f] select-none text-white px-4">
+        <div className="flex flex-col items-center max-w-md w-full text-center">
+          {/* Brand Emblem */}
+          <div className="flex items-center justify-center mb-6">
+            <img
+              src="/archyve-logo.svg"
+              alt="Archyve"
+              className="w-9 h-9 object-contain"
+            />
           </div>
-          <p className="text-xs text-muted-foreground font-mono break-words leading-relaxed">
+
+          <h1 className="text-xl sm:text-2xl font-serif font-medium tracking-tight text-[#f5f5f7] mb-2">
+            Retrieval Failed
+          </h1>
+          <p className="text-xs sm:text-[13px] text-[#8e8e93] font-sans leading-relaxed mb-6 max-w-sm">
             {error}
           </p>
-          <div className="border-t border-border pt-4 flex gap-3">
+
+          {/* Action buttons */}
+          <div className="flex items-center gap-3">
             <button
-              onClick={() => router.push('/')}
-              className="btn-ghost inline-flex items-center gap-1.5"
-            >
-              <ArrowLeft className="w-3 h-3" />
-              <span>Back Home</span>
-            </button>
-            <button
-              onClick={() => window.location.reload()}
-              className="btn-primary text-xs"
+              onClick={() => {
+                setError(null);
+                setLoading(true);
+                generationTriggeredRef.current = false;
+                window.location.reload();
+              }}
+              className="px-5 py-2 rounded-xl text-xs font-medium bg-[#B7FF38] text-black hover:bg-[#a6ec2e] transition-colors cursor-pointer"
             >
               Retry
             </button>
+            <button
+              onClick={() => {
+                setShowFeedbackToast(true);
+                if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+                toastTimerRef.current = setTimeout(() => {
+                  setShowFeedbackToast(false);
+                }, 6000);
+              }}
+              className="px-5 py-2 rounded-xl text-xs font-medium bg-white/[0.08] hover:bg-white/[0.12] text-[#f5f5f7] border border-white/[0.08] transition-colors cursor-pointer"
+            >
+              Send Feedback
+            </button>
           </div>
+
+          <button
+            onClick={() => router.push('/')}
+            className="mt-6 text-[11px] text-[#636369] hover:text-[#8e8e93] transition-colors cursor-pointer font-sans"
+          >
+            ← Back to Home
+          </button>
         </div>
+
+        {/* Feedback Support Toast */}
+        {showFeedbackToast && (
+          <div className="fixed bottom-6 right-6 z-[9999] max-w-[420px] w-full p-4 rounded-2xl bg-[#0f1117] border border-[#232733] shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-200">
+            <div className="flex items-start gap-3">
+              <span className="text-lg leading-none select-none">🙌</span>
+              <div className="flex-1 text-left">
+                <h4 className="text-[13px] font-semibold text-[#f5f5f7] leading-tight">
+                  Got feedback or need support?
+                </h4>
+                <p className="text-xs text-[#9aa2b1] mt-1 leading-relaxed">
+                  We&apos;re here to help! Please reach out to{' '}
+                  <a
+                    href="mailto:archyveai@gmail.com"
+                    className="text-[#7c8cff] underline hover:text-[#99a6ff] transition-colors cursor-pointer"
+                  >
+                    archyveai@gmail.com
+                  </a>
+                </p>
+              </div>
+              <button
+                onClick={() => setShowFeedbackToast(false)}
+                className="text-[#636369] hover:text-[#f5f5f7] text-xs transition-colors p-1"
+                aria-label="Close"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+        )}
       </main>
     );
   }
+
 
   // Gate Card 1: Anonymous User Lock Gate (New paper)
   if (isNewPaper && !isAuthenticated && paper) {
