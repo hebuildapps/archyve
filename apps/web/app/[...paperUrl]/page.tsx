@@ -27,7 +27,6 @@ export default function ResearchDossierPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showFeedbackToast, setShowFeedbackToast] = useState(false);
-  const toastTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Auth & API Key states
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -448,13 +447,7 @@ export default function ResearchDossierPage() {
               Retry
             </button>
             <button
-              onClick={() => {
-                setShowFeedbackToast(true);
-                if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
-                toastTimerRef.current = setTimeout(() => {
-                  setShowFeedbackToast(false);
-                }, 6000);
-              }}
+              onClick={() => setShowFeedbackToast(true)}
               className="px-5 py-2 rounded-xl text-xs font-medium bg-white/[0.08] hover:bg-white/[0.12] text-[#f5f5f7] border border-white/[0.08] transition-colors cursor-pointer"
             >
               Send Feedback
@@ -469,9 +462,9 @@ export default function ResearchDossierPage() {
           </button>
         </div>
 
-        {/* Feedback Support Toast */}
+        {/* Feedback Support Toast - Stays in place, no auto-dismiss */}
         {showFeedbackToast && (
-          <div className="fixed bottom-6 right-6 z-[9999] max-w-[420px] w-full p-4 rounded-2xl bg-[#0f1117] border border-[#232733] shadow-2xl animate-in fade-in slide-in-from-bottom-4 duration-200">
+          <div className="fixed bottom-6 right-6 z-[9999] max-w-[420px] w-full p-4 rounded-2xl bg-[#0f1117] border border-[#232733] shadow-2xl">
             <div className="flex items-start gap-3">
               <span className="text-lg leading-none select-none">🙌</span>
               <div className="flex-1 text-left">
@@ -490,7 +483,7 @@ export default function ResearchDossierPage() {
               </div>
               <button
                 onClick={() => setShowFeedbackToast(false)}
-                className="text-[#636369] hover:text-[#f5f5f7] text-xs transition-colors p-1"
+                className="text-[#636369] hover:text-[#f5f5f7] text-xs transition-colors p-1 cursor-pointer"
                 aria-label="Close"
               >
                 ✕
@@ -498,6 +491,7 @@ export default function ResearchDossierPage() {
             </div>
           </div>
         )}
+
       </main>
     );
   }
