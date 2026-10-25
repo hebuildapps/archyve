@@ -79,6 +79,11 @@ function LoginContent() {
 
         if (signInError) throw signInError;
         
+        // Reset welcome banner on every login so it shows as requested
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('archyve_welcome_dismissed');
+        }
+
         // Redirect to original page
         router.push(resumeUrl);
       }
