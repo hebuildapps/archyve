@@ -15,7 +15,8 @@ import {
   Image as ImageIcon,
 } from 'lucide-react';
 import { AssistantMarkdown } from './AssistantMarkdown';
-import { CEREBRAS_MODELS, CerebrasModel, DEFAULT_CEREBRAS_MODEL } from '@/lib/ai/cerebras';
+import { BYOK_MODELS, BYOKModel, DEFAULT_BYOK_MODEL, getModelById } from '@/lib/ai/assistant';
+import { keyStore } from '@/lib/security/AIKeyStore';
 import { NormalizedPaper, ResearchResult } from '@archyve/shared';
 import { supabaseClient } from '@/lib/db/supabaseClient';
 
@@ -73,12 +74,21 @@ export function Chatbox({
   // View mode: 'bar' (minimized), 'box' (bottom expanded), 'sidebar' (floating sidebar window)
   const [viewMode, setViewMode] = useState<ChatboxViewMode>('bar');
   const [showWelcome, setShowWelcome] = useState<boolean>(true);
-  const [selectedModelId, setSelectedModelId] = useState<string>(DEFAULT_CEREBRAS_MODEL);
+  const [selectedModelId, setSelectedModelId] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      const prov = keyStore.getProvider();
+      const stored = keyStore.getModel(prov);
+      const matched = BYOK_MODELS.find((m) => m.id === stored || m.provider === prov);
+      if (matched) return matched.id;
+    }
+    return DEFAULT_BYOK_MODEL;
+  });
   const [isModelMenuOpen, setIsModelMenuOpen] = useState(false);
 
   // Height state for bottom box mode
-  const [boxHeight, setBoxHeight] = useState<number>(440);
+  const [boxHeight, setBoxHeight] = useState<number>(460);
   const isDraggingRef = useRef(false);
+  const hasDraggedRef = useRef(false);
   const dragStartYRef = useRef(0);
   const dragStartHeightRef = useRef(0);
 
@@ -99,6 +109,9 @@ export function Chatbox({
     file: File;
     previewUrl: string;
   } | null>(null);
+
+  // Clear conversation confirmation
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
 
   // DOM Refs
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -283,17 +296,24 @@ export function Chatbox({
     }
   }, [inputValue]);
 
-  // Height resize drag listeners for box mode
+  // Height resize drag listeners for box mode (freely extendable to viewport top)
   const handleDragStart = (e: React.PointerEvent) => {
     e.preventDefault();
     isDraggingRef.current = true;
+    hasDraggedRef.current = false;
     dragStartYRef.current = e.clientY;
     dragStartHeightRef.current = boxHeight;
 
     const handlePointerMove = (moveEvent: PointerEvent) => {
       if (!isDraggingRef.current) return;
       const deltaY = dragStartYRef.current - moveEvent.clientY;
-      const newHeight = Math.max(280, Math.min(window.innerHeight * 0.85, dragStartHeightRef.current + deltaY));
+      if (Math.abs(deltaY) > 2) {
+        hasDraggedRef.current = true;
+      }
+      // Freely extendable up to window top (leaving 32px safe headroom)
+      const maxAllowedHeight = Math.max(300, window.innerHeight - 36);
+      const minAllowedHeight = 220;
+      const newHeight = Math.max(minAllowedHeight, Math.min(maxAllowedHeight, dragStartHeightRef.current + deltaY));
       setBoxHeight(newHeight);
     };
 
@@ -305,11 +325,6 @@ export function Chatbox({
 
     window.addEventListener('pointermove', handlePointerMove);
     window.addEventListener('pointerup', handlePointerUp);
-  };
-
-  // Toggle height presets on double click or click
-  const handleExtendClick = () => {
-    setBoxHeight((prev) => (prev < 420 ? 520 : prev < 600 ? 680 : 360));
   };
 
   // File upload handler
@@ -413,9 +428,15 @@ export function Chatbox({
     persistConversation([...newMessages, initialAssistantMsg]);
 
     try {
+      const activeModelMeta = getModelById(selectedModelId);
+      const userApiKey = keyStore.getApiKey(activeModelMeta.provider) || undefined;
+
       const res = await fetch('/api/assistant/chat', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(userApiKey ? { 'x-ai-key': userApiKey } : {}),
+        },
         body: JSON.stringify({
           messages: newMessages.map((m) => ({
             role: m.role,
@@ -428,6 +449,8 @@ export function Chatbox({
             result: result || undefined,
           },
           model: selectedModelId,
+          provider: activeModelMeta.provider,
+          apiKey: userApiKey,
         }),
       });
 
@@ -454,7 +477,7 @@ export function Chatbox({
         );
       }
     } catch (err: any) {
-      console.error('Cerebras assistant error:', err);
+      console.error('Assistant error:', err);
       setMessages((prev) =>
         prev.map((msg) =>
           msg.id === assistantMsgId
@@ -462,7 +485,7 @@ export function Chatbox({
               ...msg,
               content:
                 msg.content ||
-                `⚠️ *Inference error: ${err.message || 'Unknown network error'}. Please check Cerebras configuration in .env.*`,
+                `⚠️ *Inference error: ${err.message || 'Unknown network error'}. Please verify your API key in [Settings](/settings).*`,
             }
             : msg
         )
@@ -484,8 +507,7 @@ export function Chatbox({
     }
   };
 
-  const currentModel =
-    CEREBRAS_MODELS.find((m) => m.id === selectedModelId) || CEREBRAS_MODELS[0];
+  const currentModel = getModelById(selectedModelId);
 
   const isSidebar = viewMode === 'sidebar';
   const isOpen = viewMode !== 'bar';
@@ -508,6 +530,7 @@ export function Chatbox({
           bottom: '20px',
           top: isSidebar ? '24px' : undefined,
           height: isSidebar ? 'calc(100vh - 3rem)' : isOpen ? `${boxHeight}px` : undefined,
+          maxHeight: isOpen ? 'calc(100vh - 36px)' : undefined,
           width: isSidebar ? '440px' : 'min(460px, calc(100vw - 2.5rem))',
           zIndex: 9990,
         }}
@@ -521,9 +544,12 @@ export function Chatbox({
         {!isSidebar && isOpen && (
           <div
             onPointerDown={handleDragStart}
-            onClick={handleExtendClick}
+            onDoubleClick={() => {
+              const maxHeight = window.innerHeight - 36;
+              setBoxHeight((prev) => (prev < 440 ? 580 : prev < 720 ? maxHeight : 380));
+            }}
             className="w-full flex items-center justify-center pt-2 pb-1 cursor-ns-resize group select-none shrink-0"
-            title="Drag or click to adjust chatbox height"
+            title="Drag to adjust height freely (up to window top)"
           >
             <div className="h-[3px] w-9 rounded-full bg-white/25 transition-colors group-hover:bg-white/40 group-active:bg-white/55" />
           </div>
@@ -554,9 +580,7 @@ export function Chatbox({
             <button
               type="button"
               onClick={() => {
-                setMessages([]);
-                setQuotedContext(null);
-                setStagedImage(null);
+                setShowClearConfirm((prev) => !prev);
               }}
               className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-md text-[#9a9aa0] transition-colors hover:bg-white/6 hover:text-[#f4f4f5]"
               title="Clear conversation"
@@ -564,7 +588,7 @@ export function Chatbox({
               <RotateCcw className="h-3.5 w-3.5" strokeWidth={1.75} />
             </button>
 
-            {/* Pop-out button (->|): makes bar into floating sidebar window */}
+            {/* Pop-out button (->|): makes bar into floating sidebar window, flips 180 for dock back */}
             <button
               type="button"
               onClick={() => setViewMode(isSidebar ? 'box' : 'sidebar')}
@@ -572,7 +596,7 @@ export function Chatbox({
                 }`}
               title={isSidebar ? 'Dock back to bottom box' : 'Pop out into floating sidebar window'}
             >
-              {/* Exact SVG ->| matching Image 3 */}
+              {/* Exact SVG ->| matching Image 3, rotated 180deg when in sidebar mode */}
               <svg
                 width="15"
                 height="15"
@@ -582,6 +606,7 @@ export function Chatbox({
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
+                className={isSidebar ? 'rotate-180' : ''}
               >
                 <line x1="3" y1="12" x2="15" y2="12" />
                 <polyline points="10 7 15 12 10 17" />
@@ -748,14 +773,56 @@ export function Chatbox({
 
           {/* Unified Composer Container matching Prism reference */}
           <div
-            className="archyve-glass-composer relative rounded-[28px] p-3 text-left shadow-2xl transition-all"
-            onClick={() => textareaRef.current?.focus()}
+            className={`archyve-glass-composer relative rounded-[28px] p-3 text-left shadow-2xl transition-all ${
+              !isOpen ? 'cursor-pointer hover:border-white/20' : ''
+            }`}
+            onClick={() => {
+              if (viewMode === 'bar') {
+                setViewMode('box');
+              }
+              textareaRef.current?.focus();
+            }}
           >
-            {/* Dismissible Compact Welcome Area */}
-            {showWelcome && !isSidebar && (
-              <div className="mb-2.5 px-1 pt-0.5">
+            {/* Clear Conversation Confirmation Prompt */}
+            {showClearConfirm ? (
+              <div
+                onClick={(e) => e.stopPropagation()}
+                className="mb-1.5 flex items-center justify-between rounded-xl border border-white/8 bg-white/[0.03] px-3 py-1.5 backdrop-blur-md animate-in fade-in duration-150"
+              >
+                <span className="text-[12px] font-medium tracking-tight text-[#d4d4d8]">
+                  Do you really want to clear this conversation?
+                </span>
+                <div className="flex items-stretch h-6">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMessages([]);
+                      setQuotedContext(null);
+                      setStagedImage(null);
+                      if (conversationHash) {
+                        persistConversation([]);
+                      }
+                      setShowClearConfirm(false);
+                    }}
+                    className="cursor-pointer px-3 text-[12px] font-medium text-[#d4d4d8] hover:text-white transition-colors bg-transparent border-0"
+                  >
+                    Yes
+                  </button>
+                  <div className="w-[1px] bg-white/15 my-0.5" />
+                  <button
+                    type="button"
+                    onClick={() => setShowClearConfirm(false)}
+                    className="cursor-pointer px-3 text-[12px] font-medium text-[#d4d4d8] hover:text-white transition-colors bg-transparent border-0"
+                  >
+                    No
+                  </button>
+                </div>
+              </div>
+            ) : showWelcome && !isSidebar ? (
+              /* Dismissible Compact Translucent Welcome Area */
+              <div className="mb-1.5 rounded-xl border border-white/8 bg-white/[0.03] px-3 py-2 backdrop-blur-md">
                 <div className="flex items-center justify-between gap-3">
-                  <h4 className="text-[13px] font-semibold tracking-[-0.015em] text-[#f4f4f5]">
+                  <h4 className="text-[12.5px] font-semibold tracking-[-0.015em] text-[#f4f4f5]">
                     Welcome to Archyve!
                   </h4>
                   <button
@@ -768,11 +835,11 @@ export function Chatbox({
                     <X className="h-3.5 w-3.5" strokeWidth={1.75} />
                   </button>
                 </div>
-                <p className="mt-1 text-[12px] font-normal leading-relaxed tracking-[-0.005em] text-[#9a9aa0]">
-                  Archyve helps you read and dissect academic papers—and supports your research with explanations, methodology breakdowns, citations, and summaries.
+                <p className="mt-0.5 text-[11.5px] font-normal leading-relaxed tracking-[-0.005em] text-[#9a9aa0]">
+                  Archyve helps you read and dissect academic papers and supports your research with explanations, methodology breakdowns, citations, and summaries.
                 </p>
               </div>
-            )}
+            ) : null}
 
             {/* Staged attachments preview */}
             {(quotedContext || stagedImage) && (
@@ -919,13 +986,14 @@ export function Chatbox({
                           right: 0,
                           zIndex: 9999,
                         }}
-                        className="archyve-glass-menu absolute bottom-full right-0 z-[9999] mb-0 w-[240px] rounded-xl p-1.5 text-left shadow-2xl animate-in fade-in zoom-in-95 duration-150"
+                        className="archyve-glass-menu absolute bottom-full right-0 z-[9999] mb-0 w-[260px] rounded-xl p-1.5 text-left shadow-2xl animate-in fade-in zoom-in-95 duration-150"
                       >
-                        <div className="mb-1 border-b border-white/8 px-2 py-1 text-[10.5px] font-medium tracking-wide uppercase text-[#8e8e93]">
-                          Models
+                        <div className="mb-1 flex items-center justify-between border-b border-white/8 px-2 py-1 text-[10.5px] font-medium tracking-wide uppercase text-[#8e8e93]">
+                          <span>BYOK Models</span>
+                          <span className="text-[9.5px] text-[#71717a]">Gemini & Groq</span>
                         </div>
-                        <div className="space-y-0.5">
-                          {CEREBRAS_MODELS.map((m) => {
+                        <div className="space-y-0.5 max-h-64 overflow-y-auto">
+                          {BYOK_MODELS.map((m) => {
                             const isSelected = m.id === selectedModelId;
                             return (
                               <button
@@ -933,6 +1001,8 @@ export function Chatbox({
                                 type="button"
                                 onClick={() => {
                                   setSelectedModelId(m.id);
+                                  keyStore.setModel(m.id, m.provider);
+                                  keyStore.setProvider(m.provider);
                                   setIsModelMenuOpen(false);
                                 }}
                                 className={`flex w-full cursor-pointer items-center justify-between rounded-lg px-2.5 py-1.5 text-left text-[12.5px] transition-colors ${isSelected
@@ -940,10 +1010,15 @@ export function Chatbox({
                                   : 'text-[#d4d4d8] hover:bg-white/6 hover:text-white'
                                   }`}
                               >
-                                <div className="flex flex-col">
-                                  <span className="font-sans font-medium">{m.name}</span>
-                                  <span className="text-[10.5px] text-[#8e8e93]">
-                                    {m.parameters} · {m.speed}
+                                <div className="flex flex-col min-w-0 pr-1.5">
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="font-sans font-medium truncate">{m.name}</span>
+                                    {m.supportsMedia && (
+                                      <ImageIcon className="h-3 w-3 text-[#8e8e93] shrink-0" strokeWidth={1.75} />
+                                    )}
+                                  </div>
+                                  <span className="text-[10.5px] text-[#8e8e93] truncate">
+                                    {m.provider.toUpperCase()} · {m.speed}
                                   </span>
                                 </div>
                                 {isSelected && <Check className="h-3.5 w-3.5 shrink-0 text-[#e4e4e7]" strokeWidth={1.75} />}
@@ -953,24 +1028,6 @@ export function Chatbox({
                         </div>
                       </div>
                     )}
-                  </div>
-
-                  {/* Audio indicator icon matching reference screenshot */}
-                  <div
-                    className="flex h-6 w-5 items-center justify-center text-[#8e8e93]"
-                    title="Assistant voice / context ready"
-                  >
-                    <svg
-                      width="12"
-                      height="12"
-                      viewBox="0 0 16 16"
-                      fill="currentColor"
-                      className="opacity-75"
-                    >
-                      <rect x="2" y="5" width="2" height="6" rx="1" />
-                      <rect x="7" y="2" width="2" height="12" rx="1" />
-                      <rect x="12" y="5" width="2" height="6" rx="1" />
-                    </svg>
                   </div>
 
                   {/* White Circular Send Button with Dark Arrow Up */}
