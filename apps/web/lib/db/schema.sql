@@ -62,7 +62,21 @@ CREATE TABLE IF NOT EXISTS public.analytics (
     latency_ms INTEGER NOT NULL
 );
 
--- 5. Row Level Security (RLS) policies
+-- 5. Chat Conversations table (User-to-paper hashed conversation threads)
+CREATE TABLE IF NOT EXISTS public.chat_conversations (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    paper_id UUID NOT NULL REFERENCES public.papers(id) ON DELETE CASCADE,
+    conversation_hash TEXT NOT NULL UNIQUE,
+    messages JSONB NOT NULL DEFAULT '[]'::jsonb
+);
+
+CREATE INDEX IF NOT EXISTS chat_conv_hash_idx ON public.chat_conversations(conversation_hash);
+CREATE INDEX IF NOT EXISTS chat_conv_user_paper_idx ON public.chat_conversations(user_id, paper_id);
+
+-- 6. Row Level Security (RLS) policies
 -- Enable read access for anonymous and authenticated users on public research corpus
 ALTER TABLE public.papers ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Allow public read access to papers" ON public.papers FOR SELECT USING (true);
@@ -72,4 +86,11 @@ CREATE POLICY "Allow public read access to research_results" ON public.research_
 
 ALTER TABLE public.sources ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Allow public read access to sources" ON public.sources FOR SELECT USING (true);
+
+ALTER TABLE public.chat_conversations ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Users can manage their own conversations" ON public.chat_conversations
+    FOR ALL
+    USING (auth.uid() = user_id)
+    WITH CHECK (auth.uid() = user_id);
+
 
