@@ -2,9 +2,13 @@ import { Analytics } from "@vercel/analytics/next"
 import type { Metadata } from "next";
 import { Lexend, Lora, Geist_Mono, JetBrains_Mono } from "next/font/google";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import Script from "next/script";
 import "./globals.css";
 
+const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_ID || "G-XZB4ZZY7HJ";
+
 const lexend = Lexend({
+
   variable: "--font-lexend",
   subsets: ["latin"],
   display: "swap",
@@ -68,6 +72,24 @@ export default function RootLayout({
       className={`${lexend.variable} ${lora.variable} ${geistMono.variable} ${jetbrainsMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-background text-foreground font-sans transition-colors duration-200">
+        {GA_MEASUREMENT_ID && (
+          <>
+            <Script
+              strategy="afterInteractive"
+              src={`https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`}
+            />
+            <Script id="google-analytics" strategy="afterInteractive">
+              {`
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', '${GA_MEASUREMENT_ID}', {
+                  page_path: window.location.pathname,
+                });
+              `}
+            </Script>
+          </>
+        )}
         <ThemeProvider>
           {children}
         </ThemeProvider>
@@ -76,3 +98,4 @@ export default function RootLayout({
     </html>
   );
 }
+
