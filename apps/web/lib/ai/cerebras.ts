@@ -8,6 +8,7 @@ export interface CerebrasModel {
   contextWindow: string;
   speed: string;
   description: string;
+  supportsMedia?: boolean;
 }
 
 export const CEREBRAS_MODELS: CerebrasModel[] = [
@@ -19,6 +20,7 @@ export const CEREBRAS_MODELS: CerebrasModel[] = [
     contextWindow: '65k / 131k',
     speed: '~3000 tokens/s',
     description: 'High-reasoning open-weights model running on Cerebras Wafer-Scale Engine.',
+    supportsMedia: false,
   },
   {
     id: 'qwen-3.8-27b',
@@ -28,6 +30,7 @@ export const CEREBRAS_MODELS: CerebrasModel[] = [
     contextWindow: '64k / 128k',
     speed: '~1850 tokens/s',
     description: 'Fast, state-of-the-art multilingual and technical reasoning model.',
+    supportsMedia: false,
   },
   {
     id: 'llama-3.3-70b',
@@ -37,6 +40,7 @@ export const CEREBRAS_MODELS: CerebrasModel[] = [
     contextWindow: '128k',
     speed: '~2000 tokens/s',
     description: 'Flagship open foundation model with massive context capacity.',
+    supportsMedia: false,
   },
   {
     id: 'llama3.1-8b',
@@ -46,6 +50,7 @@ export const CEREBRAS_MODELS: CerebrasModel[] = [
     contextWindow: '128k',
     speed: '~1800 tokens/s',
     description: 'Compact, ultra-low latency model for instantaneous responses.',
+    supportsMedia: false,
   },
 ];
 
