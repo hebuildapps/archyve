@@ -7,7 +7,7 @@
     "build": "npm run build --prefix ../../packages/shared && node --max-old-space-size=4096 ../../node_modules/next/dist/bin/next build",
     "start": "next start",
     "lint": "eslint",
-    "test": "node ieee-regression-test.js && npx -y tsx ncbi-test.ts && npx -y tsx arxiv-regression-test.ts"
+    "test": "node ieee-regression-test.js && npx -y tsx ncbi-test.ts && npx -y tsx arxiv-regression-test.ts && npx -y tsx adapter-suite-test.ts"
   },
   "dependencies": {
     "@archyve/shared": "*",
