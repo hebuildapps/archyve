@@ -58,8 +58,8 @@ export default function PrivacyPolicyPage() {
             Archyve Privacy Policy
           </h1>
 
-          <p className="text-xs font-mono text-muted-foreground">
-            Last Updated: August 26, 2026 &middot; Architecture Version 2.0.0
+          <p className="text-xs font-normal text-muted-foreground">
+            Last Updated August 26, 2026
           </p>
 
           <p className="text-sm font-sans text-muted-foreground leading-relaxed">

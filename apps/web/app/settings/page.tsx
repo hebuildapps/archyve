@@ -81,8 +81,8 @@ function SettingsContent() {
   const [sessionData, setSessionData] = useState<SessionData | null>(null);
   const [copiedSessionId, setCopiedSessionId] = useState(false);
 
-  const fallbackGemini = ['gemini-3.5-pro', 'gemini-3.5-flash'];
-  const fallbackGroq = ['openai/gpt-oss-20b', 'openai/gpt-oss-120b', 'qwen/qwen3.6-27b'];
+  const fallbackGemini = ['gemini-3.5-pro', 'gemini-3.5-flash', 'gemini-2.5-flash'];
+  const fallbackGroq = ['openai/gpt-oss-120b', 'openai/gpt-oss-20b', 'qwen/qwen3.8-27b'];
 
   const fetchModels = async (currentProvider: string, currentApiKey: string) => {
     if (!currentApiKey.trim()) {
@@ -666,7 +666,7 @@ function SettingsContent() {
                     <button
                       type="button"
                       onClick={handleTestConnection}
-                      className="btn-ghost"
+                      className="btn-default"
                     >
                       Test Connection
                     </button>
@@ -847,12 +847,9 @@ function SettingsContent() {
                           <h3 className="text-xs font-mono font-semibold uppercase tracking-wider text-muted-foreground">
                             Browser Extensions
                           </h3>
-                          <span className="px-2 py-0.5 rounded font-mono text-[10px] bg-brand-primary/10 text-brand-primary border border-brand-primary/20">
-                            v3.0
-                          </span>
                         </div>
                         <p className="text-xs text-foreground/80 mt-1">
-                          Install the archyve bridge on Chromium and Gecko browsers for 1-click dossier extraction directly on paper URLs.
+                          Install the archyve bridge on Chromium and Microsoft Edge browsers for 1-click dossier extraction directly on paper URLs.
                         </p>
                       </div>
                     </div>

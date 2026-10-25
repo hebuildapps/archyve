@@ -218,6 +218,8 @@ export default function ResearchDossierPage() {
                 const finalResult = chunk.data.result;
                 setPaper(finalPaper);
                 setResult(finalResult);
+                setCurrentPercent(100);
+                setStatusMessage('Loaded from archive.');
                 setSteps((prev) =>
                   prev.map((s) => {
                     if (s.id === 'identify') return { ...s, status: 'completed', detail: finalPaper.publisher || 'Verified' };
@@ -227,7 +229,10 @@ export default function ResearchDossierPage() {
                     return { ...s, status: 'completed' };
                   })
                 );
-                setLoading(false);
+                // Graceful delay for cached hits so progress finishes smoothly
+                setTimeout(() => {
+                  if (isMounted) setLoading(false);
+                }, 800);
               }
             }
           }
@@ -353,6 +358,8 @@ export default function ResearchDossierPage() {
                 console.log('[FRONTEND] Final completed dossier response received:', chunk.data);
                 const finalPaper = chunk.data.paper || paper;
                 const finalResult = chunk.data.result;
+                setCurrentPercent(100);
+                setStatusMessage('Dossier ready.');
                 setSteps((prev) =>
                   prev.map((s) => {
                     if (s.id === 'identify') return { ...s, status: 'completed', detail: finalPaper.publisher || 'Verified' };
@@ -365,7 +372,9 @@ export default function ResearchDossierPage() {
                 setPaper(finalPaper);
                 setResult(finalResult);
                 setIsNewPaper(false);
-                setLoading(false);
+                setTimeout(() => {
+                  if (isMounted) setLoading(false);
+                }, 350);
               }
             } else {
               console.warn('[FRONTEND] Ignored chunk because isMounted is false');

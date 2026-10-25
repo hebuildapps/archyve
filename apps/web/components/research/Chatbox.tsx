@@ -15,8 +15,10 @@ import {
   Image as ImageIcon,
 } from 'lucide-react';
 import { AssistantMarkdown } from './AssistantMarkdown';
-import { CEREBRAS_MODELS, CerebrasModel, DEFAULT_CEREBRAS_MODEL } from '@/lib/ai/cerebras';
+import { BYOK_MODELS, BYOKModel, DEFAULT_BYOK_MODEL, getModelById } from '@/lib/ai/assistant';
+import { keyStore } from '@/lib/security/AIKeyStore';
 import { NormalizedPaper, ResearchResult } from '@archyve/shared';
+import { supabaseClient } from '@/lib/db/supabaseClient';
 
 export interface ChatMessage {
   id: string;
@@ -40,6 +42,22 @@ interface ChatboxProps {
 
 type ChatboxViewMode = 'bar' | 'box' | 'sidebar';
 
+async function computeConversationHash(userId: string, paperIdentifier: string): Promise<string> {
+  const data = new TextEncoder().encode(`${userId}:${paperIdentifier}`);
+  if (typeof crypto !== 'undefined' && crypto.subtle) {
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
+  }
+  let hash = 0;
+  const str = `${userId}:${paperIdentifier}`;
+  for (let i = 0; i < str.length; i++) {
+    hash = (hash << 5) - hash + str.charCodeAt(i);
+    hash |= 0;
+  }
+  return `h_${Math.abs(hash)}`;
+}
+
 export function Chatbox({
   paper,
   result,
@@ -56,12 +74,21 @@ export function Chatbox({
   // View mode: 'bar' (minimized), 'box' (bottom expanded), 'sidebar' (floating sidebar window)
   const [viewMode, setViewMode] = useState<ChatboxViewMode>('bar');
   const [showWelcome, setShowWelcome] = useState<boolean>(true);
-  const [selectedModelId, setSelectedModelId] = useState<string>(DEFAULT_CEREBRAS_MODEL);
+  const [selectedModelId, setSelectedModelId] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      const prov = keyStore.getProvider();
+      const stored = keyStore.getModel(prov);
+      const matched = BYOK_MODELS.find((m) => m.id === stored || m.provider === prov);
+      if (matched) return matched.id;
+    }
+    return DEFAULT_BYOK_MODEL;
+  });
   const [isModelMenuOpen, setIsModelMenuOpen] = useState(false);
 
   // Height state for bottom box mode
-  const [boxHeight, setBoxHeight] = useState<number>(440);
+  const [boxHeight, setBoxHeight] = useState<number>(460);
   const isDraggingRef = useRef(false);
+  const hasDraggedRef = useRef(false);
   const dragStartYRef = useRef(0);
   const dragStartHeightRef = useRef(0);
 
@@ -71,12 +98,20 @@ export function Chatbox({
   const [isLoading, setIsLoading] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
+  // History loading and conversation hash
+  const [isLoadingHistory, setIsLoadingHistory] = useState(true);
+  const [conversationHash, setConversationHash] = useState<string | null>(null);
+  const [showMediaWarning, setShowMediaWarning] = useState(false);
+
   // Staged attachments
   const [quotedContext, setQuotedContext] = useState<string | null>(null);
   const [stagedImage, setStagedImage] = useState<{
     file: File;
     previewUrl: string;
   } | null>(null);
+
+  // Clear conversation confirmation
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
 
   // DOM Refs
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -104,6 +139,104 @@ export function Chatbox({
       localStorage.setItem('archyve_welcome_dismissed', 'true');
     }
   };
+
+  // Load user-specific hashed conversation history on mount/paper change
+  useEffect(() => {
+    let isMounted = true;
+    async function loadHistory() {
+      setIsLoadingHistory(true);
+      try {
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        const userId = session?.user?.id || 'guest_user';
+        const paperKey =
+          paper?.doi ||
+          paper?.url ||
+          (typeof window !== 'undefined' ? window.location.pathname : 'default_paper');
+        const hash = await computeConversationHash(userId, paperKey);
+
+        if (!isMounted) return;
+        setConversationHash(hash);
+
+        let loadedMessages: ChatMessage[] = [];
+
+        // 1. Fetch from Supabase chat_conversations if logged in
+        if (session?.user?.id && supabaseClient?.from) {
+          try {
+            const { data, error } = await supabaseClient
+              .from('chat_conversations')
+              .select('messages')
+              .eq('conversation_hash', hash)
+              .maybeSingle();
+
+            if (!error && data?.messages && Array.isArray(data.messages)) {
+              loadedMessages = data.messages;
+            }
+          } catch (dbErr) {
+            console.warn('Supabase chat retrieval warning:', dbErr);
+          }
+        }
+
+        // 2. Fallback to localStorage
+        if (loadedMessages.length === 0 && typeof window !== 'undefined') {
+          const cached = localStorage.getItem(`archyve_chat_${hash}`);
+          if (cached) {
+            try {
+              const parsed = JSON.parse(cached);
+              if (Array.isArray(parsed)) loadedMessages = parsed;
+            } catch {}
+          }
+        }
+
+        if (isMounted) {
+          if (loadedMessages.length > 0) {
+            setMessages(loadedMessages);
+          }
+          // Brief pleasant delay so "Getting earlier messages..." and text glare transition smoothly
+          setTimeout(() => {
+            if (isMounted) setIsLoadingHistory(false);
+          }, 350);
+        }
+      } catch (err) {
+        console.warn('Failed to load conversation history:', err);
+        if (isMounted) setIsLoadingHistory(false);
+      }
+    }
+
+    loadHistory();
+    return () => {
+      isMounted = false;
+    };
+  }, [paper?.doi, paper?.url]);
+
+  // Persist conversation to Supabase and localStorage
+  const persistConversation = useCallback(
+    async (msgs: ChatMessage[]) => {
+      if (!conversationHash) return;
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(`archyve_chat_${conversationHash}`, JSON.stringify(msgs));
+      }
+      try {
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        if (session?.user?.id && supabaseClient?.from) {
+          await supabaseClient.from('chat_conversations').upsert(
+            {
+              conversation_hash: conversationHash,
+              user_id: session.user.id,
+              paper_id: paper?.doi || paper?.url || 'current_paper',
+              paper_title: paper?.title || 'Research Paper',
+              model_id: selectedModelId,
+              messages: msgs,
+              updated_at: new Date().toISOString(),
+            },
+            { onConflict: 'conversation_hash' }
+          );
+        }
+      } catch (err) {
+        console.warn('Chat persistence warning:', err);
+      }
+    },
+    [conversationHash, paper?.doi, paper?.url, paper?.title, selectedModelId]
+  );
 
   // Close model menu when clicking outside
   useEffect(() => {
@@ -163,17 +296,24 @@ export function Chatbox({
     }
   }, [inputValue]);
 
-  // Height resize drag listeners for box mode
+  // Height resize drag listeners for box mode (freely extendable to viewport top)
   const handleDragStart = (e: React.PointerEvent) => {
     e.preventDefault();
     isDraggingRef.current = true;
+    hasDraggedRef.current = false;
     dragStartYRef.current = e.clientY;
     dragStartHeightRef.current = boxHeight;
 
     const handlePointerMove = (moveEvent: PointerEvent) => {
       if (!isDraggingRef.current) return;
       const deltaY = dragStartYRef.current - moveEvent.clientY;
-      const newHeight = Math.max(280, Math.min(window.innerHeight * 0.85, dragStartHeightRef.current + deltaY));
+      if (Math.abs(deltaY) > 2) {
+        hasDraggedRef.current = true;
+      }
+      // Freely extendable up to window top (leaving 32px safe headroom)
+      const maxAllowedHeight = Math.max(300, window.innerHeight - 36);
+      const minAllowedHeight = 220;
+      const newHeight = Math.max(minAllowedHeight, Math.min(maxAllowedHeight, dragStartHeightRef.current + deltaY));
       setBoxHeight(newHeight);
     };
 
@@ -185,11 +325,6 @@ export function Chatbox({
 
     window.addEventListener('pointermove', handlePointerMove);
     window.addEventListener('pointerup', handlePointerUp);
-  };
-
-  // Toggle height presets on double click or click
-  const handleExtendClick = () => {
-    setBoxHeight((prev) => (prev < 420 ? 520 : prev < 600 ? 680 : 360));
   };
 
   // File upload handler
@@ -231,8 +366,11 @@ export function Chatbox({
 
   // Send message
   const handleSendMessage = async (textToSend?: string) => {
-    const text = (textToSend !== undefined ? textToSend : inputValue).trim();
-    if ((!text && !stagedImage) || isLoading) return;
+    let text = (textToSend !== undefined ? textToSend : inputValue).trim();
+    if (!text && quotedContext) {
+      text = 'Please explain and analyze this highlighted excerpt in the context of the paper.';
+    }
+    if ((!text && !stagedImage && !quotedContext) || isLoading || isLoadingHistory) return;
 
     // Ensure view mode is open
     if (viewMode === 'bar') {
@@ -280,20 +418,25 @@ export function Chatbox({
     setIsLoading(true);
 
     const assistantMsgId = `assistant-${Date.now()}`;
-    setMessages((prev) => [
-      ...prev,
-      {
-        id: assistantMsgId,
-        role: 'assistant',
-        content: '',
-        timestamp: Date.now(),
-      },
-    ]);
+    const initialAssistantMsg: ChatMessage = {
+      id: assistantMsgId,
+      role: 'assistant',
+      content: '',
+      timestamp: Date.now(),
+    };
+    setMessages((prev) => [...prev, initialAssistantMsg]);
+    persistConversation([...newMessages, initialAssistantMsg]);
 
     try {
+      const activeModelMeta = getModelById(selectedModelId);
+      const userApiKey = keyStore.getApiKey(activeModelMeta.provider) || undefined;
+
       const res = await fetch('/api/assistant/chat', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(userApiKey ? { 'x-ai-key': userApiKey } : {}),
+        },
         body: JSON.stringify({
           messages: newMessages.map((m) => ({
             role: m.role,
@@ -306,6 +449,8 @@ export function Chatbox({
             result: result || undefined,
           },
           model: selectedModelId,
+          provider: activeModelMeta.provider,
+          apiKey: userApiKey,
         }),
       });
 
@@ -332,7 +477,7 @@ export function Chatbox({
         );
       }
     } catch (err: any) {
-      console.error('Cerebras assistant error:', err);
+      console.error('Assistant error:', err);
       setMessages((prev) =>
         prev.map((msg) =>
           msg.id === assistantMsgId
@@ -340,13 +485,17 @@ export function Chatbox({
               ...msg,
               content:
                 msg.content ||
-                `⚠️ *Inference error: ${err.message || 'Unknown network error'}. Please check Cerebras configuration in .env.*`,
+                `⚠️ *Inference error: ${err.message || 'Unknown network error'}. Please verify your API key in [Settings](/settings).*`,
             }
             : msg
         )
       );
     } finally {
       setIsLoading(false);
+      setMessages((finalMessages) => {
+        persistConversation(finalMessages);
+        return finalMessages;
+      });
       setTimeout(() => textareaRef.current?.focus(), 50);
     }
   };
@@ -358,8 +507,7 @@ export function Chatbox({
     }
   };
 
-  const currentModel =
-    CEREBRAS_MODELS.find((m) => m.id === selectedModelId) || CEREBRAS_MODELS[0];
+  const currentModel = getModelById(selectedModelId);
 
   const isSidebar = viewMode === 'sidebar';
   const isOpen = viewMode !== 'bar';
@@ -382,6 +530,7 @@ export function Chatbox({
           bottom: '20px',
           top: isSidebar ? '24px' : undefined,
           height: isSidebar ? 'calc(100vh - 3rem)' : isOpen ? `${boxHeight}px` : undefined,
+          maxHeight: isOpen ? 'calc(100vh - 36px)' : undefined,
           width: isSidebar ? '440px' : 'min(460px, calc(100vw - 2.5rem))',
           zIndex: 9990,
         }}
@@ -395,9 +544,12 @@ export function Chatbox({
         {!isSidebar && isOpen && (
           <div
             onPointerDown={handleDragStart}
-            onClick={handleExtendClick}
+            onDoubleClick={() => {
+              const maxHeight = window.innerHeight - 36;
+              setBoxHeight((prev) => (prev < 440 ? 580 : prev < 720 ? maxHeight : 380));
+            }}
             className="w-full flex items-center justify-center pt-2 pb-1 cursor-ns-resize group select-none shrink-0"
-            title="Drag or click to adjust chatbox height"
+            title="Drag to adjust height freely (up to window top)"
           >
             <div className="h-[3px] w-9 rounded-full bg-white/25 transition-colors group-hover:bg-white/40 group-active:bg-white/55" />
           </div>
@@ -428,9 +580,7 @@ export function Chatbox({
             <button
               type="button"
               onClick={() => {
-                setMessages([]);
-                setQuotedContext(null);
-                setStagedImage(null);
+                setShowClearConfirm((prev) => !prev);
               }}
               className="flex h-7 w-7 cursor-pointer items-center justify-center rounded-md text-[#9a9aa0] transition-colors hover:bg-white/6 hover:text-[#f4f4f5]"
               title="Clear conversation"
@@ -438,7 +588,7 @@ export function Chatbox({
               <RotateCcw className="h-3.5 w-3.5" strokeWidth={1.75} />
             </button>
 
-            {/* Pop-out button (->|): makes bar into floating sidebar window */}
+            {/* Pop-out button (->|): makes bar into floating sidebar window, flips 180 for dock back */}
             <button
               type="button"
               onClick={() => setViewMode(isSidebar ? 'box' : 'sidebar')}
@@ -446,7 +596,7 @@ export function Chatbox({
                 }`}
               title={isSidebar ? 'Dock back to bottom box' : 'Pop out into floating sidebar window'}
             >
-              {/* Exact SVG ->| matching Image 3 */}
+              {/* Exact SVG ->| matching Image 3, rotated 180deg when in sidebar mode */}
               <svg
                 width="15"
                 height="15"
@@ -456,6 +606,7 @@ export function Chatbox({
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
+                className={isSidebar ? 'rotate-180' : ''}
               >
                 <line x1="3" y1="12" x2="15" y2="12" />
                 <polyline points="10 7 15 12 10 17" />
@@ -482,9 +633,18 @@ export function Chatbox({
           ref={scrollAreaRef}
           className="min-h-0 flex-1 space-y-4 overflow-y-auto px-4 py-2 text-[13px]"
         >
+          {/* Loading earlier messages pill */}
+          {isLoadingHistory && (
+            <div className="flex items-center justify-center my-3 animate-in fade-in duration-200">
+              <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/6 px-3.5 py-1 text-[11.5px] font-medium text-[#c8c8cc] shadow-xs backdrop-blur-xs">
+                <Loader2 className="h-3 w-3 animate-spin text-[#d4d4d8]" strokeWidth={2} />
+                Getting earlier messages...
+              </span>
+            </div>
+          )}
 
           {/* Quick suggestions when empty */}
-          {messages.length === 0 && !showWelcome && (
+          {messages.length === 0 && !showWelcome && !isLoadingHistory && (
             <div className="h-full flex flex-col justify-end pb-2 space-y-2 select-none">
               <span className="text-[11px] font-medium tracking-[-0.01em] text-[#8e8e93]">
                 Suggested queries
@@ -601,174 +761,291 @@ export function Chatbox({
         )}
 
         <div className={`shrink-0 select-none ${isOpen ? 'mx-3 mb-3' : ''}`}>
-          {showWelcome && !isSidebar && (
-            <div className="archyve-glass-panel relative rounded-t-[22px] border-b-0 px-[18px] pb-3.5 pt-[15px] text-left shadow-none">
-              <div className="flex items-start justify-between gap-4">
-                <h4 className="pt-px text-[15px] font-medium leading-none tracking-[-0.015em] text-[#f4f4f5]">
-                  Welcome to Archyve!
-                </h4>
-                <button
-                  type="button"
-                  onClick={handleDismissWelcome}
-                  className="-mr-1 -mt-0.5 flex h-6 w-6 shrink-0 cursor-pointer items-center justify-center rounded-md text-[#8d8d92] transition-colors hover:text-[#f4f4f5]"
-                  title="Dismiss welcome message"
-                  aria-label="Dismiss welcome message"
-                >
-                  <X className="h-[15px] w-[15px]" strokeWidth={1.75} />
-                </button>
-              </div>
-              <p className="mt-[9px] text-[13px] font-normal leading-[1.45] tracking-[-0.006em] text-[#b7b7bc]">
-                Archyve helps you read and dissect academic papers—and supports your research with
-                explanations, methodology breakdowns, citations, and summaries.
-              </p>
-            </div>
-          )}
-          {/* Staged attachments preview */}
-          {(quotedContext || stagedImage) && (
-            <div className="flex flex-wrap items-center gap-1.5 pb-2">
-              {quotedContext && (
-                <div className="inline-flex max-w-[280px] items-center gap-1 rounded-full border border-white/10 bg-white/6 px-2.5 py-0.5 text-[11px] font-medium text-[#d4d4d8]">
-                  <Quote className="h-3 w-3 shrink-0 text-[#a1a1aa]" strokeWidth={1.75} />
-                  <span className="truncate">"{quotedContext}"</span>
-                  <button
-                    type="button"
-                    onClick={() => setQuotedContext(null)}
-                    className="hover:opacity-75 cursor-pointer ml-1"
-                  >
-                    <X className="h-3 w-3" strokeWidth={1.75} />
-                  </button>
-                </div>
-              )}
-
-              {stagedImage && (
-                <div className="inline-flex max-w-[240px] items-center gap-1.5 rounded-full border border-white/10 bg-white/6 pl-1 pr-2 py-0.5 text-[11px] font-medium text-[#e4e4e7] backdrop-blur-xs">
-                  {stagedImage.previewUrl ? (
-                    <img
-                      src={stagedImage.previewUrl}
-                      alt={stagedImage.file.name}
-                      className="h-4 w-4 rounded-[4px] object-cover shrink-0 border border-white/20"
-                    />
-                  ) : (
-                    <ImageIcon className="h-3 w-3 shrink-0 text-[#a1a1aa]" strokeWidth={1.75} />
-                  )}
-                  <span className="truncate">{stagedImage.file.name}</span>
-                  <button
-                    type="button"
-                    onClick={removeStagedImage}
-                    className="hover:text-white text-[#a1a1aa] transition-colors cursor-pointer ml-0.5"
-                    aria-label="Remove image"
-                  >
-                    <X className="h-3 w-3" strokeWidth={1.75} />
-                  </button>
-                </div>
-              )}
+          {/* Pill when minimized in bar mode */}
+          {isLoadingHistory && !isOpen && (
+            <div className="flex items-center justify-center pb-2 animate-in fade-in duration-200">
+              <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/6 px-3.5 py-1 text-[11.5px] font-medium text-[#c8c8cc] shadow-xs backdrop-blur-xs">
+                <Loader2 className="h-3 w-3 animate-spin text-[#d4d4d8]" strokeWidth={2} />
+                Getting earlier messages...
+              </span>
             </div>
           )}
 
-          {/* Main Input Box container */}
+          {/* Unified Composer Container matching Prism reference */}
           <div
-            className={`archyve-glass-input flex min-h-[92px] cursor-text flex-col justify-between px-2.5 pb-2.5 pt-3 transition-colors ${showWelcome && !isSidebar ? 'rounded-b-[26px] rounded-t-none' : 'rounded-[26px]'}`}
-            onClick={() => textareaRef.current?.focus()}
+            className={`archyve-glass-composer relative rounded-[26px] p-2 m-2 shadow-sm flex flex-col items-stretch text-left transition-all ${
+              !isOpen ? 'cursor-pointer hover:border-white/20' : ''
+            }`}
+            onClick={() => {
+              if (viewMode === 'bar') {
+                setViewMode('box');
+              }
+              textareaRef.current?.focus();
+            }}
           >
-            <textarea
-              ref={textareaRef}
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Ask anything"
-              rows={1}
-              className="w-full resize-none border-0 bg-transparent px-1.5 py-0 text-[15px] leading-snug tracking-[-0.011em] text-[#f4f4f5] placeholder:text-[#8e8e93] focus:outline-hidden focus:ring-0 max-h-32"
-            />
-
-            {/* Bottom Row inside input box: + on left, Model Picker + White Send Button on right */}
-            <div className="flex items-center justify-between pt-1.5">
-              {/* Left: + icon button for attachments */}
-              <div className="flex items-center">
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept=".png,.jpg,.jpeg,image/png,image/jpeg"
-                  onChange={handleFileChange}
-                  className="hidden"
-                  id="file-upload"
-                />
-                <label
-                  htmlFor="file-upload"
-                  className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg text-[#c8c8cc] transition-colors hover:bg-white/6 hover:text-white"
-                  title="Attach file (PNG, JPG ≤5MB)"
-                >
-                  <Plus className="h-[17px] w-[17px]" strokeWidth={1.6} />
-                </label>
-              </div>
-
-              {/* Right: Model Picker Dropdown & White Send Button */}
-              <div className="relative flex items-center gap-1">
-                {/* Model Picker Trigger */}
-                <div ref={modelMenuRef} className="relative">
+            {/* Clear Conversation Confirmation Prompt */}
+            {showClearConfirm ? (
+              <div
+                onClick={(e) => e.stopPropagation()}
+                className="mb-1.5 flex items-center justify-between rounded-xl border border-white/8 bg-white/[0.03] px-3 py-1.5 backdrop-blur-md animate-in fade-in duration-150"
+              >
+                <span className="text-[12px] font-medium tracking-tight text-[#d4d4d8]">
+                  Do you really want to clear this conversation?
+                </span>
+                <div className="flex items-stretch h-6">
                   <button
                     type="button"
-                    onClick={() => setIsModelMenuOpen(!isModelMenuOpen)}
-                    className="inline-flex h-8 cursor-pointer select-none items-center gap-1 rounded-lg px-2 font-sans text-[13px] font-medium tracking-[-0.01em] text-[#d4d4d8] transition-colors hover:bg-white/6 hover:text-white"
+                    onClick={() => {
+                      setMessages([]);
+                      setQuotedContext(null);
+                      setStagedImage(null);
+                      if (conversationHash) {
+                        persistConversation([]);
+                      }
+                      setShowClearConfirm(false);
+                    }}
+                    className="cursor-pointer px-3 text-[12px] font-medium text-[#d4d4d8] hover:text-white transition-colors bg-transparent border-0"
                   >
-                    <span>{currentModel.shortName}</span>
-                    <ChevronDown className="h-3.5 w-3.5 text-[#9a9aa0]" strokeWidth={1.75} />
+                    Yes
+                  </button>
+                  <div className="w-[1px] bg-white/15 my-0.5" />
+                  <button
+                    type="button"
+                    onClick={() => setShowClearConfirm(false)}
+                    className="cursor-pointer px-3 text-[12px] font-medium text-[#d4d4d8] hover:text-white transition-colors bg-transparent border-0"
+                  >
+                    No
+                  </button>
+                </div>
+              </div>
+            ) : showWelcome && !isSidebar ? (
+              /* Dismissible Compact Translucent Welcome Area */
+              <div className="mb-1.5 rounded-xl border border-white/8 bg-white/[0.03] px-3 py-2 backdrop-blur-md">
+                <div className="flex items-center justify-between gap-3">
+                  <h4 className="text-[12.5px] font-semibold tracking-[-0.015em] text-[#f4f4f5]">
+                    Welcome to Archyve!
+                  </h4>
+                  <button
+                    type="button"
+                    onClick={handleDismissWelcome}
+                    className="-mr-0.5 -mt-0.5 flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-md text-[#8d8d92] transition-colors hover:text-[#f4f4f5]"
+                    title="Dismiss welcome message"
+                    aria-label="Dismiss welcome message"
+                  >
+                    <X className="h-3.5 w-3.5" strokeWidth={1.75} />
+                  </button>
+                </div>
+                <p className="mt-0.5 text-[11.5px] font-normal leading-relaxed tracking-[-0.005em] text-[#9a9aa0]">
+                  Archyve helps you read and dissect academic papers and supports your research with explanations, methodology breakdowns, citations, and summaries.
+                </p>
+              </div>
+            ) : null}
+
+            {/* Staged attachments preview */}
+            {(quotedContext || stagedImage) && (
+              <div className="flex flex-wrap items-center gap-1.5 pb-2 px-1">
+                {quotedContext && (
+                  <div className="inline-flex max-w-[280px] items-center gap-1 rounded-full border border-white/10 bg-white/6 px-2.5 py-0.5 text-[11px] font-medium text-[#d4d4d8]">
+                    <Quote className="h-3 w-3 shrink-0 text-[#a1a1aa]" strokeWidth={1.75} />
+                    <span className="truncate">"{quotedContext}"</span>
+                    <button
+                      type="button"
+                      onClick={() => setQuotedContext(null)}
+                      className="hover:opacity-75 cursor-pointer ml-1"
+                    >
+                      <X className="h-3 w-3" strokeWidth={1.75} />
+                    </button>
+                  </div>
+                )}
+
+                {stagedImage && (
+                  <div className="inline-flex max-w-[240px] items-center gap-1.5 rounded-full border border-white/10 bg-white/6 pl-1 pr-2 py-0.5 text-[11px] font-medium text-[#e4e4e7] backdrop-blur-xs">
+                    {stagedImage.previewUrl ? (
+                      <img
+                        src={stagedImage.previewUrl}
+                        alt={stagedImage.file.name}
+                        className="h-4 w-4 rounded-[4px] object-cover shrink-0 border border-white/20"
+                      />
+                    ) : (
+                      <ImageIcon className="h-3 w-3 shrink-0 text-[#a1a1aa]" strokeWidth={1.75} />
+                    )}
+                    <span className="truncate">{stagedImage.file.name}</span>
+                    <button
+                      type="button"
+                      onClick={removeStagedImage}
+                      className="hover:text-white text-[#a1a1aa] transition-colors cursor-pointer ml-0.5"
+                      aria-label="Remove image"
+                    >
+                      <X className="h-3 w-3" strokeWidth={1.75} />
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Inner Message Composer Input Box */}
+            <div className="archyve-glass-inner flex min-h-[76px] cursor-text flex-col justify-between rounded-[20px] px-3 pb-2 pt-2.5 transition-colors">
+              <div className="relative w-full">
+                {isLoadingHistory ? (
+                  <div className="flex h-6 items-center px-0.5 select-none">
+                    <span className="animate-text-glare text-[13.5px] font-sans font-medium tracking-tight">
+                      Getting ready...
+                    </span>
+                  </div>
+                ) : (
+                  <textarea
+                    ref={textareaRef}
+                    value={inputValue}
+                    onChange={(e) => setInputValue(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    disabled={isLoading || isLoadingHistory}
+                    placeholder={
+                      quotedContext
+                        ? 'Ask about this highlighted text...'
+                        : 'Ask anything'
+                    }
+                    rows={1}
+                    className="w-full resize-none border-0 bg-transparent p-0 text-[13.5px] leading-snug tracking-[-0.01em] text-[#f4f4f5] placeholder:text-[#8e8e93] focus:outline-hidden focus:ring-0 max-h-28 disabled:cursor-not-allowed disabled:opacity-50"
+                  />
+                )}
+              </div>
+
+              {/* Bottom Row inside input box: + on left, Model Picker + Wave/Action + White Send Button on right */}
+              <div className="flex items-center justify-between pt-1">
+                {/* Left: + icon button for attachments */}
+                <div className="relative flex items-center">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".png,.jpg,.jpeg,image/png,image/jpeg"
+                    onChange={handleFileChange}
+                    className="hidden"
+                    id="file-upload"
+                    disabled={!currentModel.supportsMedia || isLoading || isLoadingHistory}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!currentModel.supportsMedia) {
+                        setShowMediaWarning(true);
+                        setTimeout(() => setShowMediaWarning(false), 4500);
+                        return;
+                      }
+                      fileInputRef.current?.click();
+                    }}
+                    disabled={isLoading || isLoadingHistory}
+                    className={`flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg transition-colors ${
+                      !currentModel.supportsMedia
+                        ? 'text-[#8e8e93]/50 hover:text-[#8e8e93] hover:bg-white/4'
+                        : 'text-[#9a9aa0] hover:bg-white/6 hover:text-white'
+                    }`}
+                    title={
+                      currentModel.supportsMedia
+                        ? 'Attach file (PNG, JPG ≤5MB)'
+                        : `${currentModel.name} is text-only (Image upload disabled)`
+                    }
+                  >
+                    <Plus className="h-4 w-4" strokeWidth={1.8} />
                   </button>
 
-                  {/* Model Picker Popover Menu */}
-                  {isModelMenuOpen && (
-                    <div
-                      style={{
-                        position: 'absolute',
-                        bottom: 'calc(100% + 8px)',
-                        right: 0,
-                        zIndex: 9999,
-                      }}
-                      className="archyve-glass-menu absolute bottom-full right-0 z-[9999] mb-0 w-[248px] rounded-xl p-1.5 text-left shadow-2xl animate-in fade-in zoom-in-95 duration-150"
-                    >
-                      <div className="mb-1 border-b border-white/8 px-2 py-1 text-[11px] font-medium tracking-[-0.01em] text-[#8e8e93]">
-                        Models
-                      </div>
-                      <div className="space-y-0.5">
-                        {CEREBRAS_MODELS.map((m) => {
-                          const isSelected = m.id === selectedModelId;
-                          return (
-                            <button
-                              key={m.id}
-                              type="button"
-                              onClick={() => {
-                                setSelectedModelId(m.id);
-                                setIsModelMenuOpen(false);
-                              }}
-                              className={`flex w-full cursor-pointer items-center justify-between rounded-lg px-2.5 py-1.5 text-left text-[13px] transition-colors ${isSelected
-                                ? 'bg-white/8 font-medium text-white'
-                                : 'text-[#d4d4d8] hover:bg-white/6 hover:text-white'
-                                }`}
-                            >
-                              <div className="flex flex-col">
-                                <span className="font-sans">{m.name}</span>
-                                <span className="text-[11px] text-[#8e8e93]">
-                                  {m.parameters} · {m.speed}
-                                </span>
-                              </div>
-                              {isSelected && <Check className="h-3.5 w-3.5 shrink-0 text-[#e4e4e7]" strokeWidth={1.75} />}
-                            </button>
-                          );
-                        })}
-                      </div>
+                  {/* Media Guardrail Tooltip Warning */}
+                  {showMediaWarning && (
+                    <div className="absolute bottom-[calc(100%+8px)] left-0 z-[9999] flex items-center gap-2 rounded-xl border border-amber-500/25 bg-[#1a1714]/95 px-3 py-1.5 text-[11.5px] text-amber-200 shadow-xl backdrop-blur-md animate-in fade-in slide-in-from-bottom-2 duration-150 whitespace-nowrap">
+                      <span>⚠️ <b>{currentModel.name}</b> does not support image analysis.</span>
+                      <button
+                        type="button"
+                        onClick={() => setShowMediaWarning(false)}
+                        className="text-amber-300 hover:text-white ml-0.5 cursor-pointer"
+                        aria-label="Dismiss media warning"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
                     </div>
                   )}
                 </div>
 
-                {/* White Circular Send Button with Dark Arrow Up (Image 1 & 3 exact style) */}
-                <button
-                  type="button"
-                  onClick={() => handleSendMessage()}
-                  disabled={(!inputValue.trim() && !stagedImage) || isLoading}
-                  className="relative z-10 flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-full bg-white text-black shadow-[0_1px_2px_rgba(0,0,0,0.35)] transition-all hover:bg-[#f4f4f5] active:scale-95 disabled:cursor-not-allowed disabled:opacity-30"
-                  title="Send (Enter)"
-                >
-                  <ArrowUp className="h-4 w-4" strokeWidth={2.25} />
-                </button>
+                {/* Right: Model Picker Dropdown & White Send Button */}
+                <div className="relative flex items-center gap-1.5">
+                  {/* Model Picker Trigger */}
+                  <div ref={modelMenuRef} className="relative">
+                    <button
+                      type="button"
+                      onClick={() => setIsModelMenuOpen(!isModelMenuOpen)}
+                      className="inline-flex h-7 cursor-pointer select-none items-center gap-1 rounded-lg px-2 font-sans text-[12px] font-medium tracking-[-0.01em] text-[#d4d4d8] transition-colors hover:bg-white/6 hover:text-white"
+                    >
+                      <span className="font-semibold text-white/90">{currentModel.shortName}</span>
+                      <ChevronDown className="h-3 w-3 text-[#9a9aa0]" strokeWidth={2} />
+                    </button>
+
+                    {/* Model Picker Popover Menu */}
+                    {isModelMenuOpen && (
+                      <div
+                        style={{
+                          position: 'absolute',
+                          bottom: 'calc(100% + 8px)',
+                          right: 0,
+                          zIndex: 9999,
+                        }}
+                        className="archyve-glass-menu absolute bottom-full right-0 z-[9999] mb-0 w-[260px] rounded-xl p-1.5 text-left shadow-2xl animate-in fade-in zoom-in-95 duration-150"
+                      >
+                        <div className="mb-1 flex items-center justify-between border-b border-white/8 px-2 py-1 text-[10.5px] font-medium tracking-wide uppercase text-[#8e8e93]">
+                          <span>BYOK Models</span>
+                          <span className="text-[9.5px] text-[#71717a]">Gemini & Groq</span>
+                        </div>
+                        <div className="space-y-0.5 max-h-64 overflow-y-auto">
+                          {BYOK_MODELS.map((m) => {
+                            const isSelected = m.id === selectedModelId;
+                            return (
+                              <button
+                                key={m.id}
+                                type="button"
+                                onClick={() => {
+                                  setSelectedModelId(m.id);
+                                  keyStore.setModel(m.id, m.provider);
+                                  keyStore.setProvider(m.provider);
+                                  setIsModelMenuOpen(false);
+                                }}
+                                className={`flex w-full cursor-pointer items-center justify-between rounded-lg px-2.5 py-1.5 text-left text-[12.5px] transition-colors ${isSelected
+                                  ? 'bg-white/8 font-medium text-white'
+                                  : 'text-[#d4d4d8] hover:bg-white/6 hover:text-white'
+                                  }`}
+                              >
+                                <div className="flex flex-col min-w-0 pr-1.5">
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="font-sans font-medium truncate">{m.name}</span>
+                                    {m.supportsMedia && (
+                                      <ImageIcon className="h-3 w-3 text-[#8e8e93] shrink-0" strokeWidth={1.75} />
+                                    )}
+                                  </div>
+                                  <span className="text-[10.5px] text-[#8e8e93] truncate">
+                                    {m.provider.toUpperCase()} · {m.speed}
+                                  </span>
+                                </div>
+                                {isSelected && <Check className="h-3.5 w-3.5 shrink-0 text-[#e4e4e7]" strokeWidth={1.75} />}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* White Circular Send Button with Dark Arrow Up */}
+                  <button
+                    type="button"
+                    onClick={() => handleSendMessage()}
+                    disabled={
+                      (!inputValue.trim() && !stagedImage && !quotedContext) ||
+                      isLoading ||
+                      isLoadingHistory
+                    }
+                    className="relative z-10 flex h-7 w-7 shrink-0 cursor-pointer items-center justify-center rounded-full bg-white text-black shadow-[0_1px_3px_rgba(0,0,0,0.3)] transition-all hover:bg-[#f4f4f5] active:scale-95 disabled:cursor-not-allowed disabled:opacity-25"
+                    title="Send (Enter)"
+                    aria-label="Send message"
+                  >
+                    <ArrowUp className="h-3.5 w-3.5" strokeWidth={2.5} />
+                  </button>
+                </div>
               </div>
             </div>
           </div>

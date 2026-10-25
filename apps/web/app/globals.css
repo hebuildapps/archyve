@@ -196,59 +196,51 @@ body {
 .archyve-glass-panel,
 .archyve-glass-input {
   position: relative;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.055) 0%, rgba(255, 255, 255, 0.015) 28%, transparent 52%),
-    linear-gradient(180deg, rgba(44, 44, 48, 0.72), rgba(28, 28, 30, 0.78));
-  border: 1px solid rgba(255, 255, 255, 0.09);
+  background: rgba(30, 30, 32, 0.94);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.07),
-    inset 0 -1px 0 rgba(0, 0, 0, 0.28),
-    0 18px 40px -18px rgba(0, 0, 0, 0.72);
-  backdrop-filter: blur(28px) saturate(1.25);
-  -webkit-backdrop-filter: blur(28px) saturate(1.25);
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 16px 36px -12px rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(24px) saturate(1.2);
+  -webkit-backdrop-filter: blur(24px) saturate(1.2);
 }
 
 .archyve-glass-composer {
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.012) 22%, transparent 46%),
-    linear-gradient(180deg, rgba(46, 46, 50, 0.82), rgba(28, 28, 31, 0.9));
+  background: rgba(30, 30, 32, 0.94);
   border: 1px solid rgba(255, 255, 255, 0.09);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.07),
-    0 18px 40px -18px rgba(0, 0, 0, 0.72);
-  backdrop-filter: blur(28px) saturate(1.25);
-  -webkit-backdrop-filter: blur(28px) saturate(1.25);
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 20px 48px -12px rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(24px) saturate(1.2);
+  -webkit-backdrop-filter: blur(24px) saturate(1.2);
 }
 
-.archyve-glass-input {
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.04) 0%, transparent 36%),
-    linear-gradient(180deg, rgba(32, 32, 34, 0.92), rgba(22, 22, 24, 0.96));
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.06),
-    0 16px 36px -20px rgba(0, 0, 0, 0.8);
-  backdrop-filter: blur(28px) saturate(1.25);
-  -webkit-backdrop-filter: blur(28px) saturate(1.25);
+.archyve-glass-inner {
+  background: rgba(22, 22, 24, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
 }
 
 .archyve-glass-shell {
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.045) 0%, transparent 18%),
-    rgba(24, 24, 26, 0.94);
-  border-color: rgba(255, 255, 255, 0.08);
+  background: rgba(24, 24, 26, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 20px 50px -12px rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
 }
 
 .archyve-glass-menu {
   position: absolute !important;
   z-index: 9999 !important;
-  background: rgba(36, 36, 38, 0.96);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(28, 28, 30, 0.98);
+  border: 1px solid rgba(255, 255, 255, 0.09);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.07),
-    0 18px 40px -18px rgba(0, 0, 0, 0.72);
-  backdrop-filter: blur(28px) saturate(1.25);
-  -webkit-backdrop-filter: blur(28px) saturate(1.25);
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 18px 40px -16px rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
 }
 
 /* Markdown task list items: eliminate bullet markers and format cleanly */
@@ -267,4 +259,27 @@ li.task-list-item {
 li.task-list-item::marker {
   display: none !important;
   content: "" !important;
+}
+
+/* Shimmer glare effect for "Getting ready..." */
+@keyframes text-glare {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.animate-text-glare {
+  background: linear-gradient(
+    90deg,
+    rgba(142, 142, 147, 0.45) 0%,
+    rgba(255, 255, 255, 0.95) 50%,
+    rgba(142, 142, 147, 0.45) 100%
+  );
+  background-size: 200% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: text-glare 2.4s infinite linear;
 }
