@@ -5,7 +5,7 @@ import { ThemeProvider } from "@/components/ThemeProvider";
 import Script from "next/script";
 import "./globals.css";
 
-const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_ID || "G-XZB4ZZY7HJ";
+const GA_MEASUREMENT_ID = process.env.NEXT_PUBLIC_GA_ID;
 
 const lexend = Lexend({
 
