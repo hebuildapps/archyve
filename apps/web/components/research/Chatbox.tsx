@@ -17,6 +17,7 @@ import {
 import { AssistantMarkdown } from './AssistantMarkdown';
 import { CEREBRAS_MODELS, CerebrasModel, DEFAULT_CEREBRAS_MODEL } from '@/lib/ai/cerebras';
 import { NormalizedPaper, ResearchResult } from '@archyve/shared';
+import { supabaseClient } from '@/lib/db/supabaseClient';
 
 export interface ChatMessage {
   id: string;
@@ -39,6 +40,22 @@ interface ChatboxProps {
 }
 
 type ChatboxViewMode = 'bar' | 'box' | 'sidebar';
+
+async function computeConversationHash(userId: string, paperIdentifier: string): Promise<string> {
+  const data = new TextEncoder().encode(`${userId}:${paperIdentifier}`);
+  if (typeof crypto !== 'undefined' && crypto.subtle) {
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
+  }
+  let hash = 0;
+  const str = `${userId}:${paperIdentifier}`;
+  for (let i = 0; i < str.length; i++) {
+    hash = (hash << 5) - hash + str.charCodeAt(i);
+    hash |= 0;
+  }
+  return `h_${Math.abs(hash)}`;
+}
 
 export function Chatbox({
   paper,
@@ -70,6 +87,11 @@ export function Chatbox({
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  // History loading and conversation hash
+  const [isLoadingHistory, setIsLoadingHistory] = useState(true);
+  const [conversationHash, setConversationHash] = useState<string | null>(null);
+  const [showMediaWarning, setShowMediaWarning] = useState(false);
 
   // Staged attachments
   const [quotedContext, setQuotedContext] = useState<string | null>(null);
@@ -104,6 +126,104 @@ export function Chatbox({
       localStorage.setItem('archyve_welcome_dismissed', 'true');
     }
   };
+
+  // Load user-specific hashed conversation history on mount/paper change
+  useEffect(() => {
+    let isMounted = true;
+    async function loadHistory() {
+      setIsLoadingHistory(true);
+      try {
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        const userId = session?.user?.id || 'guest_user';
+        const paperKey =
+          paper?.doi ||
+          paper?.url ||
+          (typeof window !== 'undefined' ? window.location.pathname : 'default_paper');
+        const hash = await computeConversationHash(userId, paperKey);
+
+        if (!isMounted) return;
+        setConversationHash(hash);
+
+        let loadedMessages: ChatMessage[] = [];
+
+        // 1. Fetch from Supabase chat_conversations if logged in
+        if (session?.user?.id && supabaseClient?.from) {
+          try {
+            const { data, error } = await supabaseClient
+              .from('chat_conversations')
+              .select('messages')
+              .eq('conversation_hash', hash)
+              .maybeSingle();
+
+            if (!error && data?.messages && Array.isArray(data.messages)) {
+              loadedMessages = data.messages;
+            }
+          } catch (dbErr) {
+            console.warn('Supabase chat retrieval warning:', dbErr);
+          }
+        }
+
+        // 2. Fallback to localStorage
+        if (loadedMessages.length === 0 && typeof window !== 'undefined') {
+          const cached = localStorage.getItem(`archyve_chat_${hash}`);
+          if (cached) {
+            try {
+              const parsed = JSON.parse(cached);
+              if (Array.isArray(parsed)) loadedMessages = parsed;
+            } catch {}
+          }
+        }
+
+        if (isMounted) {
+          if (loadedMessages.length > 0) {
+            setMessages(loadedMessages);
+          }
+          // Brief pleasant delay so "Getting earlier messages..." and text glare transition smoothly
+          setTimeout(() => {
+            if (isMounted) setIsLoadingHistory(false);
+          }, 350);
+        }
+      } catch (err) {
+        console.warn('Failed to load conversation history:', err);
+        if (isMounted) setIsLoadingHistory(false);
+      }
+    }
+
+    loadHistory();
+    return () => {
+      isMounted = false;
+    };
+  }, [paper?.doi, paper?.url]);
+
+  // Persist conversation to Supabase and localStorage
+  const persistConversation = useCallback(
+    async (msgs: ChatMessage[]) => {
+      if (!conversationHash) return;
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(`archyve_chat_${conversationHash}`, JSON.stringify(msgs));
+      }
+      try {
+        const { data: { session } } = await supabaseClient.auth.getSession();
+        if (session?.user?.id && supabaseClient?.from) {
+          await supabaseClient.from('chat_conversations').upsert(
+            {
+              conversation_hash: conversationHash,
+              user_id: session.user.id,
+              paper_id: paper?.doi || paper?.url || 'current_paper',
+              paper_title: paper?.title || 'Research Paper',
+              model_id: selectedModelId,
+              messages: msgs,
+              updated_at: new Date().toISOString(),
+            },
+            { onConflict: 'conversation_hash' }
+          );
+        }
+      } catch (err) {
+        console.warn('Chat persistence warning:', err);
+      }
+    },
+    [conversationHash, paper?.doi, paper?.url, paper?.title, selectedModelId]
+  );
 
   // Close model menu when clicking outside
   useEffect(() => {
@@ -231,8 +351,11 @@ export function Chatbox({
 
   // Send message
   const handleSendMessage = async (textToSend?: string) => {
-    const text = (textToSend !== undefined ? textToSend : inputValue).trim();
-    if ((!text && !stagedImage) || isLoading) return;
+    let text = (textToSend !== undefined ? textToSend : inputValue).trim();
+    if (!text && quotedContext) {
+      text = 'Please explain and analyze this highlighted excerpt in the context of the paper.';
+    }
+    if ((!text && !stagedImage && !quotedContext) || isLoading || isLoadingHistory) return;
 
     // Ensure view mode is open
     if (viewMode === 'bar') {
@@ -280,15 +403,14 @@ export function Chatbox({
     setIsLoading(true);
 
     const assistantMsgId = `assistant-${Date.now()}`;
-    setMessages((prev) => [
-      ...prev,
-      {
-        id: assistantMsgId,
-        role: 'assistant',
-        content: '',
-        timestamp: Date.now(),
-      },
-    ]);
+    const initialAssistantMsg: ChatMessage = {
+      id: assistantMsgId,
+      role: 'assistant',
+      content: '',
+      timestamp: Date.now(),
+    };
+    setMessages((prev) => [...prev, initialAssistantMsg]);
+    persistConversation([...newMessages, initialAssistantMsg]);
 
     try {
       const res = await fetch('/api/assistant/chat', {
@@ -347,6 +469,10 @@ export function Chatbox({
       );
     } finally {
       setIsLoading(false);
+      setMessages((finalMessages) => {
+        persistConversation(finalMessages);
+        return finalMessages;
+      });
       setTimeout(() => textareaRef.current?.focus(), 50);
     }
   };
@@ -482,9 +608,18 @@ export function Chatbox({
           ref={scrollAreaRef}
           className="min-h-0 flex-1 space-y-4 overflow-y-auto px-4 py-2 text-[13px]"
         >
+          {/* Loading earlier messages pill */}
+          {isLoadingHistory && (
+            <div className="flex items-center justify-center my-3 animate-in fade-in duration-200">
+              <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/6 px-3.5 py-1 text-[11.5px] font-medium text-[#c8c8cc] shadow-xs backdrop-blur-xs">
+                <Loader2 className="h-3 w-3 animate-spin text-[#d4d4d8]" strokeWidth={2} />
+                Getting earlier messages...
+              </span>
+            </div>
+          )}
 
           {/* Quick suggestions when empty */}
-          {messages.length === 0 && !showWelcome && (
+          {messages.length === 0 && !showWelcome && !isLoadingHistory && (
             <div className="h-full flex flex-col justify-end pb-2 space-y-2 select-none">
               <span className="text-[11px] font-medium tracking-[-0.01em] text-[#8e8e93]">
                 Suggested queries
@@ -601,174 +736,259 @@ export function Chatbox({
         )}
 
         <div className={`shrink-0 select-none ${isOpen ? 'mx-3 mb-3' : ''}`}>
-          {showWelcome && !isSidebar && (
-            <div className="archyve-glass-panel relative rounded-t-[22px] border-b-0 px-[18px] pb-3.5 pt-[15px] text-left shadow-none">
-              <div className="flex items-start justify-between gap-4">
-                <h4 className="pt-px text-[15px] font-medium leading-none tracking-[-0.015em] text-[#f4f4f5]">
-                  Welcome to Archyve!
-                </h4>
-                <button
-                  type="button"
-                  onClick={handleDismissWelcome}
-                  className="-mr-1 -mt-0.5 flex h-6 w-6 shrink-0 cursor-pointer items-center justify-center rounded-md text-[#8d8d92] transition-colors hover:text-[#f4f4f5]"
-                  title="Dismiss welcome message"
-                  aria-label="Dismiss welcome message"
-                >
-                  <X className="h-[15px] w-[15px]" strokeWidth={1.75} />
-                </button>
-              </div>
-              <p className="mt-[9px] text-[13px] font-normal leading-[1.45] tracking-[-0.006em] text-[#b7b7bc]">
-                Archyve helps you read and dissect academic papers—and supports your research with
-                explanations, methodology breakdowns, citations, and summaries.
-              </p>
-            </div>
-          )}
-          {/* Staged attachments preview */}
-          {(quotedContext || stagedImage) && (
-            <div className="flex flex-wrap items-center gap-1.5 pb-2">
-              {quotedContext && (
-                <div className="inline-flex max-w-[280px] items-center gap-1 rounded-full border border-white/10 bg-white/6 px-2.5 py-0.5 text-[11px] font-medium text-[#d4d4d8]">
-                  <Quote className="h-3 w-3 shrink-0 text-[#a1a1aa]" strokeWidth={1.75} />
-                  <span className="truncate">"{quotedContext}"</span>
-                  <button
-                    type="button"
-                    onClick={() => setQuotedContext(null)}
-                    className="hover:opacity-75 cursor-pointer ml-1"
-                  >
-                    <X className="h-3 w-3" strokeWidth={1.75} />
-                  </button>
-                </div>
-              )}
-
-              {stagedImage && (
-                <div className="inline-flex max-w-[240px] items-center gap-1.5 rounded-full border border-white/10 bg-white/6 pl-1 pr-2 py-0.5 text-[11px] font-medium text-[#e4e4e7] backdrop-blur-xs">
-                  {stagedImage.previewUrl ? (
-                    <img
-                      src={stagedImage.previewUrl}
-                      alt={stagedImage.file.name}
-                      className="h-4 w-4 rounded-[4px] object-cover shrink-0 border border-white/20"
-                    />
-                  ) : (
-                    <ImageIcon className="h-3 w-3 shrink-0 text-[#a1a1aa]" strokeWidth={1.75} />
-                  )}
-                  <span className="truncate">{stagedImage.file.name}</span>
-                  <button
-                    type="button"
-                    onClick={removeStagedImage}
-                    className="hover:text-white text-[#a1a1aa] transition-colors cursor-pointer ml-0.5"
-                    aria-label="Remove image"
-                  >
-                    <X className="h-3 w-3" strokeWidth={1.75} />
-                  </button>
-                </div>
-              )}
+          {/* Pill when minimized in bar mode */}
+          {isLoadingHistory && !isOpen && (
+            <div className="flex items-center justify-center pb-2 animate-in fade-in duration-200">
+              <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/6 px-3.5 py-1 text-[11.5px] font-medium text-[#c8c8cc] shadow-xs backdrop-blur-xs">
+                <Loader2 className="h-3 w-3 animate-spin text-[#d4d4d8]" strokeWidth={2} />
+                Getting earlier messages...
+              </span>
             </div>
           )}
 
-          {/* Main Input Box container */}
+          {/* Unified Composer Container matching Prism reference */}
           <div
-            className={`archyve-glass-input flex min-h-[92px] cursor-text flex-col justify-between px-2.5 pb-2.5 pt-3 transition-colors ${showWelcome && !isSidebar ? 'rounded-b-[26px] rounded-t-none' : 'rounded-[26px]'}`}
+            className="archyve-glass-composer relative rounded-[28px] p-3 text-left shadow-2xl transition-all"
             onClick={() => textareaRef.current?.focus()}
           >
-            <textarea
-              ref={textareaRef}
-              value={inputValue}
-              onChange={(e) => setInputValue(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="Ask anything"
-              rows={1}
-              className="w-full resize-none border-0 bg-transparent px-1.5 py-0 text-[15px] leading-snug tracking-[-0.011em] text-[#f4f4f5] placeholder:text-[#8e8e93] focus:outline-hidden focus:ring-0 max-h-32"
-            />
-
-            {/* Bottom Row inside input box: + on left, Model Picker + White Send Button on right */}
-            <div className="flex items-center justify-between pt-1.5">
-              {/* Left: + icon button for attachments */}
-              <div className="flex items-center">
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept=".png,.jpg,.jpeg,image/png,image/jpeg"
-                  onChange={handleFileChange}
-                  className="hidden"
-                  id="file-upload"
-                />
-                <label
-                  htmlFor="file-upload"
-                  className="flex h-8 w-8 cursor-pointer items-center justify-center rounded-lg text-[#c8c8cc] transition-colors hover:bg-white/6 hover:text-white"
-                  title="Attach file (PNG, JPG ≤5MB)"
-                >
-                  <Plus className="h-[17px] w-[17px]" strokeWidth={1.6} />
-                </label>
-              </div>
-
-              {/* Right: Model Picker Dropdown & White Send Button */}
-              <div className="relative flex items-center gap-1">
-                {/* Model Picker Trigger */}
-                <div ref={modelMenuRef} className="relative">
+            {/* Dismissible Compact Welcome Area */}
+            {showWelcome && !isSidebar && (
+              <div className="mb-2.5 px-1 pt-0.5">
+                <div className="flex items-center justify-between gap-3">
+                  <h4 className="text-[13px] font-semibold tracking-[-0.015em] text-[#f4f4f5]">
+                    Welcome to Archyve!
+                  </h4>
                   <button
                     type="button"
-                    onClick={() => setIsModelMenuOpen(!isModelMenuOpen)}
-                    className="inline-flex h-8 cursor-pointer select-none items-center gap-1 rounded-lg px-2 font-sans text-[13px] font-medium tracking-[-0.01em] text-[#d4d4d8] transition-colors hover:bg-white/6 hover:text-white"
+                    onClick={handleDismissWelcome}
+                    className="-mr-0.5 -mt-0.5 flex h-5 w-5 shrink-0 cursor-pointer items-center justify-center rounded-md text-[#8d8d92] transition-colors hover:text-[#f4f4f5]"
+                    title="Dismiss welcome message"
+                    aria-label="Dismiss welcome message"
                   >
-                    <span>{currentModel.shortName}</span>
-                    <ChevronDown className="h-3.5 w-3.5 text-[#9a9aa0]" strokeWidth={1.75} />
+                    <X className="h-3.5 w-3.5" strokeWidth={1.75} />
+                  </button>
+                </div>
+                <p className="mt-1 text-[12px] font-normal leading-relaxed tracking-[-0.005em] text-[#9a9aa0]">
+                  Archyve helps you read and dissect academic papers—and supports your research with explanations, methodology breakdowns, citations, and summaries.
+                </p>
+              </div>
+            )}
+
+            {/* Staged attachments preview */}
+            {(quotedContext || stagedImage) && (
+              <div className="flex flex-wrap items-center gap-1.5 pb-2 px-1">
+                {quotedContext && (
+                  <div className="inline-flex max-w-[280px] items-center gap-1 rounded-full border border-white/10 bg-white/6 px-2.5 py-0.5 text-[11px] font-medium text-[#d4d4d8]">
+                    <Quote className="h-3 w-3 shrink-0 text-[#a1a1aa]" strokeWidth={1.75} />
+                    <span className="truncate">"{quotedContext}"</span>
+                    <button
+                      type="button"
+                      onClick={() => setQuotedContext(null)}
+                      className="hover:opacity-75 cursor-pointer ml-1"
+                    >
+                      <X className="h-3 w-3" strokeWidth={1.75} />
+                    </button>
+                  </div>
+                )}
+
+                {stagedImage && (
+                  <div className="inline-flex max-w-[240px] items-center gap-1.5 rounded-full border border-white/10 bg-white/6 pl-1 pr-2 py-0.5 text-[11px] font-medium text-[#e4e4e7] backdrop-blur-xs">
+                    {stagedImage.previewUrl ? (
+                      <img
+                        src={stagedImage.previewUrl}
+                        alt={stagedImage.file.name}
+                        className="h-4 w-4 rounded-[4px] object-cover shrink-0 border border-white/20"
+                      />
+                    ) : (
+                      <ImageIcon className="h-3 w-3 shrink-0 text-[#a1a1aa]" strokeWidth={1.75} />
+                    )}
+                    <span className="truncate">{stagedImage.file.name}</span>
+                    <button
+                      type="button"
+                      onClick={removeStagedImage}
+                      className="hover:text-white text-[#a1a1aa] transition-colors cursor-pointer ml-0.5"
+                      aria-label="Remove image"
+                    >
+                      <X className="h-3 w-3" strokeWidth={1.75} />
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Inner Message Composer Input Box */}
+            <div className="archyve-glass-inner flex min-h-[76px] cursor-text flex-col justify-between rounded-[20px] px-3 pb-2 pt-2.5 transition-colors">
+              <div className="relative w-full">
+                {isLoadingHistory ? (
+                  <div className="flex h-6 items-center px-0.5 select-none">
+                    <span className="animate-text-glare text-[13.5px] font-sans font-medium tracking-tight">
+                      Getting ready...
+                    </span>
+                  </div>
+                ) : (
+                  <textarea
+                    ref={textareaRef}
+                    value={inputValue}
+                    onChange={(e) => setInputValue(e.target.value)}
+                    onKeyDown={handleKeyDown}
+                    disabled={isLoading || isLoadingHistory}
+                    placeholder={
+                      quotedContext
+                        ? 'Ask about this highlighted text...'
+                        : 'Ask anything'
+                    }
+                    rows={1}
+                    className="w-full resize-none border-0 bg-transparent p-0 text-[13.5px] leading-snug tracking-[-0.01em] text-[#f4f4f5] placeholder:text-[#8e8e93] focus:outline-hidden focus:ring-0 max-h-28 disabled:cursor-not-allowed disabled:opacity-50"
+                  />
+                )}
+              </div>
+
+              {/* Bottom Row inside input box: + on left, Model Picker + Wave/Action + White Send Button on right */}
+              <div className="flex items-center justify-between pt-1">
+                {/* Left: + icon button for attachments */}
+                <div className="relative flex items-center">
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".png,.jpg,.jpeg,image/png,image/jpeg"
+                    onChange={handleFileChange}
+                    className="hidden"
+                    id="file-upload"
+                    disabled={!currentModel.supportsMedia || isLoading || isLoadingHistory}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!currentModel.supportsMedia) {
+                        setShowMediaWarning(true);
+                        setTimeout(() => setShowMediaWarning(false), 4500);
+                        return;
+                      }
+                      fileInputRef.current?.click();
+                    }}
+                    disabled={isLoading || isLoadingHistory}
+                    className={`flex h-7 w-7 cursor-pointer items-center justify-center rounded-lg transition-colors ${
+                      !currentModel.supportsMedia
+                        ? 'text-[#8e8e93]/50 hover:text-[#8e8e93] hover:bg-white/4'
+                        : 'text-[#9a9aa0] hover:bg-white/6 hover:text-white'
+                    }`}
+                    title={
+                      currentModel.supportsMedia
+                        ? 'Attach file (PNG, JPG ≤5MB)'
+                        : `${currentModel.name} is text-only (Image upload disabled)`
+                    }
+                  >
+                    <Plus className="h-4 w-4" strokeWidth={1.8} />
                   </button>
 
-                  {/* Model Picker Popover Menu */}
-                  {isModelMenuOpen && (
-                    <div
-                      style={{
-                        position: 'absolute',
-                        bottom: 'calc(100% + 8px)',
-                        right: 0,
-                        zIndex: 9999,
-                      }}
-                      className="archyve-glass-menu absolute bottom-full right-0 z-[9999] mb-0 w-[248px] rounded-xl p-1.5 text-left shadow-2xl animate-in fade-in zoom-in-95 duration-150"
-                    >
-                      <div className="mb-1 border-b border-white/8 px-2 py-1 text-[11px] font-medium tracking-[-0.01em] text-[#8e8e93]">
-                        Models
-                      </div>
-                      <div className="space-y-0.5">
-                        {CEREBRAS_MODELS.map((m) => {
-                          const isSelected = m.id === selectedModelId;
-                          return (
-                            <button
-                              key={m.id}
-                              type="button"
-                              onClick={() => {
-                                setSelectedModelId(m.id);
-                                setIsModelMenuOpen(false);
-                              }}
-                              className={`flex w-full cursor-pointer items-center justify-between rounded-lg px-2.5 py-1.5 text-left text-[13px] transition-colors ${isSelected
-                                ? 'bg-white/8 font-medium text-white'
-                                : 'text-[#d4d4d8] hover:bg-white/6 hover:text-white'
-                                }`}
-                            >
-                              <div className="flex flex-col">
-                                <span className="font-sans">{m.name}</span>
-                                <span className="text-[11px] text-[#8e8e93]">
-                                  {m.parameters} · {m.speed}
-                                </span>
-                              </div>
-                              {isSelected && <Check className="h-3.5 w-3.5 shrink-0 text-[#e4e4e7]" strokeWidth={1.75} />}
-                            </button>
-                          );
-                        })}
-                      </div>
+                  {/* Media Guardrail Tooltip Warning */}
+                  {showMediaWarning && (
+                    <div className="absolute bottom-[calc(100%+8px)] left-0 z-[9999] flex items-center gap-2 rounded-xl border border-amber-500/25 bg-[#1a1714]/95 px-3 py-1.5 text-[11.5px] text-amber-200 shadow-xl backdrop-blur-md animate-in fade-in slide-in-from-bottom-2 duration-150 whitespace-nowrap">
+                      <span>⚠️ <b>{currentModel.name}</b> does not support image analysis.</span>
+                      <button
+                        type="button"
+                        onClick={() => setShowMediaWarning(false)}
+                        className="text-amber-300 hover:text-white ml-0.5 cursor-pointer"
+                        aria-label="Dismiss media warning"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
                     </div>
                   )}
                 </div>
 
-                {/* White Circular Send Button with Dark Arrow Up (Image 1 & 3 exact style) */}
-                <button
-                  type="button"
-                  onClick={() => handleSendMessage()}
-                  disabled={(!inputValue.trim() && !stagedImage) || isLoading}
-                  className="relative z-10 flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-full bg-white text-black shadow-[0_1px_2px_rgba(0,0,0,0.35)] transition-all hover:bg-[#f4f4f5] active:scale-95 disabled:cursor-not-allowed disabled:opacity-30"
-                  title="Send (Enter)"
-                >
-                  <ArrowUp className="h-4 w-4" strokeWidth={2.25} />
-                </button>
+                {/* Right: Model Picker Dropdown & White Send Button */}
+                <div className="relative flex items-center gap-1.5">
+                  {/* Model Picker Trigger */}
+                  <div ref={modelMenuRef} className="relative">
+                    <button
+                      type="button"
+                      onClick={() => setIsModelMenuOpen(!isModelMenuOpen)}
+                      className="inline-flex h-7 cursor-pointer select-none items-center gap-1 rounded-lg px-2 font-sans text-[12px] font-medium tracking-[-0.01em] text-[#d4d4d8] transition-colors hover:bg-white/6 hover:text-white"
+                    >
+                      <span className="font-semibold text-white/90">{currentModel.shortName}</span>
+                      <ChevronDown className="h-3 w-3 text-[#9a9aa0]" strokeWidth={2} />
+                    </button>
+
+                    {/* Model Picker Popover Menu */}
+                    {isModelMenuOpen && (
+                      <div
+                        style={{
+                          position: 'absolute',
+                          bottom: 'calc(100% + 8px)',
+                          right: 0,
+                          zIndex: 9999,
+                        }}
+                        className="archyve-glass-menu absolute bottom-full right-0 z-[9999] mb-0 w-[240px] rounded-xl p-1.5 text-left shadow-2xl animate-in fade-in zoom-in-95 duration-150"
+                      >
+                        <div className="mb-1 border-b border-white/8 px-2 py-1 text-[10.5px] font-medium tracking-wide uppercase text-[#8e8e93]">
+                          Models
+                        </div>
+                        <div className="space-y-0.5">
+                          {CEREBRAS_MODELS.map((m) => {
+                            const isSelected = m.id === selectedModelId;
+                            return (
+                              <button
+                                key={m.id}
+                                type="button"
+                                onClick={() => {
+                                  setSelectedModelId(m.id);
+                                  setIsModelMenuOpen(false);
+                                }}
+                                className={`flex w-full cursor-pointer items-center justify-between rounded-lg px-2.5 py-1.5 text-left text-[12.5px] transition-colors ${isSelected
+                                  ? 'bg-white/8 font-medium text-white'
+                                  : 'text-[#d4d4d8] hover:bg-white/6 hover:text-white'
+                                  }`}
+                              >
+                                <div className="flex flex-col">
+                                  <span className="font-sans font-medium">{m.name}</span>
+                                  <span className="text-[10.5px] text-[#8e8e93]">
+                                    {m.parameters} · {m.speed}
+                                  </span>
+                                </div>
+                                {isSelected && <Check className="h-3.5 w-3.5 shrink-0 text-[#e4e4e7]" strokeWidth={1.75} />}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Audio indicator icon matching reference screenshot */}
+                  <div
+                    className="flex h-6 w-5 items-center justify-center text-[#8e8e93]"
+                    title="Assistant voice / context ready"
+                  >
+                    <svg
+                      width="12"
+                      height="12"
+                      viewBox="0 0 16 16"
+                      fill="currentColor"
+                      className="opacity-75"
+                    >
+                      <rect x="2" y="5" width="2" height="6" rx="1" />
+                      <rect x="7" y="2" width="2" height="12" rx="1" />
+                      <rect x="12" y="5" width="2" height="6" rx="1" />
+                    </svg>
+                  </div>
+
+                  {/* White Circular Send Button with Dark Arrow Up */}
+                  <button
+                    type="button"
+                    onClick={() => handleSendMessage()}
+                    disabled={
+                      (!inputValue.trim() && !stagedImage && !quotedContext) ||
+                      isLoading ||
+                      isLoadingHistory
+                    }
+                    className="relative z-10 flex h-7 w-7 shrink-0 cursor-pointer items-center justify-center rounded-full bg-white text-black shadow-[0_1px_3px_rgba(0,0,0,0.3)] transition-all hover:bg-[#f4f4f5] active:scale-95 disabled:cursor-not-allowed disabled:opacity-25"
+                    title="Send (Enter)"
+                    aria-label="Send message"
+                  >
+                    <ArrowUp className="h-3.5 w-3.5" strokeWidth={2.5} />
+                  </button>
+                </div>
               </div>
             </div>
           </div>
