@@ -773,7 +773,7 @@ export function Chatbox({
 
           {/* Unified Composer Container matching Prism reference */}
           <div
-            className={`archyve-glass-composer relative rounded-[28px] p-3 text-left shadow-2xl transition-all ${
+            className={`archyve-glass-composer relative rounded-[26px] p-2 m-2 shadow-sm flex flex-col items-stretch text-left transition-all ${
               !isOpen ? 'cursor-pointer hover:border-white/20' : ''
             }`}
             onClick={() => {
