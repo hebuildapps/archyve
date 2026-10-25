@@ -17,10 +17,10 @@ export class ArxivAdapter implements PublisherAdapter {
   parseUrl(url: string): { publisherId: string | null; doi: string | null } {
     try {
       const parsedUrl = new URL(url);
-      // Handles /abs/2301.12345 or /pdf/2301.12345.pdf
-      const idMatch = parsedUrl.pathname.match(/\/(abs|pdf)\/([0-9.]+)/);
+      // Handles modern IDs (1706.03762, 1706.03762v7, /pdf/1706.03762.pdf) and classic IDs (math/0001001, math.PR/0001001)
+      const idMatch = parsedUrl.pathname.match(/\/(abs|pdf)\/(?:([a-z\-]+(?:\.[a-z\-]+)?\/\d{7})|(\d{4}\.\d{4,5}))(?:v\d+)?(?:\.pdf)?$/i);
       if (idMatch) {
-        const arxivId = idMatch[2];
+        const arxivId = idMatch[2] || idMatch[3];
         return {
           publisherId: arxivId,
           doi: `10.48550/arXiv.${arxivId}`, // arXiv DOI prefix
@@ -52,17 +52,20 @@ export class ArxivAdapter implements PublisherAdapter {
 
       const xml = await response.text();
 
-      // Simple XML parsing using regex (to avoid adding hefty XML parsing packages)
-      const titleMatch = xml.match(/<title>([\s\S]*?)<\/title>/);
-      const summaryMatch = xml.match(/<summary>([\s\S]*?)<\/summary>/);
-      const publishedMatch = xml.match(/<published>([\s\S]*?)<\/published>/);
-      const doiMatch = xml.match(/<arxiv:doi[^>]*>([\s\S]*?)<\/arxiv:doi>/);
+      // Locate the <entry>...</entry> block to avoid matching top-level <feed><title>
+      const entryMatch = xml.match(/<entry>([\s\S]*?)<\/entry>/);
+      const entryXml = entryMatch ? entryMatch[1] : xml;
 
-      // Collect all authors
+      const titleMatch = entryXml.match(/<title>([\s\S]*?)<\/title>/);
+      const summaryMatch = entryXml.match(/<summary>([\s\S]*?)<\/summary>/);
+      const publishedMatch = entryXml.match(/<published>([\s\S]*?)<\/published>/);
+      const doiMatch = entryXml.match(/<arxiv:doi[^>]*>([\s\S]*?)<\/arxiv:doi>/);
+
+      // Collect all authors within the entry
       const authorList: string[] = [];
       const authorRegex = /<author>([\s\S]*?)<\/author>/g;
       let authorBlock;
-      while ((authorBlock = authorRegex.exec(xml)) !== null) {
+      while ((authorBlock = authorRegex.exec(entryXml)) !== null) {
         const nameMatch = authorBlock[1].match(/<name>([\s\S]*?)<\/name>/);
         if (nameMatch) {
           authorList.push(nameMatch[1].trim());
