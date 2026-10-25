@@ -8,7 +8,10 @@ export class SpringerAdapter implements PublisherAdapter {
   supports(url: string): boolean {
     try {
       const parsedUrl = new URL(url);
-      return parsedUrl.hostname.includes('link.springer.com');
+      return (
+        parsedUrl.hostname.includes('link.springer.com') &&
+        /\/(article|chapter|referenceworkentry)\//.test(parsedUrl.pathname)
+      );
     } catch {
       return false;
     }
