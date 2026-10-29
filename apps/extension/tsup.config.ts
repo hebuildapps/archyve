@@ -6,6 +6,7 @@ export default defineConfig({
     content: 'src/content/detector.ts',
     options: 'src/options.ts',
     welcome: 'src/welcome.ts',
+    popup: 'src/popup.ts',
   },
   outDir: 'dist',
   format: ['iife'],
