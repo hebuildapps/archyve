@@ -7,6 +7,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const extensionRoot = path.resolve(__dirname, '..');
 const distDir = path.join(extensionRoot, 'dist');
+const distEdgeDir = path.join(distDir, 'edge');
 const distChromeDir = path.join(distDir, 'chrome');
 const distFirefoxDir = path.join(distDir, 'firefox');
 const packagesDir = path.join(extensionRoot, 'packages');
@@ -16,9 +17,10 @@ const manifestPath = path.join(extensionRoot, 'manifest.json');
 const baseManifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
 
 // Common assets
-const staticFiles = ['options.html', 'welcome.html'];
+const staticFiles = ['options.html', 'welcome.html', 'popup.html'];
 
 // Ensure directories exist
+fs.mkdirSync(distEdgeDir, { recursive: true });
 fs.mkdirSync(distChromeDir, { recursive: true });
 fs.mkdirSync(distFirefoxDir, { recursive: true });
 fs.mkdirSync(packagesDir, { recursive: true });
@@ -40,7 +42,18 @@ function copyStaticAssets(targetDir) {
 }
 
 function copyCompiledJs(targetDir) {
-  const files = ['background.js', 'background.js.map', 'content.js', 'content.js.map', 'options.js', 'options.js.map', 'welcome.js', 'welcome.js.map'];
+  const files = [
+    'background.js',
+    'background.js.map',
+    'content.js',
+    'content.js.map',
+    'options.js',
+    'options.js.map',
+    'welcome.js',
+    'welcome.js.map',
+    'popup.js',
+    'popup.js.map'
+  ];
   for (const file of files) {
     const src = path.join(distDir, file);
     if (fs.existsSync(src)) {
@@ -49,7 +62,16 @@ function copyCompiledJs(targetDir) {
   }
 }
 
-// 1. Chrome Dist & Manifest
+// 1. Edge Dist & Manifest
+const edgeManifest = { ...baseManifest };
+fs.writeFileSync(
+  path.join(distEdgeDir, 'manifest.json'),
+  JSON.stringify(edgeManifest, null, 2)
+);
+copyStaticAssets(distEdgeDir);
+copyCompiledJs(distEdgeDir);
+
+// 2. Chrome Dist & Manifest
 const chromeManifest = { ...baseManifest };
 fs.writeFileSync(
   path.join(distChromeDir, 'manifest.json'),
@@ -58,7 +80,7 @@ fs.writeFileSync(
 copyStaticAssets(distChromeDir);
 copyCompiledJs(distChromeDir);
 
-// 2. Firefox Dist & Manifest
+// 3. Firefox Dist & Manifest
 const firefoxManifest = {
   ...baseManifest,
   background: {
@@ -79,10 +101,11 @@ copyStaticAssets(distFirefoxDir);
 copyCompiledJs(distFirefoxDir);
 
 console.log('✓ Prepared unpacked folders:');
+console.log('   - Edge: dist/edge');
 console.log('   - Chrome: dist/chrome');
 console.log('   - Firefox: dist/firefox');
 
-// 3. Create zip packages using cross-platform Node JS / system zip
+// 4. Create zip packages using cross-platform zip / PowerShell fallback
 function createZip(sourceDir, zipName) {
   const outputPath = path.join(packagesDir, zipName);
   if (fs.existsSync(outputPath)) {
@@ -92,10 +115,16 @@ function createZip(sourceDir, zipName) {
     execSync(`cd "${sourceDir}" && zip -r -q "${outputPath}" ./*`);
     console.log(`✓ Generated ${zipName} (${outputPath})`);
   } catch (err) {
-    console.warn(`System zip failed for ${zipName}:`, err.message);
+    try {
+      execSync(`powershell -NoProfile -Command "Compress-Archive -Path '${sourceDir}/*' -DestinationPath '${outputPath}' -Force"`);
+      console.log(`✓ Generated ${zipName} via PowerShell (${outputPath})`);
+    } catch (psErr) {
+      console.warn(`Packaging failed for ${zipName}:`, psErr.message);
+    }
   }
 }
 
+createZip(distEdgeDir, 'archyve-v2-edge.zip');
 createZip(distChromeDir, 'archyve-v2-chrome.zip');
 createZip(distFirefoxDir, 'archyve-v2-firefox.zip');
-console.log('✓ Packaging complete!');
+console.log('✓ All packaging complete!');
