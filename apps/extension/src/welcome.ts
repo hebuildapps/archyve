@@ -40,20 +40,21 @@ document.addEventListener('DOMContentLoaded', () => {
   let isSignUpMode = false;
 
   // Toggle Tabs
+  const registerView = document.getElementById('register-view') as HTMLDivElement;
   if (tabSignIn && tabSignUp) {
     tabSignIn.addEventListener('click', () => {
-      isSignUpMode = false;
       tabSignIn.classList.add('active');
       tabSignUp.classList.remove('active');
-      authSubmitText.textContent = 'Sign In';
+      if (authForm) authForm.style.display = 'flex';
+      if (registerView) registerView.style.display = 'none';
       hideStatus();
     });
 
     tabSignUp.addEventListener('click', () => {
-      isSignUpMode = true;
       tabSignUp.classList.add('active');
       tabSignIn.classList.remove('active');
-      authSubmitText.textContent = 'Create Account';
+      if (authForm) authForm.style.display = 'none';
+      if (registerView) registerView.style.display = 'block';
       hideStatus();
     });
   }
@@ -122,13 +123,11 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!email || !password) return;
 
       authSubmitBtn.disabled = true;
-      authSubmitText.textContent = isSignUpMode ? 'Creating account...' : 'Signing in...';
+      authSubmitText.textContent = 'Signing in...';
       hideStatus();
 
       try {
-        const endpoint = isSignUpMode
-          ? `${SUPABASE_URL}/auth/v1/signup`
-          : `${SUPABASE_URL}/auth/v1/token?grant_type=password`;
+        const endpoint = `${SUPABASE_URL}/auth/v1/token?grant_type=password`;
 
         const res = await fetch(endpoint, {
           method: 'POST',
@@ -145,22 +144,16 @@ document.addEventListener('DOMContentLoaded', () => {
           throw new Error(data.error_description || data.msg || data.message || 'Authentication failed');
         }
 
-        if (isSignUpMode) {
-          showStatus('Registration successful! Please check your email to confirm or sign in.', false);
-          isSignUpMode = false;
-          tabSignIn.click();
-        } else {
-          // Store session
-          chrome.storage.local.set({ userSession: data }, () => {
-            updateLoggedInState(data.user?.email || email);
-            showStatus('Signed in successfully!', false);
-          });
-        }
+        // Store session
+        chrome.storage.local.set({ userSession: data }, () => {
+          updateLoggedInState(data.user?.email || email);
+          showStatus('Signed in successfully!', false);
+        });
       } catch (err: any) {
         showStatus(err.message || 'Error occurred during authentication.', true);
       } finally {
         authSubmitBtn.disabled = false;
-        authSubmitText.textContent = isSignUpMode ? 'Create Account' : 'Sign In';
+        authSubmitText.textContent = 'Sign In';
       }
     });
   }

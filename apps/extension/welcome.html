@@ -208,6 +208,25 @@
       gap: 5px;
     }
 
+    .form-field-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .forgot-link {
+      font-size: 10px;
+      font-family: var(--font-mono);
+      color: var(--text-dim);
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+
+    .forgot-link:hover {
+      color: var(--brand-lime);
+      text-decoration: underline;
+    }
+
     .form-field label {
       font-size: 11px;
       font-family: var(--font-mono);
@@ -352,8 +371,7 @@
       border-color: rgba(239, 68, 68, 0.4);
     }
 
-    /* SUBSECTION BELOW LEFT: Browser Install Strip */
-    .browsers-strip {
+    .portals-strip {
       background: var(--bg-card);
       border: 1px solid var(--border);
       border-radius: 14px;
@@ -364,53 +382,44 @@
       gap: 12px;
     }
 
-    .browsers-title {
+    .portals-title {
       display: flex;
       flex-direction: column;
     }
 
-    .browsers-title span:first-child {
+    .portals-title span:first-child {
       font-size: 11px;
       font-weight: 600;
       color: #ffffff;
     }
 
-    .browsers-title span:last-child {
+    .portals-title span:last-child {
       font-size: 10px;
       font-family: var(--font-mono);
       color: var(--text-dim);
     }
 
-    .browser-icons {
-      display: flex;
-      gap: 8px;
-    }
-
-    .browser-btn {
+    .portal-test-btn {
       display: flex;
       align-items: center;
-      gap: 7px;
+      gap: 6px;
       background: var(--bg-card-subtle);
       border: 1px solid var(--border);
       border-radius: 8px;
       padding: 7px 11px;
-      color: var(--text);
+      color: var(--brand-lime);
       text-decoration: none;
       font-size: 11px;
       font-weight: 600;
+      font-family: var(--font-mono);
       transition: all 0.15s;
+      white-space: nowrap;
     }
 
-    .browser-btn:hover {
-      border-color: var(--border-accent);
+    .portal-test-btn:hover {
+      border-color: var(--brand-lime);
       background: #1e2c2a;
       transform: translateY(-1px);
-    }
-
-    .browser-icon-svg {
-      width: 17px;
-      height: 17px;
-      flex-shrink: 0;
     }
 
     /* RIGHT SECTION: Research with Clarity */
@@ -599,7 +608,10 @@
                 </div>
 
                 <div class="form-field">
-                  <label for="auth-password">password</label>
+                  <div class="form-field-header">
+                    <label for="auth-password">password</label>
+                    <a href="https://archyve.xyz/login" target="_blank" class="forgot-link">forgot password?</a>
+                  </div>
                   <input type="password" id="auth-password" placeholder="••••••••" required
                     autocomplete="current-password">
                 </div>
@@ -615,29 +627,36 @@
                   </svg>
                 </button>
               </form>
+
+              <!-- Register Prompt (Opens on archyve.xyz) -->
+              <div id="register-view" style="display: none; padding: 8px 0;">
+                <p style="font-size: 12px; color: var(--text-muted); line-height: 1.5; margin-bottom: 16px;">
+                  Create your Archyve account on archyve.xyz to access research dossiers, then sign in here to synchronize.
+                </p>
+                <a href="https://archyve.xyz/login" target="_blank" class="btn-auth-submit" style="text-decoration: none; display: flex;">
+                  <span>register on archyve.xyz</span>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="7" y1="17" x2="17" y2="7"></line>
+                    <polyline points="7 7 17 7 17 17"></polyline>
+                  </svg>
+                </a>
+              </div>
             </div>
           </div>
         </div>
 
-        <!-- Horizontal Subsection: Browser Install Strip -->
-        <div class="browsers-strip">
-          <div class="browsers-title">
-            <span>install extension</span>
-            <span>chromium &amp; gecko</span>
+        <!-- Horizontal Subsection: Supported Academic Portals & Quick Test -->
+        <div class="portals-strip">
+          <div class="portals-title">
+            <span>supported academic portals</span>
+            <span>arxiv · ieee · elsevier · springer · jstor</span>
           </div>
-          <div class="browser-icons">
-            <!-- Chrome Official Logo -->
-            <a href="https://ggl.link/archyve" target="_blank" class="browser-btn" title="Chrome Web Store">
-              <img src="assets/icons/chrome.svg" alt="Chrome" class="browser-icon-svg">
-              <span>Chrome</span>
-            </a>
-
-            <!-- Edge Official Logo -->
-            <a href="https://dub.sh/archyve" target="_blank" class="browser-btn" title="Microsoft Edge Add-ons">
-              <img src="assets/icons/Microsoft_Edge_logo_(2019).svg" alt="Edge" class="browser-icon-svg">
-              <span>Edge</span>
-            </a>
-          </div>
+          <a href="https://arxiv.org/abs/1706.03762" target="_blank" class="portal-test-btn"
+            title="Test on Open-Access arXiv Paper">
+            <span>try sample paper</span>
+            <span>&nearr;</span>
+          </a>
         </div>
       </div>
 
