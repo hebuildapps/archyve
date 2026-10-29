@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Archyve Research Assistant</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Lora:ital,wght@0,400;0,500;0,600&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0d1211;
+      --bg-card: #151d1c;
+      --bg-subtle: #192423;
+      --border: #233230;
+      --border-accent: #2e4441;
+      --text: #e2e8e5;
+      --text-muted: #8b9d99;
+      --text-dim: #5c6e6a;
+      --brand-lime: #9ee618;
+      --brand-lime-hover: #b5ff24;
+      --brand-glow: rgba(158, 230, 24, 0.15);
+      --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      --font-serif: 'Instrument Serif', Georgia, serif;
+      --font-lora: 'Lora', Georgia, serif;
+      --font-mono: 'JetBrains Mono', monospace;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      width: 340px;
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font-sans);
+      font-size: 13px;
+      line-height: 1.5;
+      padding: 16px;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    /* Top Brand Header */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 14px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      text-decoration: none;
+    }
+
+    .brand img {
+      width: 24px;
+      height: 24px;
+      border-radius: 6px;
+    }
+
+    .brand-name {
+      font-family: var(--font-lora);
+      font-size: 18px;
+      font-weight: 500;
+      color: #ffffff;
+      letter-spacing: -0.02em;
+    }
+
+    .badge-version {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      background: var(--bg-subtle);
+      border: 1px solid var(--border);
+      padding: 2px 6px;
+      border-radius: 4px;
+      color: var(--text-dim);
+    }
+
+    /* Status Container */
+    .status-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 14px;
+      position: relative;
+    }
+
+    .status-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--text-dim);
+      flex-shrink: 0;
+    }
+
+    .status-dot.active {
+      background: var(--brand-lime);
+      box-shadow: 0 0 8px var(--brand-lime);
+    }
+
+    .status-label {
+      font-size: 11px;
+      font-family: var(--font-mono);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .status-label.active {
+      color: var(--brand-lime);
+    }
+
+    .status-label.inactive {
+      color: var(--text-muted);
+    }
+
+    .paper-info {
+      font-size: 12px;
+      color: var(--text-muted);
+      line-height: 1.4;
+      word-break: break-all;
+    }
+
+    .paper-domain {
+      display: inline-block;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      background: var(--bg-subtle);
+      border: 1px solid var(--border);
+      color: #ffffff;
+      padding: 2px 7px;
+      border-radius: 5px;
+      margin-top: 4px;
+    }
+
+    /* Action Button */
+    .btn-analyze {
+      width: 100%;
+      background: var(--brand-lime);
+      color: #0d1211;
+      border: none;
+      padding: 10px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      font-family: var(--font-sans);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      transition: all 0.15s;
+      box-shadow: 0 4px 12px var(--brand-glow);
+    }
+
+    .btn-analyze:hover {
+      background: var(--brand-lime-hover);
+      transform: translateY(-1px);
+    }
+
+    .shortcut-hint {
+      font-size: 10px;
+      font-family: var(--font-mono);
+      color: var(--text-dim);
+      text-align: center;
+    }
+
+    /* Unsupported State Guide */
+    .guide-box {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .guide-title {
+      font-size: 11px;
+      font-family: var(--font-mono);
+      color: var(--text-dim);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+
+    .portals-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+
+    .portal-chip {
+      font-size: 10px;
+      font-family: var(--font-mono);
+      background: var(--bg-subtle);
+      border: 1px solid var(--border);
+      color: var(--text-muted);
+      padding: 3px 6px;
+      border-radius: 4px;
+    }
+
+    .btn-sample {
+      width: 100%;
+      background: var(--bg-subtle);
+      border: 1px solid var(--border);
+      color: var(--brand-lime);
+      padding: 8px 12px;
+      border-radius: 7px;
+      font-size: 11px;
+      font-family: var(--font-mono);
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      text-decoration: none;
+      transition: all 0.15s;
+      margin-top: 4px;
+    }
+
+    .btn-sample:hover {
+      border-color: var(--brand-lime);
+      background: #1e2c2a;
+    }
+
+    /* Footer links */
+    .footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11px;
+      font-family: var(--font-mono);
+      padding-top: 10px;
+      border-top: 1px solid var(--border);
+    }
+
+    .footer a {
+      color: var(--text-dim);
+      text-decoration: none;
+      transition: color 0.15s;
+    }
+
+    .footer a:hover {
+      color: var(--brand-lime);
+    }
+  </style>
+</head>
+
+<body>
+  <!-- Top Brand Header -->
+  <header class="header">
+    <div class="brand">
+      <img src="assets/icons/icon-48.png" alt="Archyve">
+      <span class="brand-name">archyve</span>
+    </div>
+    <span class="badge-version">v3.0.1</span>
+  </header>
+
+  <!-- Status Card (Dynamically populated by popup.ts) -->
+  <div class="status-card">
+    <!-- Active paper state -->
+    <div id="supported-state" style="display: none;">
+      <div class="status-header">
+        <span class="status-dot active"></span>
+        <span class="status-label active">paper detected</span>
+      </div>
+      <div class="paper-info">
+        <div style="font-weight: 600; color: #ffffff; margin-top: 4px;" id="paper-title-display">Ready for evaluation
+        </div>
+        <span class="paper-domain" id="paper-domain-display">arxiv.org</span>
+      </div>
+      <button id="btn-trigger" class="btn-analyze" style="margin-top: 10px;">
+        <span>Evaluate with Archyve</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+          stroke-linecap="round" stroke-linejoin="round">
+          <line x1="5" y1="12" x2="19" y2="12"></line>
+          <polyline points="12 5 19 12 12 19"></polyline>
+        </svg>
+      </button>
+      <div class="shortcut-hint" style="margin-top: 6px;">shortcut: Ctrl+Shift+H</div>
+    </div>
+
+    <!-- Unsupported state -->
+    <div id="unsupported-state">
+      <div class="status-header">
+        <span class="status-dot"></span>
+        <span class="status-label inactive">no paper detected</span>
+      </div>
+      <div class="paper-info" style="margin-top: 4px;">
+        Navigate to a research paper on any supported repository to evaluate claims and citations.
+      </div>
+      <div class="guide-box" style="margin-top: 8px;">
+        <span class="guide-title">supported portals</span>
+        <div class="portals-list">
+          <span class="portal-chip">arXiv</span>
+          <span class="portal-chip">IEEE Xplore</span>
+          <span class="portal-chip">ScienceDirect</span>
+          <span class="portal-chip">Springer</span>
+          <span class="portal-chip">JSTOR</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer class="footer">
+    <a href="#" id="open-settings-link">api settings</a>
+    <a href="https://archyve.xyz" target="_blank">archyve.xyz &nearr;</a>
+  </footer>
+
+  <script src="popup.js"></script>
+</body>
+
+</html>
