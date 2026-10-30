@@ -4,6 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Search } from 'lucide-react';
 
 import { SUPPORTED_ADAPTERS, type AdapterOption } from '@/lib/adapters/config';
+import { AnalyzeButton } from '@/components/AnalyzeButton';
 
 interface SupportedAdaptersSearchBarProps {
   urlInput: string;
@@ -212,65 +213,63 @@ export function SupportedAdaptersSearchBar({
                 )}
               </div>
 
-              <button
+              <AnalyzeButton
                 type="submit"
-                className={`shrink-0 z-20 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-sans font-medium text-xs transition-all duration-200 cursor-pointer shadow-xs border ${
-                  hasInput
-                    ? 'bg-foreground text-background hover:opacity-90 active:scale-[0.98] border-foreground/20 shadow-sm'
-                    : 'bg-muted text-muted-foreground hover:text-foreground dark:bg-[#2b3033] dark:text-[#cfd2d4] dark:hover:bg-[#343a3e] border-border/40'
-                }`}
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  viewBox="0 0 256 256"
-                  className="pt-0.5 w-5.5 h-5.5 text-current transition-colors duration-200"
-                >
-                  <rect width="256" height="256" fill="none" />
-                  <rect
-                    x="40"
-                    y="40"
-                    width="176"
-                    height="176"
-                    rx="8"
-                    transform="translate(0 256) rotate(-90)"
-                    opacity={hasInput ? '0.15' : '0.1'}
-                    fill="currentColor"
-                  />
-                  <rect
-                    x="40"
-                    y="40"
-                    width="176"
-                    height="176"
-                    rx="8"
-                    transform="translate(0 256) rotate(-90)"
-                    fill="none"
-                    stroke={hasInput ? 'currentColor' : 'transparent'}
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="16"
-                  />
-                  <line
-                    x1="160"
-                    y1="96"
-                    x2="96"
-                    y2="160"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="16"
-                  />
-                  <polyline
-                    points="112 96 160 96 160 144"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth="16"
-                  />
-                </svg>
-                <span>Analyze</span>
-              </button>
+                label="Analyze"
+                hasInput={hasInput}
+                className="shrink-0 z-20"
+                icon={
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 256 256"
+                    className="w-4 h-4 text-current transition-colors duration-200"
+                  >
+                    <rect width="256" height="256" fill="none" />
+                    <rect
+                      x="40"
+                      y="40"
+                      width="176"
+                      height="176"
+                      rx="8"
+                      transform="translate(0 256) rotate(-90)"
+                      opacity={hasInput ? 0.15 : 0.1}
+                      fill="currentColor"
+                    />
+                    <rect
+                      x="40"
+                      y="40"
+                      width="176"
+                      height="176"
+                      rx="8"
+                      transform="translate(0 256) rotate(-90)"
+                      fill="none"
+                      stroke={hasInput ? 'currentColor' : 'transparent'}
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="16"
+                    />
+                    <line
+                      x1="160"
+                      y1="96"
+                      x2="96"
+                      y2="160"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="16"
+                    />
+                    <polyline
+                      points="112 96 160 96 160 144"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="16"
+                    />
+                  </svg>
+                }
+              />
             </div>
           </div>
         </div>
