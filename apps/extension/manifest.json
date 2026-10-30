@@ -1,35 +1,20 @@
 {
   "manifest_version": 3,
   "name": "archyve",
-  "version": "3.0.0",
-  "description": "academic research intelligence layer for the academic web.",
+  "version": "3.0.1",
+  "description": "Instant academic research intelligence for your research work.",
   "permissions": [
     "activeTab",
+    "tabs",
     "storage",
     "contextMenus"
   ],
   "background": {
     "service_worker": "background.js"
   },
-  "content_scripts": [
-    {
-      "matches": [
-        "https://ieeexplore.ieee.org/document/*",
-        "https://link.springer.com/article/*",
-        "https://link.springer.com/chapter/*",
-        "https://link.springer.com/referenceworkentry/*",
-        "https://www.sciencedirect.com/science/article/pii/*",
-        "https://www.jstor.org/stable/*",
-        "https://arxiv.org/abs/*"
-      ],
-      "js": [
-        "content.js"
-      ],
-      "run_at": "document_end"
-    }
-  ],
   "action": {
-    "default_title": "analyze with archyve",
+    "default_title": "evaluate with archyve",
+    "default_popup": "popup.html",
     "default_icon": {
       "16": "assets/icons/icon-16.png",
       "48": "assets/icons/icon-48.png",
@@ -51,7 +36,7 @@
         "default": "Ctrl+Shift+H",
         "mac": "Command+Shift+H"
       },
-      "description": "analyze paper with archyve"
+      "description": "evaluate paper with archyve"
     }
   }
 }
