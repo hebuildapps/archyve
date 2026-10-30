@@ -2,7 +2,7 @@
 export const dynamic = 'force-dynamic';
 
 import React, { useEffect, useState, useRef } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { ResearchResult, NormalizedPaper } from '@archyve/shared';
 import { keyStore } from '@/lib/security/AIKeyStore';
 import { supabaseClient } from '@/lib/db/supabaseClient';
@@ -22,6 +22,8 @@ import { TextSelectionMenu } from '@/components/research/TextSelectionMenu';
 export default function ResearchDossierPage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const trigger = searchParams?.get('trigger') || 'url_prepend';
 
   // Page states
   const [loading, setLoading] = useState(true);
@@ -130,7 +132,7 @@ export default function ResearchDossierPage() {
           body: JSON.stringify({
             url: paperUrl,
             source: 'unknown',
-            trigger: 'url_prepend',
+            trigger,
             timestamp: new Date().toISOString(),
           }),
           signal: controller.signal,
@@ -287,7 +289,7 @@ export default function ResearchDossierPage() {
             'x-ai-model': model,
             'x-ai-key': apiKey || '',
           },
-          body: JSON.stringify({ paper }),
+          body: JSON.stringify({ paper, trigger }),
         });
 
         console.log('[FRONTEND] fetch /api/research/generate RESPONSE RECEIVED:', res.status);

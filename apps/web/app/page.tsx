@@ -131,7 +131,7 @@ export default function Home() {
         return;
       }
       const pathUrl = encodeURIComponent(trimmed);
-      router.push(`/${pathUrl}`);
+      router.push(`/${pathUrl}?trigger=search_bar`);
     } catch {
       setError('Please enter a valid URL including http:// or https://');
     }

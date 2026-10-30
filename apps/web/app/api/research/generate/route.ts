@@ -59,6 +59,7 @@ export async function POST(req: NextRequest) {
     
     // 3. Validate NormalizedPaper request body
     const body = await req.json();
+    const trigger = typeof body.trigger === 'string' ? body.trigger : 'url_prepend';
     const parseResult = NormalizedPaperSchema.safeParse(body.paper);
     
     if (!parseResult.success) {
@@ -235,7 +236,7 @@ export async function POST(req: NextRequest) {
           console.log('>> Redis cache set.');
           
           const latencyMs = Date.now() - startTime;
-          logAnalytics(paperId, 'extension', false, latencyMs).catch(console.error);
+          logAnalytics(paperId, trigger, false, latencyMs).catch(console.error);
           
           console.log('>> AI Dossier Generation Complete. Sending finished status...');
           sendUpdate('completed', 100, 'Dossier successfully generated.', outputData);
