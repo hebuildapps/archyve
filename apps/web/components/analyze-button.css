@@ -1,0 +1,237 @@
+:root {
+    --analyze-btn-bg: #ffffff;
+    --analyze-btn-text: #171717;
+    --analyze-btn-icon: #737373;
+    --analyze-btn-border: rgba(0, 0, 0, 0.08);
+    --analyze-btn-border-hover: rgba(0, 0, 0, 0.16);
+    --analyze-btn-outline: rgba(0, 0, 0, 0.04);
+    --analyze-btn-outline-hover: rgba(0, 0, 0, 0.08);
+    --analyze-btn-outline-width: 3px;
+    --analyze-btn-shadow: 0 2px 4px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+    --analyze-btn-shadow-hover: 0 4px 8px rgba(0, 0, 0, 0.06), 0 2px 4px rgba(0, 0, 0, 0.03);
+
+    --analyze-btn-height-idle: 34px;
+    --analyze-btn-radius-idle: 8px;
+    --analyze-btn-height-drag: 180px;
+    --analyze-btn-width-drag: 360px;
+    --analyze-btn-radius-drag: 20px;
+}
+
+.dark {
+    --analyze-btn-bg: #232729;
+    --analyze-btn-text: #cfd2d4;
+    --analyze-btn-icon: #9ca3af;
+    --analyze-btn-border: rgba(255, 255, 255, 0.08);
+    --analyze-btn-border-hover: rgba(255, 255, 255, 0.15);
+    --analyze-btn-outline: rgba(255, 255, 255, 0.04);
+    --analyze-btn-outline-hover: rgba(255, 255, 255, 0.08);
+    --analyze-btn-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
+    --analyze-btn-shadow-hover: 0 4px 8px rgba(0, 0, 0, 0.35);
+}
+
+/* ==========================================================================
+   1. BUTTON WRAPPER (Flexible for inline or standalone hero)
+   ========================================================================== */
+.analyze-wrapper {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 20;
+}
+
+.analyze-wrapper.is-hero-dropzone {
+    height: 14rem;
+    display: grid;
+    place-items: center;
+    margin-top: -8rem;
+    margin-bottom: -8rem;
+    padding-left: 6rem;
+    padding-right: 6rem;
+    pointer-events: none;
+}
+
+.analyze-wrapper.is-dragging {
+    pointer-events: auto;
+}
+
+/* ==========================================================================
+   2. MAIN BUTTON ELEMENT
+   ========================================================================== */
+.analyze-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    box-sizing: border-box;
+    width: fit-content;
+    height: var(--analyze-btn-height-idle);
+    padding: 0 12px;
+    border-radius: var(--analyze-btn-radius-idle);
+
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 1;
+    color: var(--analyze-btn-text);
+    letter-spacing: -0.01em;
+    white-space: nowrap;
+
+    background-color: var(--analyze-btn-bg);
+    border: 1px solid var(--analyze-btn-border);
+    outline: var(--analyze-btn-outline-width) solid var(--analyze-btn-outline);
+    outline-offset: 0;
+    box-shadow: var(--analyze-btn-shadow);
+
+    cursor: pointer;
+    user-select: none;
+    pointer-events: auto;
+    z-index: 20;
+
+    transition-property: filter, border-color, outline-color, box-shadow, background-color, color, transform;
+    transition-duration: 200ms;
+    transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+    will-change: transform, filter;
+}
+
+/* ==========================================================================
+   3. HOVER & FOCUS MICRO-INTERACTIONS
+   ========================================================================== */
+.analyze-btn:hover {
+    filter: brightness(0.96);
+    border-color: var(--analyze-btn-border-hover);
+    box-shadow: var(--analyze-btn-shadow-hover);
+}
+
+.dark .analyze-btn:hover {
+    filter: brightness(1.1);
+}
+
+.analyze-btn:focus-visible {
+    outline: var(--analyze-btn-outline-width) solid #a3a3a3;
+    outline-offset: 2px;
+}
+
+/* ==========================================================================
+   4. ACTIVE / CLICK FEEDBACK & ACTIVE INPUT STATE
+   ========================================================================== */
+.analyze-btn:active {
+    transform: scale(0.98);
+    transition-duration: 100ms;
+}
+
+.analyze-btn.has-input,
+.analyze-btn[data-has-input="true"] {
+    background-color: #0f172a;
+    color: #ffffff;
+    border-color: rgba(255, 255, 255, 0.15);
+    outline-color: rgba(15, 23, 42, 0.15);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.dark .analyze-btn.has-input,
+.dark .analyze-btn[data-has-input="true"] {
+    background-color: #f1f5f9;
+    color: #0f172a;
+    border-color: rgba(0, 0, 0, 0.2);
+    outline-color: rgba(241, 245, 249, 0.2);
+    box-shadow: 0 2px 8px rgba(255, 255, 255, 0.1);
+}
+
+/* ==========================================================================
+   5. BUTTON CONTENT (ICON + TEXT)
+   ========================================================================== */
+.analyze-btn-content {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+    pointer-events: none;
+}
+
+.analyze-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    color: var(--analyze-btn-icon);
+    transition: transform 0.2s ease, color 0.2s ease;
+    flex-shrink: 0;
+}
+
+.analyze-btn:hover .analyze-icon {
+    transform: translateY(-0.5px);
+}
+
+.analyze-btn.has-input .analyze-icon,
+.analyze-btn[data-has-input="true"] .analyze-icon {
+    color: currentColor;
+}
+
+/* ==========================================================================
+   6. DRAGGING MORPH STATE (Interactive Dropzone)
+   ========================================================================== */
+.analyze-btn.is-drag-active {
+    width: var(--analyze-btn-width-drag);
+    height: var(--analyze-btn-height-drag);
+    border-radius: var(--analyze-btn-radius-drag);
+    border-color: #38bdf8;
+    outline: 4px solid rgba(56, 189, 248, 0.2);
+    background-color: #ffffff;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.08), 0 8px 10px -6px rgba(0, 0, 0, 0.04);
+}
+
+.analyze-drop-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    white-space: nowrap;
+    color: #0f172a;
+    font-size: 15px;
+    font-weight: 500;
+}
+
+.analyze-drop-content .analyze-icon {
+    width: 28px;
+    height: 28px;
+    color: #0284c7;
+    animation: bounce-subtle 1.2s infinite ease-in-out;
+}
+
+@keyframes bounce-subtle {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-4px);
+    }
+}
+
+/* ==========================================================================
+   7. HIDDEN NATIVE FILE INPUT & FOOTNOTE
+   ========================================================================== */
+.analyze-file-input {
+    display: none;
+    visibility: hidden;
+    position: absolute;
+    width: 0;
+    height: 0;
+    opacity: 0;
+}
+
+.analyze-footnote {
+    display: block;
+    position: relative;
+    z-index: 50;
+    margin-top: 3rem;
+    color: #737373;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 500;
+    text-align: center;
+    user-select: none;
+}
